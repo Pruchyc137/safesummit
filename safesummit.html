@@ -468,11 +468,17 @@ footer .foot-grid li a:hover{opacity:1;color:var(--accent-gold);}
           <option value="gt5000" data-th="มากกว่า ฿5,000" data-en="Over ฿5,000">มากกว่า ฿5,000</option>
         </select>
       </div>
-      <div class="field"><label data-th="วันที่" data-en="Date">วันที่</label>
-        <select>
-          <option data-th="ทั้งหมด" data-en="Any date">ทั้งหมด</option>
-          <option>ก.ค. 2569</option><option>ส.ค. 2569</option><option>ก.ย. 2569</option><option>ต.ค. 2569</option>
+      <div class="field">
+        <label data-th="รูปแบบทริป" data-en="Trip type">รูปแบบทริป</label>
+        <select id="typeSel">
+          <option value="all" data-th="ทั้งหมด" data-en="All types">ทั้งหมด</option>
+          <option value="allinclusive" data-th="ครบวงจร" data-en="All-inclusive">ครบวงจร</option>
+          <option value="transfer" data-th="มีรถรับส่ง" data-en="Transfer included">มีรถรับส่ง</option>
+          <option value="meetup" data-th="นัดพบจุดนัด" data-en="Meet at trailhead">นัดพบจุดนัด</option>
         </select>
+      </div>
+      <div class="field"><label data-th="วันที่" data-en="Date">วันที่</label>
+        <select id="dateSel"></select>
       </div>
       <button class="go" onclick="applyTripFilter()" data-th="ค้นหาทริป" data-en="Search trips">ค้นหาทริป</button>
     </div>
@@ -704,6 +710,27 @@ function populateProvinces(){
 const regionSelEl = document.getElementById('regionSel');
 if(regionSelEl){ regionSelEl.addEventListener('change', populateProvinces); populateProvinces(); }
 
+function populateDates(){
+  const sel = document.getElementById('dateSel');
+  if(!sel) return;
+  const lang = curLang();
+  const thMonths = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  const enMonths = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const now = new Date();
+  let opts = `<option value="all" data-th="ทั้งหมด" data-en="Any date">${lang==='en'?'Any date':'ทั้งหมด'}</option>`;
+  for(let i = 0; i < 6; i++){
+    const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+    const m = d.getMonth();
+    const buddhistYear = d.getFullYear() + 543;
+    const thLabel = thMonths[m] + ' ' + buddhistYear;
+    const enLabel = enMonths[m] + ' ' + d.getFullYear();
+    const val = d.getFullYear() + '-' + String(m+1).padStart(2,'0');
+    opts += `<option value="${val}" data-th="${thLabel}" data-en="${enLabel}">${lang==='en'?enLabel:thLabel}</option>`;
+  }
+  sel.innerHTML = opts;
+}
+populateDates();
+
 function applyTripFilter(){
   const region = document.getElementById('regionSel').value;
   const price = document.getElementById('priceSel').value;
@@ -723,6 +750,7 @@ function switchLang(lang, btn){
   if(typeof refreshLanding==='function') refreshLanding();
   if(typeof renderDash==='function' && document.getElementById('dashOverlay') && document.getElementById('dashOverlay').classList.contains('show')) renderDash();
   if(typeof populateProvinces==='function') populateProvinces();
+  if(typeof populateDates==='function') populateDates();
 }
 
 function toggleLogin(e){
