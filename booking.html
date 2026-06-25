@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SafeSummit — จองทริป</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Kanit:wght@600;700;800&family=Sarabun:wght@400;500;600;700&family=Bai+Jamjuree:wght@400;500;600&display=swap');
+
+:root{
+  --bg-deep:#2A2118; --bg-deep-2:#3A2C1C; --bg-light:#FAF6EA;
+  --card-light:#FFFFFF; --bg-card:#F3ECDA;
+  --accent-trail:#E2672B; --accent-gold:#C9A24B;
+  --text-light:#EDE7D6; --text-dark:#2B2118;
+  --text-muted:#6B5D4A; --line-muted:#B59A6E;
+  --shadow:0 4px 24px rgba(40,28,18,.11);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:'Sarabun',sans-serif;color:var(--text-dark);background:var(--bg-light);min-height:100vh;display:flex;flex-direction:column;}
+a{text-decoration:none;color:inherit;}
+svg{display:block;}
+h1,h2,h3,h4{font-family:'Kanit',sans-serif;}
+
+/* ── TOPBAR ── */
+.topbar{background:var(--bg-deep);border-bottom:1px solid rgba(201,162,75,.2);position:sticky;top:0;z-index:50;}
+.topbar-inner{display:flex;align-items:center;justify-content:space-between;padding:12px 24px;max-width:1100px;margin:0 auto;}
+.brand{display:flex;align-items:center;gap:9px;font-family:'Kanit',sans-serif;font-weight:800;font-size:19px;color:var(--text-light);}
+.brand .mark{width:28px;height:28px;}
+.brand .istar{position:relative;display:inline-block;}
+.brand .istar .star{position:absolute;left:50%;top:-0.42em;transform:translateX(-50%);width:.46em;height:.46em;color:var(--accent-gold);}
+.back-btn{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--line-muted);border:1px solid rgba(181,154,110,.3);border-radius:8px;padding:7px 13px;transition:.15s;}
+.back-btn:hover{color:var(--text-light);}
+.back-btn svg{width:13px;height:13px;}
+
+/* ── STEPPER ── */
+.stepper-wrap{background:var(--card-light);border-bottom:1px solid #E6DCC6;}
+.stepper{display:flex;justify-content:center;gap:0;padding:18px 24px;max-width:700px;margin:0 auto;}
+.step{display:flex;align-items:center;gap:8px;flex:1;}
+.step-circle{width:30px;height:30px;border-radius:50%;border:2px solid #D5C8AE;display:flex;align-items:center;justify-content:center;font-family:'Bai Jamjuree',monospace;font-size:12px;font-weight:700;color:#B59A6E;flex-shrink:0;transition:.3s;}
+.step-label{font-size:12.5px;font-weight:600;color:#B59A6E;white-space:nowrap;transition:.3s;}
+.step.active .step-circle{border-color:var(--accent-trail);background:var(--accent-trail);color:#fff;}
+.step.active .step-label{color:var(--text-dark);}
+.step.done .step-circle{border-color:#5C8A5A;background:#5C8A5A;color:#fff;}
+.step.done .step-label{color:var(--text-muted);}
+.step-line{flex:1;height:2px;background:#E6DCC6;margin:0 8px;transition:.3s;}
+.step-line.done{background:#5C8A5A;}
+.step-line.active{background:var(--accent-trail);}
+@media(max-width:540px){.step-label{display:none;} .stepper{gap:4px;}}
+
+/* ── LAYOUT ── */
+.page-wrap{max-width:1000px;margin:0 auto;padding:32px 24px 60px;display:grid;grid-template-columns:1fr 360px;gap:24px;align-items:start;}
+@media(max-width:780px){.page-wrap{grid-template-columns:1fr;}}
+
+/* ── PANELS ── */
+.panel{background:var(--card-light);border-radius:14px;box-shadow:var(--shadow);overflow:hidden;}
+.panel-head{padding:18px 22px;border-bottom:1px solid #E6DCC6;display:flex;align-items:center;gap:10px;}
+.panel-head svg{width:18px;height:18px;color:var(--accent-trail);}
+.panel-head h3{font-size:15.5px;font-weight:700;}
+.panel-body{padding:20px 22px;}
+
+/* ── TRIP SUMMARY CARD ── */
+.trip-thumb{width:100%;height:130px;position:relative;overflow:hidden;border-radius:10px;margin-bottom:14px;}
+.trip-thumb svg.scene{position:absolute;inset:0;width:100%;height:100%;}
+.trip-badge{position:absolute;top:10px;left:10px;background:rgba(255,255,255,.92);font-family:'Bai Jamjuree',monospace;font-size:10px;font-weight:600;padding:4px 9px;border-radius:20px;display:flex;align-items:center;gap:4px;}
+.trip-badge svg{width:10px;height:10px;color:var(--accent-trail);}
+.trip-sum-name{font-size:16px;font-weight:700;margin-bottom:5px;}
+.trip-sum-meta{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px;}
+.trip-sum-meta-item{display:flex;align-items:center;gap:5px;font-size:12.5px;color:var(--text-muted);}
+.trip-sum-meta-item svg{width:13px;height:13px;}
+.seats-left{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--text-muted);padding:8px 12px;background:#F5EFE0;border-radius:8px;margin-bottom:14px;}
+.seats-left svg{width:13px;height:13px;color:var(--accent-trail);}
+.seats-left b{color:var(--accent-trail);}
+
+/* ── ORDER SUMMARY BOX ── */
+.order-box{background:#FCFAF3;border:1px solid #E6DCC6;border-radius:10px;padding:14px 16px;margin-top:14px;}
+.order-row{display:flex;justify-content:space-between;font-size:13.5px;padding:4px 0;}
+.order-row.total{border-top:1px solid #E6DCC6;margin-top:8px;padding-top:10px;font-weight:700;font-size:15.5px;}
+.order-row.total .val{color:var(--accent-trail);font-family:'Bai Jamjuree',monospace;}
+.order-row .muted{color:var(--text-muted);}
+
+/* ── FORM ── */
+.fld{margin-bottom:14px;}
+.fld label{display:block;font-size:12px;font-weight:700;color:var(--text-dark);margin-bottom:5px;}
+.fld input,.fld select,.fld textarea{
+  width:100%;padding:10px 13px;border:1px solid #E0D5BD;border-radius:9px;
+  font-family:'Sarabun',sans-serif;font-size:14.5px;background:var(--card-light);color:var(--text-dark);
+  transition:.15s;
+}
+.fld input:focus,.fld select:focus{outline:none;border-color:var(--accent-gold);box-shadow:0 0 0 3px rgba(201,162,75,.16);}
+.fld-row{display:flex;gap:10px;}
+.fld-row .fld{flex:1;}
+.fld .hint{font-size:11.5px;color:var(--text-muted);margin-top:4px;}
+.seat-stepper{display:flex;align-items:center;gap:0;border:1px solid #E0D5BD;border-radius:9px;overflow:hidden;width:fit-content;}
+.seat-btn{width:42px;height:42px;border:none;background:#F5EFE0;font-size:20px;font-weight:600;color:var(--text-dark);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s;}
+.seat-btn:hover{background:#EDE4D0;}
+.seat-val{width:56px;height:42px;border:none;border-left:1px solid #E0D5BD;border-right:1px solid #E0D5BD;background:var(--card-light);font-family:'Bai Jamjuree',monospace;font-size:18px;font-weight:700;color:var(--text-dark);text-align:center;}
+.seat-label{font-size:13px;color:var(--text-muted);margin-left:12px;}
+
+/* ── TERMS ── */
+.terms-check{display:flex;align-items:flex-start;gap:9px;font-size:13px;color:var(--text-muted);margin:14px 0 0;}
+.terms-check a{color:var(--accent-trail);font-weight:600;}
+.terms-check input{margin-top:3px;flex-shrink:0;width:15px;height:15px;cursor:pointer;}
+
+/* ── BUTTONS ── */
+.btn{border:none;border-radius:9px;padding:12px 22px;font-size:14.5px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;font-family:'Sarabun',sans-serif;transition:.15s;width:100%;}
+.btn svg{width:16px;height:16px;}
+.btn-primary{background:var(--accent-trail);color:#fff;box-shadow:0 8px 20px rgba(226,103,43,.28);}
+.btn-primary:hover{filter:brightness(1.07);}
+.btn-ghost{background:transparent;color:var(--text-dark);border:1.5px solid #E0D5BD;}
+.btn-ghost:hover{background:#F5EFE0;}
+.btn-green{background:#5C8A5A;color:#fff;}
+.btn-green:hover{filter:brightness(1.08);}
+.btn-gold{background:var(--accent-gold);color:#fff;}
+.btn-disabled{background:#D5C8AE;color:#9B8E7A;cursor:not-allowed;}
+.btn-sm{padding:9px 16px;font-size:13px;width:auto;}
+.btn-row{display:flex;flex-direction:column;gap:10px;margin-top:20px;}
+
+/* ── QR SECTION ── */
+.qr-wrap{text-align:center;padding:8px 0 16px;}
+.qr-brand{font-family:'Bai Jamjuree',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;}
+.qr-canvas-wrap{display:inline-block;padding:14px;background:#fff;border-radius:14px;box-shadow:0 4px 18px rgba(40,28,18,.12);border:1px solid #E6DCC6;position:relative;}
+canvas#qrCanvas{display:block;}
+.qr-logo{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:36px;height:36px;background:#fff;border-radius:6px;padding:4px;box-shadow:0 2px 8px rgba(0,0,0,.15);}
+.qr-amount{font-family:'Kanit',sans-serif;font-size:28px;font-weight:800;color:var(--accent-trail);margin:14px 0 4px;}
+.qr-amount-sub{font-size:13px;color:var(--text-muted);}
+.timer-wrap{display:flex;align-items:center;justify-content:center;gap:7px;margin:12px 0;font-size:13.5px;color:var(--text-muted);}
+.timer-wrap svg{width:15px;height:15px;color:var(--accent-gold);}
+#timerDisplay{font-family:'Bai Jamjuree',monospace;font-weight:700;color:var(--text-dark);}
+.timer-wrap.urgent #timerDisplay{color:#C0552F;}
+.bank-info{background:#F5EFE0;border-radius:10px;padding:12px 16px;margin:12px 0;text-align:left;}
+.bank-row{display:flex;justify-content:space-between;font-size:13px;padding:3px 0;}
+.bank-row .label{color:var(--text-muted);}
+.bank-row .val{font-weight:600;font-family:'Bai Jamjuree',monospace;}
+.bank-row .val.copyable{color:var(--accent-trail);cursor:pointer;text-decoration:underline dotted;}
+.promptpay-badge{display:flex;align-items:center;justify-content:center;gap:7px;margin-bottom:8px;}
+.pp-logo{background:linear-gradient(135deg,#003b6f,#005ba4);color:#fff;font-family:'Bai Jamjuree',monospace;font-size:9px;font-weight:700;padding:3px 7px;border-radius:4px;letter-spacing:.05em;}
+
+/* ── SUCCESS ── */
+.success-wrap{text-align:center;padding:10px 0 24px;}
+.success-icon{width:72px;height:72px;background:rgba(92,138,90,.12);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;}
+.success-icon svg{width:38px;height:38px;color:#5C8A5A;}
+.success-ref{font-family:'Bai Jamjuree',monospace;font-size:13px;color:var(--text-muted);margin-bottom:6px;}
+.success-ref b{color:var(--text-dark);font-size:16px;}
+.success-title{font-size:22px;font-weight:800;color:var(--text-dark);margin-bottom:6px;}
+.success-sub{font-size:14px;color:var(--text-muted);max-width:320px;margin:0 auto 22px;}
+.success-detail{background:#F5EFE0;border-radius:12px;padding:14px 18px;text-align:left;margin-bottom:20px;}
+.srow{display:flex;justify-content:space-between;font-size:13.5px;padding:5px 0;border-bottom:1px solid #E6DCC6;}
+.srow:last-child{border-bottom:none;}
+.srow .label{color:var(--text-muted);}
+.srow .val{font-weight:600;text-align:right;}
+.admin-link-box{background:var(--bg-deep);border-radius:12px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px;}
+.admin-link-box p{font-size:13px;color:var(--line-muted);}
+.admin-link-box b{display:block;font-size:14px;color:var(--text-light);margin-bottom:3px;}
+
+/* ── STEP VISIBILITY ── */
+.step-content{display:none;}
+.step-content.active{display:block;}
+
+/* ── MISC ── */
+.divider{height:1px;background:#E6DCC6;margin:16px 0;}
+.eyebrow{font-family:'Bai Jamjuree',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent-trail);display:flex;align-items:center;gap:7px;margin-bottom:8px;}
+.eyebrow::before{content:'';width:18px;height:1px;background:currentColor;opacity:.6;}
+.info-note{background:#FBF4E2;border:1px dashed var(--accent-gold);border-radius:8px;padding:10px 13px;font-size:12.5px;color:var(--text-muted);margin:10px 0;}
+.info-note b{color:var(--text-dark);}
+.pill{font-family:'Bai Jamjuree',monospace;font-size:10.5px;font-weight:600;padding:3px 8px;border-radius:20px;}
+.pill.open{background:rgba(62,110,142,.13);color:#3E6E8E;}
+.pill.full{background:rgba(201,154,59,.15);color:#C99A3B;}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="safesummit.html">
+      <svg class="mark" viewBox="0 0 48 48" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M8,33 L21,14 L34,33" stroke="#C9A24B" stroke-width="3.2"/>
+        <path d="M15,25 L20,31 L31,17" stroke="#E2672B" stroke-width="3.2"/>
+      </svg>
+      <span>SafeSumm<span class="istar"><span style="color:var(--text-light)">ı</span><svg class="star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.6 6.6L21.5 9.2l-5 4.8 1.4 7L12 17.8 6.1 21l1.4-7-5-4.8 6.9-.6z"/></svg></span>t</span>
+    </a>
+    <a class="back-btn" href="safesummit.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+      กลับหน้าแรก
+    </a>
+  </div>
+</div>
+
+<!-- STEPPER -->
+<div class="stepper-wrap">
+  <div class="stepper">
+    <div class="step active" id="st1">
+      <div class="step-circle">1</div>
+      <div class="step-label">ข้อมูลการจอง</div>
+    </div>
+    <div class="step-line" id="sl1"></div>
+    <div class="step" id="st2">
+      <div class="step-circle">2</div>
+      <div class="step-label">ยืนยันรายการ</div>
+    </div>
+    <div class="step-line" id="sl2"></div>
+    <div class="step" id="st3">
+      <div class="step-circle">3</div>
+      <div class="step-label">ชำระเงิน</div>
+    </div>
+    <div class="step-line" id="sl3"></div>
+    <div class="step" id="st4">
+      <div class="step-circle">4</div>
+      <div class="step-label">เสร็จสิ้น</div>
+    </div>
+  </div>
+</div>
+
+<div class="page-wrap">
+  <!-- LEFT COLUMN -->
+  <div>
+
+    <!-- STEP 1: BOOKING INFO -->
+    <div class="step-content active" id="sc1">
+      <div class="panel">
+        <div class="panel-head">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <h3>ข้อมูลผู้เดินทาง</h3>
+        </div>
+        <div class="panel-body">
+          <div class="fld-row">
+            <div class="fld"><label>ชื่อ <span style="color:#C0552F">*</span></label><input id="f-fname" placeholder="ชื่อ"></div>
+            <div class="fld"><label>นามสกุล <span style="color:#C0552F">*</span></label><input id="f-lname" placeholder="นามสกุล"></div>
+          </div>
+          <div class="fld"><label>อีเมล <span style="color:#C0552F">*</span></label><input id="f-email" type="email" placeholder="email@example.com"><div class="hint">ส่งยืนยันการจองและ QR ชำระเงินที่นี่</div></div>
+          <div class="fld"><label>เบอร์โทรศัพท์ <span style="color:#C0552F">*</span></label><input id="f-phone" placeholder="08x-xxx-xxxx"></div>
+          <div class="fld"><label>หมายเหตุ (ถ้ามี)</label><input id="f-note" placeholder="เช่น แพ้อาหาร หรือต้องการข้อมูลเพิ่มเติม"></div>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-top:16px;">
+        <div class="panel-head">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg>
+          <h3>จำนวนที่นั่ง</h3>
+        </div>
+        <div class="panel-body">
+          <div style="display:flex;align-items:center;gap:0 16px;flex-wrap:wrap;gap:12px;">
+            <div class="seat-stepper">
+              <button class="seat-btn" onclick="changeSeat(-1)">−</button>
+              <div class="seat-val" id="seatVal">1</div>
+              <button class="seat-btn" onclick="changeSeat(1)">+</button>
+            </div>
+            <span class="seat-label" id="seatLabel">ที่นั่ง</span>
+          </div>
+          <div class="info-note" style="margin-top:14px;" id="seatNote"></div>
+          <div class="terms-check">
+            <input type="checkbox" id="termsCheck">
+            <span>ฉันยอมรับ<a href="#" onclick="return false"> ข้อกำหนดการจอง </a>และ<a href="#" onclick="return false"> นโยบายการคืนเงิน</a> ของ SafeSummit</span>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="goStep2()">
+              ถัดไป: ยืนยันรายการ
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2: CONFIRM -->
+    <div class="step-content" id="sc2">
+      <div class="panel">
+        <div class="panel-head">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>
+          <h3>ยืนยันรายการจอง</h3>
+        </div>
+        <div class="panel-body">
+          <div class="eyebrow">ข้อมูลผู้จอง</div>
+          <div id="confirm-info"></div>
+          <div class="divider"></div>
+          <div class="eyebrow" style="margin-top:16px;">รายละเอียดทริป</div>
+          <div id="confirm-trip"></div>
+          <div class="divider"></div>
+          <div class="eyebrow" style="margin-top:16px;">สรุปยอดชำระ</div>
+          <div id="confirm-total"></div>
+          <div class="info-note" style="margin-top:14px;">
+            <b>นโยบายคืนเงิน:</b> ยกเลิกก่อน 14 วัน คืน 100% · ก่อน 7 วัน คืน 50% · ก่อน 3 วัน คืน 25% · น้อยกว่า 3 วัน ไม่คืนเงิน
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="goStep3()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+              ยืนยัน — ไปชำระเงิน
+            </button>
+            <button class="btn btn-ghost" onclick="goStep(1)">← แก้ไขข้อมูล</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 3: PAYMENT -->
+    <div class="step-content" id="sc3">
+      <div class="panel">
+        <div class="panel-head">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+          <h3>ชำระเงินผ่าน PromptPay</h3>
+        </div>
+        <div class="panel-body">
+          <div class="qr-wrap">
+            <div class="promptpay-badge">
+              <div class="pp-logo">PROMPTPAY</div>
+              <span style="font-size:12px;color:var(--text-muted);">สแกนด้วยแอปธนาคาร</span>
+            </div>
+            <div class="qr-canvas-wrap">
+              <canvas id="qrCanvas" width="220" height="220"></canvas>
+              <div class="qr-logo">
+                <svg viewBox="0 0 48 48" fill="none" stroke-linecap="round" stroke-linejoin="round" width="28" height="28">
+                  <path d="M8,33 L21,14 L34,33" stroke="#C9A24B" stroke-width="3.5"/>
+                  <path d="M15,25 L20,31 L31,17" stroke="#E2672B" stroke-width="3.5"/>
+                </svg>
+              </div>
+            </div>
+            <div class="qr-amount" id="qrAmount"></div>
+            <div class="qr-amount-sub">ยอดชำระทั้งหมด (รวม VAT)</div>
+          </div>
+
+          <div class="bank-info">
+            <div class="bank-row"><span class="label">ชื่อบัญชี</span><span class="val">บริษัท SafeSummit จำกัด</span></div>
+            <div class="bank-row"><span class="label">เลข PromptPay</span><span class="val copyable" onclick="copyText('0-2345-67890-1')" title="คลิกเพื่อคัดลอก">0-2345-67890-1 📋</span></div>
+            <div class="bank-row"><span class="label">ธนาคาร</span><span class="val">ไทยพาณิชย์ (SCB)</span></div>
+            <div class="bank-row"><span class="label">หมายเลขอ้างอิง</span><span class="val" id="payRef" style="color:var(--accent-trail)"></span></div>
+          </div>
+
+          <div class="timer-wrap" id="timerWrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            QR หมดอายุใน <span id="timerDisplay">10:00</span>
+          </div>
+
+          <div class="btn-row">
+            <button class="btn btn-green" onclick="mockPaymentDone()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+              จ่ายเงินแล้ว — ยืนยันการชำระ
+            </button>
+            <button class="btn btn-ghost" style="font-size:13px;" onclick="goStep(2)">← กลับ</button>
+          </div>
+          <p style="text-align:center;font-size:12px;color:var(--text-muted);margin-top:12px;">ระบบจะตรวจสอบการชำระเงินอัตโนมัติหลังสแกน QR</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 4: SUCCESS -->
+    <div class="step-content" id="sc4">
+      <div class="panel">
+        <div class="panel-head">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="color:#5C8A5A"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>
+          <h3>การจองสำเร็จแล้ว!</h3>
+        </div>
+        <div class="panel-body">
+          <div class="success-wrap">
+            <div class="success-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg>
+            </div>
+            <div class="success-ref">เลขที่การจอง: <b id="successRef"></b></div>
+            <div class="success-title">ขอบคุณสำหรับการจอง!</div>
+            <div class="success-sub">เราจะส่งรายละเอียดและยืนยันการจองไปที่อีเมลของคุณ</div>
+            <div class="success-detail" id="successDetail"></div>
+
+            <div class="btn-row" style="margin-top:0;">
+              <a class="btn btn-primary" href="my-trips.html">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg>
+                ดูทริปของฉัน
+              </a>
+            </div>
+
+            <div class="admin-link-box" id="adminLinkBox">
+              <div>
+                <b>การจองนี้บันทึกในระบบแล้ว</b>
+                <p>แอดมินสามารถดูและจัดการการจองนี้ได้จาก Dashboard</p>
+              </div>
+              <a href="admin.html" class="btn btn-gold btn-sm" style="white-space:nowrap;width:auto;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+                Admin Dashboard
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT COLUMN: TRIP SUMMARY -->
+  <div>
+    <div class="panel" id="tripSummaryCard">
+      <div class="panel-head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12a9 9 0 1 0 9-9"/><path d="M12 8v4l3 3"/></svg>
+        <h3>สรุปทริป</h3>
+      </div>
+      <div class="panel-body" id="tripSummaryBody">
+        <!-- filled by JS -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast" style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:#2A2118;color:#EDE7D6;padding:12px 22px;border-radius:10px;font-size:14px;font-weight:600;box-shadow:0 14px 34px rgba(0,0,0,.3);opacity:0;transition:.25s;z-index:300;pointer-events:none;"></div>
+
+<script>
+// ===== SCENES =====
+const SCENES={
+  sunrise:`<svg class="scene" viewBox="0 0 300 160" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="s_a" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F0A35E"/><stop offset=".55" stop-color="#E2672B"/><stop offset="1" stop-color="#8A3F1E"/></linearGradient></defs><rect width="300" height="160" fill="url(#s_a)"/><circle cx="210" cy="58" r="26" fill="#FBE3B8" opacity=".92"/><path d="M0,150 L0,108 L70,112 L120,104 L300,116 L300,150Z" fill="#5C3A22" opacity=".55"/><path d="M0,160 L0,128 L90,120 L150,126 L300,118 L300,160Z" fill="#3A2416"/></svg>`,
+  peak:`<svg class="scene" viewBox="0 0 300 160" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="s_b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3E5A6E"/><stop offset=".5" stop-color="#7E8FA0"/><stop offset="1" stop-color="#C9A98A"/></linearGradient></defs><rect width="300" height="160" fill="url(#s_b)"/><circle cx="70" cy="48" r="20" fill="#F5E2C0" opacity=".85"/><path d="M150,30 L210,120 L90,120Z" fill="#2F3E4A"/><path d="M150,30 L172,63 L150,78 L132,58Z" fill="#4A5A66" opacity=".7"/><path d="M40,160 L40,118 L120,128 L300,112 L300,160Z" fill="#24323C"/><rect x="0" y="120" width="300" height="20" fill="#E8E0D2" opacity=".45"/></svg>`,
+  forest:`<svg class="scene" viewBox="0 0 300 160" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="s_c" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#BFE0C8"/><stop offset="1" stop-color="#6FA37A"/></linearGradient></defs><rect width="300" height="160" fill="url(#s_c)"/><path d="M0,0 L300,0 L300,70 L210,60 L120,78 L0,64Z" fill="#4E7E58" opacity=".7"/><path d="M0,160 L0,72 L80,84 L160,70 L240,86 L300,74 L300,160Z" fill="#2F5638"/></svg>`
+};
+
+// ===== DATA =====
+const SEED_TRIPS=[
+  {id:'t1',name:{th:'ภูกระดึง 3 วัน 2 คืน'},org:'เหนือสุดเทรค',region:'northeast',prov:'เลย',date:'2026-07-12',cap:15,booked:11,price:2900,status:'open',badge:'Verified Pro',rating:4.9,scene:'sunrise',orgPhone:'081-234-5678',orgLine:'@northtrek'},
+  {id:'t2',name:{th:'ดอยหลวงเชียงดาว 2 วัน 1 คืน'},org:'ไกด์ล้านนา',region:'north',prov:'เชียงใหม่',date:'2026-07-05',cap:10,booked:10,price:3500,status:'full',badge:'Verified Pro',rating:4.8,scene:'peak',orgPhone:'082-345-6789',orgLine:'@lannaguide'},
+  {id:'t3',name:{th:'เขาช่อง น้ำตกกะเปาะ'},org:'ใต้สุดแทร็ก',region:'south',prov:'ตรัง',date:'2026-06-18',cap:20,booked:14,price:890,status:'ongoing',badge:'Verified Basic',rating:4.7,scene:'forest',orgPhone:'083-456-7890',orgLine:'@southtrack'},
+  {id:'t4',name:{th:'ภูชี้ฟ้า ทะเลหมอก'},org:'เหนือสุดเทรค',region:'north',prov:'เชียงราย',date:'2026-05-30',cap:18,booked:18,price:1800,status:'completed',badge:'Verified Pro',rating:4.9,scene:'peak',orgPhone:'081-234-5678',orgLine:'@northtrek'},
+  {id:'t5',name:{th:'เขาใหญ่ ผากล้วยไม้'},org:'กลางเทรล',region:'northeast',prov:'นครราชสีมา',date:'2026-06-02',cap:12,booked:4,price:1500,status:'cancelled',badge:'Verified Basic',rating:4.5,scene:'sunrise',orgPhone:'084-567-8901',orgLine:'@midtrail'},
+  {id:'t6',name:{th:'ดอยอินทนนท์ กิ่วแม่ปาน'},org:'ไกด์ล้านนา',region:'north',prov:'เชียงใหม่',date:'2026-08-09',cap:16,booked:6,price:2200,status:'open',badge:'Verified Pro',rating:4.8,scene:'peak',orgPhone:'082-345-6789',orgLine:'@lannaguide'},
+];
+
+let TRIPS=[], trip=null, seats=1, currentStep=1, bookingRef='', timerInterval=null;
+
+function loadTrips(){
+  try{ const r=localStorage.getItem('safesummit:trips'); TRIPS=r?JSON.parse(r):JSON.parse(JSON.stringify(SEED_TRIPS)); }
+  catch(e){ TRIPS=JSON.parse(JSON.stringify(SEED_TRIPS)); }
+}
+function saveTrips(){ localStorage.setItem('safesummit:trips',JSON.stringify(TRIPS)); }
+
+function getTripId(){
+  const p=new URLSearchParams(window.location.search);
+  return p.get('id')||p.get('tripId');
+}
+
+function fmtMoney(n){ return '฿'+(n||0).toLocaleString('th-TH'); }
+function fmtDate(d){ if(!d) return '–'; return new Date(d+'T00:00:00').toLocaleDateString('th-TH',{day:'numeric',month:'long',year:'numeric'}); }
+function fmtDateShort(d){ if(!d) return '–'; return new Date(d+'T00:00:00').toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'2-digit'}); }
+function genRef(){ return 'SS-'+new Date().getFullYear().toString().slice(-2)+(new Date().getMonth()+1).toString().padStart(2,'0')+'-'+Math.floor(Math.random()*900+100); }
+
+// ===== RENDER TRIP SUMMARY =====
+function renderSummary(){
+  if(!trip){ document.getElementById('tripSummaryBody').innerHTML='<p style="color:var(--text-muted);font-size:14px;">ไม่พบข้อมูลทริป</p>'; return; }
+  const avail=trip.cap-trip.booked;
+  const scene=SCENES[trip.scene]||SCENES.peak;
+  document.getElementById('tripSummaryBody').innerHTML=`
+    <div class="trip-thumb">${scene}<div class="trip-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>${trip.badge}</div></div>
+    <div class="trip-sum-name">${trip.name.th||trip.name}</div>
+    <div class="trip-sum-meta">
+      <div class="trip-sum-meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>${fmtDate(trip.date)}</div>
+      <div class="trip-sum-meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17.657 16.243L13.414 20.485a2 2 0 0 1-2.828 0L6.343 16.243a8 8 0 1 1 11.314 0z"/><circle cx="12" cy="11" r="3"/></svg>${trip.prov}</div>
+      <div class="trip-sum-meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 17l-6 3 1-7-5-5h7l3-7 3 7h7l-5 5 1 7z"/></svg>★ ${trip.rating}</div>
+    </div>
+    <div class="seats-left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg>ที่นั่งว่าง <b>${avail} ที่นั่ง</b> จาก ${trip.cap}</div>
+    <div class="order-box">
+      <div class="order-row"><span class="muted">ราคาต่อคน</span><span style="font-family:'Bai Jamjuree',monospace">${fmtMoney(trip.price)}</span></div>
+      <div class="order-row"><span class="muted">จำนวน</span><span id="sumSeats" style="font-family:'Bai Jamjuree',monospace">${seats} คน</span></div>
+      <div class="order-row total"><span>ยอดรวม</span><span class="val" id="sumTotal">${fmtMoney(trip.price*seats)}</span></div>
+    </div>
+    <div style="margin-top:12px;font-size:12.5px;color:var(--text-muted);">ผู้จัด: <b>${trip.org}</b> · ${trip.orgPhone||''}</div>`;
+  document.getElementById('seatNote').innerHTML=`<b>ที่นั่งว่าง:</b> ${avail} ที่นั่ง — สามารถจองได้สูงสุด ${Math.min(avail,6)} ที่นั่ง`;
+}
+
+// ===== SEAT CONTROL =====
+function changeSeat(d){
+  if(!trip) return;
+  const avail=trip.cap-trip.booked;
+  const max=Math.min(avail,6);
+  seats=Math.max(1,Math.min(max,seats+d));
+  document.getElementById('seatVal').textContent=seats;
+  document.getElementById('seatLabel').textContent=`ที่นั่ง (สูงสุด ${max})`;
+  document.getElementById('sumSeats').textContent=seats+' คน';
+  document.getElementById('sumTotal').textContent=fmtMoney(trip.price*seats);
+}
+
+// ===== STEP NAVIGATION =====
+function goStep(n){
+  currentStep=n;
+  document.querySelectorAll('.step-content').forEach((el,i)=>el.classList.toggle('active',i===n-1));
+  // stepper
+  ['st1','st2','st3','st4'].forEach((id,i)=>{
+    const el=document.getElementById(id);
+    el.classList.remove('active','done');
+    if(i+1===n) el.classList.add('active');
+    else if(i+1<n) el.classList.add('done');
+  });
+  ['sl1','sl2','sl3'].forEach((id,i)=>{
+    const el=document.getElementById(id);
+    el.classList.remove('active','done');
+    if(i+1<n-1) el.classList.add('done');
+    else if(i+1===n-1) el.classList.add('active');
+  });
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function goStep2(){
+  if(!trip){ toast('ไม่พบข้อมูลทริป'); return; }
+  const fname=document.getElementById('f-fname').value.trim();
+  const lname=document.getElementById('f-lname').value.trim();
+  const email=document.getElementById('f-email').value.trim();
+  const phone=document.getElementById('f-phone').value.trim();
+  if(!fname||!lname){ toast('กรุณากรอกชื่อและนามสกุล'); return; }
+  if(!email||!email.includes('@')){ toast('กรุณากรอกอีเมลให้ถูกต้อง'); return; }
+  if(!phone||phone.length<9){ toast('กรุณากรอกเบอร์โทรศัพท์ให้ครบ'); return; }
+  if(!document.getElementById('termsCheck').checked){ toast('กรุณายอมรับข้อกำหนดก่อน'); return; }
+
+  // fill confirm
+  document.getElementById('confirm-info').innerHTML=`
+    <div class="order-box" style="margin-bottom:0;">
+      <div class="order-row"><span class="muted">ชื่อ-นามสกุล</span><span><b>${fname} ${lname}</b></span></div>
+      <div class="order-row"><span class="muted">อีเมล</span><span>${email}</span></div>
+      <div class="order-row"><span class="muted">เบอร์โทร</span><span>${phone}</span></div>
+      ${document.getElementById('f-note').value?`<div class="order-row"><span class="muted">หมายเหตุ</span><span>${document.getElementById('f-note').value}</span></div>`:''}
+    </div>`;
+  document.getElementById('confirm-trip').innerHTML=`
+    <div class="order-box" style="margin-bottom:0;">
+      <div class="order-row"><span class="muted">ทริป</span><span><b>${trip.name.th||trip.name}</b></span></div>
+      <div class="order-row"><span class="muted">ผู้จัด</span><span>${trip.org}</span></div>
+      <div class="order-row"><span class="muted">วันเดินทาง</span><span>${fmtDate(trip.date)}</span></div>
+      <div class="order-row"><span class="muted">จังหวัด</span><span>${trip.prov}</span></div>
+      <div class="order-row"><span class="muted">จำนวนที่นั่ง</span><span>${seats} คน</span></div>
+    </div>`;
+  const total=trip.price*seats;
+  const vat=Math.round(total*0.07);
+  document.getElementById('confirm-total').innerHTML=`
+    <div class="order-box" style="margin-bottom:0;">
+      <div class="order-row"><span class="muted">ราคา ${fmtMoney(trip.price)} × ${seats}</span><span style="font-family:'Bai Jamjuree',monospace">${fmtMoney(total)}</span></div>
+      <div class="order-row"><span class="muted">VAT 7%</span><span style="font-family:'Bai Jamjuree',monospace">${fmtMoney(vat)}</span></div>
+      <div class="order-row total"><span>ยอดสุทธิ</span><span class="val">${fmtMoney(total+vat)}</span></div>
+    </div>`;
+  goStep(2);
+}
+
+function goStep3(){
+  bookingRef=genRef();
+  const total=trip.price*seats;
+  const vat=Math.round(total*0.07);
+  const grandTotal=total+vat;
+
+  document.getElementById('qrAmount').textContent=fmtMoney(grandTotal);
+  document.getElementById('payRef').textContent=bookingRef;
+  drawQR(document.getElementById('qrCanvas'), grandTotal, bookingRef);
+  startTimer(10*60);
+  goStep(3);
+}
+
+function mockPaymentDone(){
+  clearInterval(timerInterval);
+  saveBooking();
+  goStep(4);
+  fillSuccess();
+}
+
+// ===== SAVE BOOKING =====
+function saveBooking(){
+  // update trip booked count
+  const t=TRIPS.find(x=>x.id===trip.id);
+  if(t){
+    t.booked=Math.min(t.cap, (t.booked||0)+seats);
+    if(t.booked>=t.cap) t.status='full';
+    saveTrips();
+  }
+  // save to mybookings
+  let bookings=[];
+  try{ const r=localStorage.getItem('safesummit:mybookings'); bookings=r?JSON.parse(r):[]; } catch(e){}
+  const total=trip.price*seats;
+  const vat=Math.round(total*0.07);
+  bookings.unshift({
+    id:'b'+Date.now(),
+    tripId:trip.id,
+    tripName:{th:trip.name.th||trip.name},
+    org:trip.org,
+    prov:trip.prov,
+    date:trip.date,
+    price:trip.price,
+    seats:seats,
+    total:total+vat,
+    status:'confirmed',
+    bookedAt:new Date().toISOString().slice(0,10),
+    badge:trip.badge,
+    scene:trip.scene||'peak',
+    bookingRef:bookingRef,
+    orgPhone:trip.orgPhone||'',
+    orgLine:trip.orgLine||'',
+  });
+  localStorage.setItem('safesummit:mybookings',JSON.stringify(bookings));
+}
+
+function fillSuccess(){
+  document.getElementById('successRef').textContent=bookingRef;
+  const total=trip.price*seats;
+  const vat=Math.round(total*0.07);
+  document.getElementById('successDetail').innerHTML=`
+    <div class="srow"><span class="label">ทริป</span><span class="val">${trip.name.th||trip.name}</span></div>
+    <div class="srow"><span class="label">ผู้จัด</span><span class="val">${trip.org}</span></div>
+    <div class="srow"><span class="label">วันเดินทาง</span><span class="val">${fmtDate(trip.date)} · ${trip.prov}</span></div>
+    <div class="srow"><span class="label">จำนวนที่นั่ง</span><span class="val">${seats} คน</span></div>
+    <div class="srow"><span class="label">ผู้จอง</span><span class="val">${document.getElementById('f-fname').value} ${document.getElementById('f-lname').value}</span></div>
+    <div class="srow"><span class="label">ยอดชำระ</span><span class="val" style="color:var(--accent-trail)">${fmtMoney(total+vat)}</span></div>`;
+}
+
+// ===== QR CODE GENERATOR =====
+function drawQR(canvas, amount, ref){
+  const ctx=canvas.getContext('2d');
+  const S=canvas.width;
+  ctx.clearRect(0,0,S,S);
+  ctx.fillStyle='#ffffff';
+  ctx.fillRect(0,0,S,S);
+
+  const M=29; // modules
+  const mod=S/M;
+
+  // deterministic seed from ref+amount
+  let seed=0;
+  const str=(ref||'')+(amount||'');
+  for(let i=0;i<str.length;i++) seed=(seed*31+str.charCodeAt(i))>>>0;
+  function rng(){ seed=(seed*1664525+1013904223)>>>0; return seed/4294967296; }
+
+  // generate random module data
+  const data=[];
+  for(let r=0;r<M;r++){ data[r]=[]; for(let c=0;c<M;c++) data[r][c]=rng()>0.5?1:0; }
+
+  // finder pattern helper
+  function finder(startR,startC){
+    for(let r=0;r<7;r++) for(let c=0;c<7;c++){
+      const isOuter=(r===0||r===6||c===0||c===6);
+      const isInner=(r>=2&&r<=4&&c>=2&&c<=4);
+      data[startR+r][startC+c]=(isOuter||isInner)?1:0;
+    }
+    // separator
+    for(let i=0;i<8;i++){
+      if(startR+7<M) data[startR+7][startC+i]=0;
+      if(startC+7<M) data[startR+i][startC+7]=0;
+    }
+  }
+  finder(0,0); finder(0,M-7); finder(M-7,0);
+
+  // timing patterns
+  for(let i=8;i<M-8;i++){
+    data[6][i]=i%2===0?1:0;
+    data[i][6]=i%2===0?1:0;
+  }
+
+  // alignment pattern (center-ish for version 3)
+  function align(r,c){
+    for(let dr=-2;dr<=2;dr++) for(let dc=-2;dc<=2;dc++){
+      const isOuter=(Math.abs(dr)===2||Math.abs(dc)===2);
+      const isCenter=(dr===0&&dc===0);
+      data[r+dr][c+dc]=(isOuter||isCenter)?1:0;
+    }
+  }
+  align(16,16);
+
+  // draw modules
+  for(let r=0;r<M;r++) for(let c=0;c<M;c++){
+    ctx.fillStyle=data[r][c]?'#1a1008':'#ffffff';
+    // round corners for data modules
+    const x=c*mod, y=r*mod, s=mod-0.5;
+    ctx.fillRect(x,y,s,s);
+  }
+
+  // redraw finder patterns with rounded style
+  function drawFinder(x,y){
+    const u=mod;
+    // outer box
+    ctx.fillStyle='#1a1008';
+    ctx.beginPath(); roundRect(ctx,x,y,7*u,7*u,u*0.5); ctx.fill();
+    // white gap
+    ctx.fillStyle='#ffffff';
+    ctx.beginPath(); roundRect(ctx,x+u,y+u,5*u,5*u,u*0.4); ctx.fill();
+    // inner filled
+    ctx.fillStyle='#1a1008';
+    ctx.beginPath(); roundRect(ctx,x+2*u,y+2*u,3*u,3*u,u*0.3); ctx.fill();
+  }
+  function roundRect(ctx,x,y,w,h,r){
+    ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y);
+    ctx.arcTo(x+w,y,x+w,y+r,r); ctx.lineTo(x+w,y+h-r);
+    ctx.arcTo(x+w,y+h,x+w-r,y+h,r); ctx.lineTo(x+r,y+h);
+    ctx.arcTo(x,y+h,x,y+h-r,r); ctx.lineTo(x,y+r);
+    ctx.arcTo(x,y,x+r,y,r); ctx.closePath();
+  }
+  drawFinder(0,0);
+  drawFinder((M-7)*mod,0);
+  drawFinder(0,(M-7)*mod);
+
+  // logo area (white square center)
+  const lc=S/2, ls=40;
+  ctx.fillStyle='#ffffff';
+  ctx.beginPath(); roundRect(ctx,lc-ls/2-3,lc-ls/2-3,ls+6,ls+6,4); ctx.fill();
+}
+
+// ===== TIMER =====
+function startTimer(seconds){
+  clearInterval(timerInterval);
+  let remaining=seconds;
+  const display=document.getElementById('timerDisplay');
+  const wrap=document.getElementById('timerWrap');
+  function tick(){
+    const m=Math.floor(remaining/60), s=remaining%60;
+    display.textContent=m+':'+(s<10?'0':'')+s;
+    if(remaining<=60) wrap.classList.add('urgent');
+    if(remaining<=0){ clearInterval(timerInterval); display.textContent='หมดเวลา'; }
+    remaining--;
+  }
+  tick();
+  timerInterval=setInterval(tick,1000);
+}
+
+// ===== UTILS =====
+function copyText(txt){
+  navigator.clipboard.writeText(txt).then(()=>toast('คัดลอกแล้ว: '+txt)).catch(()=>toast('คัดลอกแล้ว: '+txt));
+}
+let toastTimer;
+function toast(msg){
+  const el=document.getElementById('toast'); el.textContent=msg;
+  el.style.opacity='1'; el.style.transform='translateX(-50%) translateY(0)';
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>{ el.style.opacity='0'; el.style.transform='translateX(-50%) translateY(20px)'; },2800);
+}
+
+// ===== INIT =====
+loadTrips();
+const tripId=getTripId();
+trip=TRIPS.find(t=>t.id===tripId)||null;
+
+if(!trip){
+  document.getElementById('tripSummaryBody').innerHTML='<p style="color:#C0552F;font-size:14px;padding:8px 0;">ไม่พบทริปที่ระบุ — <a href="safesummit.html" style="color:var(--accent-trail)">กลับหน้าแรก</a></p>';
+} else if(!['open'].includes(trip.status)){
+  document.getElementById('tripSummaryBody').innerHTML=`<p style="color:#C0552F;font-size:14px;padding:8px 0;">ทริปนี้ไม่สามารถจองได้ (สถานะ: ${trip.status}) — <a href="safesummit.html" style="color:var(--accent-trail)">กลับหน้าแรก</a></p>`;
+}
+
+renderSummary();
+changeSeat(0); // init label
+</script>
+</body>
+</html>

@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SafeSummit — ทริปของฉัน</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Kanit:wght@600;700;800&family=Sarabun:wght@400;500;600;700&family=Bai+Jamjuree:wght@400;500;600&display=swap');
+
+:root{
+  --bg-deep:#2A2118; --bg-deep-2:#3A2C1C; --bg-light:#FAF6EA;
+  --card-light:#FFFFFF; --bg-card:#F3ECDA;
+  --accent-trail:#E2672B; --accent-gold:#C9A24B;
+  --text-light:#EDE7D6; --text-dark:#2B2118;
+  --text-muted:#6B5D4A; --line-muted:#B59A6E;
+  --shadow:0 4px 20px rgba(40,28,18,.10);
+  --shadow-md:0 8px 28px rgba(40,28,18,.14);
+  --r-north:#3E6E8E; --r-northeast:#E2672B; --r-south:#5C8A5A;
+  --r-central:#C9A24B; --r-east:#7A5C8A; --r-west:#C07A3A;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:'Sarabun',sans-serif;color:var(--text-dark);background:var(--bg-light);min-height:100vh;}
+a{text-decoration:none;color:inherit;}
+svg{display:block;}
+h1,h2,h3,h4{font-family:'Kanit',sans-serif;}
+.wrap{max-width:980px;margin:0 auto;padding:0 24px;}
+
+/* ════════════════════════════════
+   TOPBAR
+════════════════════════════════ */
+.topbar{background:var(--bg-deep);border-bottom:1px solid rgba(201,162,75,.2);position:sticky;top:0;z-index:60;}
+.topbar-inner{display:flex;align-items:center;justify-content:space-between;padding:12px 24px;max-width:980px;margin:0 auto;}
+.brand{display:flex;align-items:center;gap:9px;font-family:'Kanit',sans-serif;font-weight:800;font-size:20px;color:var(--text-light);}
+.brand .mark{width:28px;height:28px;}
+.brand .istar{position:relative;display:inline-block;}
+.brand .istar .star{position:absolute;left:50%;top:-0.42em;transform:translateX(-50%);width:.46em;height:.46em;color:var(--accent-gold);}
+.back-btn{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--line-muted);border:1px solid rgba(181,154,110,.3);border-radius:8px;padding:7px 13px;transition:.15s;}
+.back-btn:hover{color:var(--text-light);}
+.back-btn svg{width:13px;height:13px;}
+
+/* ════════════════════════════════
+   HERO — SUNRISE THEME
+════════════════════════════════ */
+.hero-profile{
+  position:relative;overflow:hidden;
+  background:linear-gradient(160deg,#4A2E18 0%,#3A2010 35%,#2A1808 65%,#1E1008 100%);
+  padding:46px 0 0;min-height:300px;
+}
+/* sunrise gradient wash */
+.hero-profile::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 80% 60% at 80% -10%, rgba(240,163,94,.35) 0%, rgba(226,103,43,.18) 40%, transparent 70%);
+  pointer-events:none;
+}
+.hero-topo{position:absolute;inset:0;pointer-events:none;opacity:.18;}
+.hero-sun{position:absolute;top:28px;right:18%;width:100px;height:100px;border-radius:50%;background:radial-gradient(circle,#FBE3B8 0%,#F0A35E 45%,rgba(240,163,94,0) 75%);opacity:.7;pointer-events:none;}
+.hero-mtn{position:absolute;bottom:0;left:0;right:0;pointer-events:none;}
+/* content */
+.hero-content{position:relative;z-index:2;padding-bottom:32px;}
+.user-row{display:flex;align-items:center;gap:16px;margin-bottom:22px;}
+.user-avatar{
+  width:62px;height:62px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent-trail),#C0552F);
+  color:#fff;display:flex;align-items:center;justify-content:center;
+  font-family:'Kanit',sans-serif;font-weight:800;font-size:24px;flex-shrink:0;
+  border:3px solid rgba(201,162,75,.5);box-shadow:0 0 0 4px rgba(201,162,75,.12);
+}
+.user-meta h2{font-size:21px;font-weight:800;color:var(--text-light);margin-bottom:3px;}
+.user-meta p{font-size:13px;color:var(--line-muted);}
+.member-badge{
+  display:inline-flex;align-items:center;gap:5px;margin-top:5px;
+  font-family:'Bai Jamjuree',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+  background:rgba(201,162,75,.18);border:1px solid rgba(201,162,75,.35);
+  color:var(--accent-gold);padding:3px 9px;border-radius:20px;
+}
+.hero-kpis{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:10px;
+  background:rgba(20,10,4,.35);backdrop-filter:blur(6px);
+  border-top:1px solid rgba(181,154,110,.2);padding:18px 24px;
+  max-width:980px;margin:0 auto;
+}
+@media(max-width:600px){.hero-kpis{grid-template-columns:repeat(2,1fr);}}
+.hkpi{text-align:center;}
+.hkpi .val{font-family:'Kanit',sans-serif;font-size:22px;font-weight:800;color:var(--accent-gold);line-height:1;}
+.hkpi .lbl{font-family:'Bai Jamjuree',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-light);opacity:.65;margin-top:4px;}
+
+/* ════════════════════════════════
+   TABS
+════════════════════════════════ */
+.tab-section{background:var(--card-light);border-bottom:1px solid #E6DCC6;position:sticky;top:54px;z-index:50;}
+.tab-row{display:flex;max-width:980px;margin:0 auto;padding:0 24px;overflow-x:auto;gap:0;}
+.tab-row::-webkit-scrollbar{display:none;}
+.tab-btn{padding:13px 18px;font-size:13.5px;font-weight:600;color:var(--text-muted);border:none;background:transparent;cursor:pointer;font-family:'Sarabun',sans-serif;border-bottom:2.5px solid transparent;display:flex;align-items:center;gap:6px;white-space:nowrap;transition:.15s;}
+.tab-btn .cnt{font-family:'Bai Jamjuree',monospace;font-size:10.5px;background:#F0E8D4;padding:1px 6px;border-radius:8px;}
+.tab-btn.active{color:var(--accent-trail);border-bottom-color:var(--accent-trail);}
+.tab-btn.active .cnt{background:rgba(226,103,43,.15);color:var(--accent-trail);}
+
+/* ════════════════════════════════
+   CONTENT AREA
+════════════════════════════════ */
+.content{padding:28px 0 64px;}
+.tab-page{display:none;}
+.tab-page.active{display:block;}
+
+/* ════════════════════════════════
+   DASHBOARD — KPI ROW
+════════════════════════════════ */
+.dash-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px;}
+@media(max-width:700px){.dash-kpis{grid-template-columns:1fr 1fr;}}
+.dk{background:var(--card-light);border-radius:12px;padding:15px 18px;box-shadow:var(--shadow);border-left:4px solid var(--accent-gold);}
+.dk.k-trip{border-left-color:#3E6E8E;}
+.dk.k-done{border-left-color:#5C8A5A;}
+.dk.k-money{border-left-color:var(--accent-trail);}
+.dk.k-region{border-left-color:var(--accent-gold);}
+.dk .lbl{font-family:'Bai Jamjuree',monospace;font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;}
+.dk .val{font-family:'Kanit',sans-serif;font-size:24px;font-weight:700;color:var(--text-dark);line-height:1;}
+.dk .sub{font-size:12px;color:var(--text-muted);margin-top:4px;}
+
+/* ════════════════════════════════
+   DASHBOARD — TWO COLUMNS
+════════════════════════════════ */
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+@media(max-width:700px){.dash-grid{grid-template-columns:1fr;}}
+.panel{background:var(--card-light);border-radius:14px;box-shadow:var(--shadow);overflow:hidden;}
+.panel-head{padding:16px 20px;border-bottom:1px solid #EDDDBB;display:flex;align-items:center;justify-content:space-between;}
+.panel-head h3{font-size:14.5px;font-weight:700;display:flex;align-items:center;gap:8px;}
+.panel-head h3 svg{width:16px;height:16px;color:var(--accent-trail);}
+.panel-body{padding:20px;}
+
+/* ── PIE / DONUT CHART ── */
+.chart-wrap{display:flex;flex-direction:column;align-items:center;gap:18px;}
+.donut-svg{overflow:visible;}
+.donut-center{font-family:'Kanit',sans-serif;}
+.legend{width:100%;display:flex;flex-direction:column;gap:7px;}
+.legend-item{display:flex;align-items:center;gap:8px;font-size:13px;}
+.legend-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0;}
+.legend-name{flex:1;color:var(--text-dark);font-weight:600;}
+.legend-bar-wrap{flex:2;height:6px;background:#F0E8D4;border-radius:3px;overflow:hidden;}
+.legend-bar{height:100%;border-radius:3px;transition:width .6s ease;}
+.legend-count{font-family:'Bai Jamjuree',monospace;font-size:12px;color:var(--text-muted);width:30px;text-align:right;}
+
+/* ── TIMELINE ── */
+.timeline{position:relative;padding-left:22px;}
+.timeline::before{content:'';position:absolute;left:7px;top:6px;bottom:6px;width:2px;background:linear-gradient(to bottom,var(--accent-gold),rgba(201,162,75,.15));}
+.tl-item{position:relative;margin-bottom:20px;}
+.tl-item:last-child{margin-bottom:0;}
+.tl-dot{
+  position:absolute;left:-22px;top:12px;
+  width:16px;height:16px;border-radius:50%;border:2px solid var(--card-light);
+  box-shadow:0 0 0 2px currentColor;flex-shrink:0;
+}
+.tl-dot.completed{color:#5C8A5A;background:#5C8A5A;}
+.tl-dot.confirmed{color:#3E6E8E;background:#3E6E8E;}
+.tl-dot.ongoing{color:var(--accent-trail);background:var(--accent-trail);}
+.tl-dot.cancelled{color:#C0552F;background:#C0552F;}
+.tl-card{
+  background:#FCFAF3;border:1px solid #EDE3CB;border-radius:10px;
+  padding:12px 14px;cursor:pointer;transition:.15s;
+}
+.tl-card:hover{background:#F5EAD0;border-color:#DCC89A;box-shadow:var(--shadow);}
+.tl-date{font-family:'Bai Jamjuree',monospace;font-size:10.5px;color:var(--text-muted);margin-bottom:4px;letter-spacing:.03em;}
+.tl-name{font-size:14px;font-weight:700;color:var(--text-dark);margin-bottom:3px;}
+.tl-org{font-size:12px;color:var(--text-muted);}
+.tl-foot{display:flex;align-items:center;justify-content:space-between;margin-top:7px;}
+.tl-price{font-family:'Bai Jamjuree',monospace;font-size:13px;font-weight:600;color:var(--accent-trail);}
+.tl-region-dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:4px;}
+
+/* year divider */
+.tl-year{
+  font-family:'Bai Jamjuree',monospace;font-size:11px;font-weight:700;
+  letter-spacing:.12em;text-transform:uppercase;
+  color:var(--accent-gold);padding:4px 10px;background:rgba(201,162,75,.12);
+  border-radius:20px;display:inline-block;margin-bottom:12px;margin-left:-6px;
+}
+
+/* ════════════════════════════════
+   BOOKING CARDS
+════════════════════════════════ */
+.booking-list{display:flex;flex-direction:column;gap:14px;}
+.bcard{background:var(--card-light);border-radius:14px;box-shadow:var(--shadow);overflow:hidden;display:flex;transition:.15s;}
+.bcard:hover{box-shadow:var(--shadow-md);}
+.bcard-thumb{width:110px;flex-shrink:0;position:relative;overflow:hidden;}
+.bcard-thumb svg.scene{position:absolute;inset:0;width:100%;height:100%;}
+.bcard-body{flex:1;padding:15px 18px;}
+.bcard-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:6px;}
+.bcard-title{font-size:15px;font-weight:700;}
+.bcard-org{font-size:12px;color:var(--text-muted);margin-top:1px;}
+.bcard-meta{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px;}
+.bmeta{display:flex;align-items:center;gap:4px;font-size:12.5px;color:var(--text-muted);}
+.bmeta svg{width:12px;height:12px;}
+.bcard-foot{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;padding-top:10px;border-top:1px solid #F0E8D4;}
+.bprice{font-family:'Bai Jamjuree',monospace;font-size:14.5px;font-weight:700;color:var(--accent-trail);}
+.bprice span{font-size:11px;color:var(--text-muted);font-weight:400;}
+.bacts{display:flex;gap:6px;flex-wrap:wrap;}
+
+/* countdown chip */
+.countdown-chip{
+  font-family:'Bai Jamjuree',monospace;font-size:10.5px;font-weight:600;
+  background:rgba(226,103,43,.1);color:var(--accent-trail);
+  border:1px solid rgba(226,103,43,.25);padding:2px 8px;border-radius:20px;
+}
+
+/* ════════════════════════════════
+   PILLS & BUTTONS
+════════════════════════════════ */
+.pill{font-family:'Bai Jamjuree',monospace;font-size:10.5px;font-weight:600;padding:3px 8px;border-radius:20px;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;}
+.pill::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor;}
+.pill.confirmed{background:rgba(62,110,142,.13);color:#3E6E8E;}
+.pill.pending{background:rgba(201,154,59,.15);color:#C99A3B;}
+.pill.ongoing{background:rgba(226,103,43,.13);color:var(--accent-trail);}
+.pill.completed{background:rgba(92,138,90,.15);color:#5C8A5A;}
+.pill.cancelled{background:rgba(192,85,47,.13);color:#C0552F;}
+
+.btn{border:none;border-radius:8px;padding:7px 13px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:5px;cursor:pointer;font-family:'Sarabun',sans-serif;transition:.15s;}
+.btn svg{width:13px;height:13px;}
+.btn-primary{background:var(--accent-trail);color:#fff;}
+.btn-primary:hover{filter:brightness(1.08);}
+.btn-ghost{background:transparent;color:var(--text-dark);border:1px solid #E0D5BD;}
+.btn-ghost:hover{background:#F5EFE0;}
+.btn-red{background:transparent;color:#C0552F;border:1px solid rgba(192,85,47,.3);}
+.btn-red:hover{background:rgba(192,85,47,.06);}
+.btn-gold{background:var(--accent-gold);color:#fff;}
+.btn-gold:hover{filter:brightness(1.06);}
+
+/* ════════════════════════════════
+   EMPTY STATE
+════════════════════════════════ */
+.empty{text-align:center;padding:56px 20px;}
+.empty-icon{width:60px;height:60px;margin:0 auto 14px;color:#DDD5C0;}
+.empty h3{font-size:17px;font-weight:700;margin-bottom:6px;}
+.empty p{font-size:13.5px;color:var(--text-muted);max-width:300px;margin:0 auto 20px;}
+
+/* ════════════════════════════════
+   MODALS
+════════════════════════════════ */
+.modal-bg{position:fixed;inset:0;background:rgba(30,20,12,.55);display:none;align-items:center;justify-content:center;z-index:200;padding:20px;}
+.modal-bg.show{display:flex;}
+.modal{background:var(--bg-light);border-radius:16px;width:100%;max-width:460px;max-height:90vh;overflow-y:auto;box-shadow:0 30px 70px rgba(0,0,0,.28);}
+.modal-h{padding:20px 24px 0;display:flex;justify-content:space-between;align-items:flex-start;}
+.modal-h h3{font-family:'Kanit',sans-serif;font-size:18px;font-weight:700;}
+.modal-h p{font-size:12.5px;color:var(--text-muted);margin-top:2px;}
+.modal-x{border:none;background:var(--bg-card);width:30px;height:30px;border-radius:8px;font-size:16px;color:var(--text-muted);cursor:pointer;flex-shrink:0;}
+.modal-b{padding:16px 24px 24px;}
+.fld{margin-bottom:13px;}
+.fld label{display:block;font-size:12px;font-weight:600;margin-bottom:5px;color:var(--text-dark);}
+.fld textarea{width:100%;padding:10px 12px;border:1px solid #E6DCC6;border-radius:8px;font-family:'Sarabun',sans-serif;font-size:14px;background:var(--card-light);color:var(--text-dark);resize:vertical;min-height:80px;}
+.fld textarea:focus{outline:none;border-color:var(--accent-gold);}
+.modal-foot{display:flex;gap:8px;justify-content:flex-end;margin-top:8px;}
+.warn-box{background:#FFF3F0;border:1px dashed rgba(192,85,47,.4);border-radius:9px;padding:12px 14px;font-size:13px;color:#C0552F;margin-bottom:14px;}
+.receipt{background:#F5EFE0;border-radius:9px;padding:12px 14px;margin-bottom:13px;}
+.r-row{display:flex;justify-content:space-between;font-size:13.5px;padding:3px 0;}
+.r-row.total{border-top:1px solid #E6DCC6;margin-top:6px;padding-top:9px;font-weight:700;font-size:15px;}
+.r-row.total .v{color:var(--accent-trail);font-family:'Bai Jamjuree',monospace;}
+.detail-row{display:flex;justify-content:space-between;font-size:13.5px;padding:5px 0;border-bottom:1px solid #F0E8D4;}
+.detail-row:last-child{border-bottom:none;}
+.detail-row .l{color:var(--text-muted);}
+.detail-row .v{font-weight:600;text-align:right;}
+.star-row{display:flex;gap:4px;justify-content:center;}
+.star-btn{background:none;border:none;cursor:pointer;font-size:28px;color:#DDD5C0;transition:.1s;padding:2px;}
+.star-btn.active,.star-btn:hover{color:var(--accent-gold);}
+.star-label{font-size:12.5px;color:var(--text-muted);text-align:center;margin-top:4px;}
+.info-note{background:#FBF4E2;border:1px dashed var(--accent-gold);border-radius:8px;padding:10px 13px;font-size:12.5px;color:var(--text-muted);margin-bottom:13px;}
+.info-note b{color:var(--text-dark);}
+
+/* toast */
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:#2A2118;color:#EDE7D6;padding:12px 22px;border-radius:10px;font-size:13.5px;font-weight:600;box-shadow:0 14px 34px rgba(0,0,0,.3);opacity:0;transition:.25s;z-index:300;pointer-events:none;}
+
+@media(max-width:540px){
+  .bcard{flex-direction:column;}
+  .bcard-thumb{width:100%;height:90px;}
+  .hero-kpis{padding:14px 18px;}
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="safesummit.html">
+      <svg class="mark" viewBox="0 0 48 48" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M8,33 L21,14 L34,33" stroke="#C9A24B" stroke-width="3.2"/>
+        <path d="M15,25 L20,31 L31,17" stroke="#E2672B" stroke-width="3.2"/>
+      </svg>
+      <span>SafeSumm<span class="istar"><span style="color:var(--text-light)">ı</span><svg class="star" viewBox="0 0 24 24" fill="currentColor" style="display:inline;width:.46em;height:.46em;vertical-align:top;color:var(--accent-gold)"><path d="M12 2l2.6 6.6L21.5 9.2l-5 4.8 1.4 7L12 17.8 6.1 21l1.4-7-5-4.8 6.9-.6z"/></svg></span>t</span>
+    </a>
+    <a class="back-btn" href="safesummit.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+      กลับหน้าแรก
+    </a>
+  </div>
+</div>
+
+<!-- HERO: SUNRISE -->
+<div class="hero-profile">
+  <!-- Topo lines -->
+  <svg class="hero-topo" viewBox="0 0 1200 300" preserveAspectRatio="xMidYMid slice" style="position:absolute;inset:0;width:100%;height:100%;">
+    <g fill="none" stroke="#C9A24B" stroke-width="1">
+      <path d="M-20,50 C200,10 400,100 660,50 C900,5 1060,90 1260,40"/>
+      <path d="M-20,110 C200,70 400,160 660,110 C900,65 1060,150 1260,100"/>
+      <path d="M-20,180 C200,140 400,230 660,180 C900,135 1060,220 1260,170"/>
+      <path d="M-20,250 C200,210 400,300 660,250 C900,205 1060,290 1260,240"/>
+    </g>
+  </svg>
+  <!-- Sun glow -->
+  <div class="hero-sun"></div>
+  <!-- Mountain silhouette -->
+  <svg class="hero-mtn" viewBox="0 0 1200 80" preserveAspectRatio="xMidYMax slice" style="height:80px;">
+    <path d="M0,80 L0,48 L140,54 L260,28 L380,60 L500,22 L600,42 L700,18 L800,44 L920,30 L1040,50 L1200,36 L1200,80Z" fill="rgba(20,10,4,.55)"/>
+    <path d="M0,80 L0,62 L180,58 L340,70 L520,46 L640,66 L760,50 L900,62 L1060,56 L1200,60 L1200,80Z" fill="rgba(10,5,2,.7)"/>
+  </svg>
+
+  <div class="wrap hero-content">
+    <div class="user-row">
+      <div class="user-avatar" id="userAvatar">ม</div>
+      <div class="user-meta">
+        <h2 id="userName">มินตรา สุขสบาย</h2>
+        <p id="userEmail">mintara@example.com</p>
+        <div class="member-badge">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 17l-6 3 1-7-5-5h7l3-7 3 7h7l-5 5 1 7z"/></svg>
+          สมาชิกตั้งแต่ มกราคม 2568
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-kpis" id="heroKpis"></div>
+</div>
+
+<!-- TABS -->
+<div class="tab-section">
+  <div class="tab-row" id="tabRow"></div>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+  <div class="wrap">
+
+    <!-- ══ DASHBOARD ══ -->
+    <div class="tab-page active" id="page-dash">
+      <div class="dash-kpis" id="dashKpis"></div>
+      <div class="dash-grid">
+        <!-- PIE CHART -->
+        <div class="panel">
+          <div class="panel-head">
+            <h3>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 10 10H12z" fill="currentColor" opacity=".2"/></svg>
+              ทริปตามภาค
+            </h3>
+          </div>
+          <div class="panel-body">
+            <div class="chart-wrap">
+              <svg id="donutSvg" class="donut-svg" viewBox="0 0 180 180" width="180" height="180"></svg>
+              <div class="legend" id="chartLegend"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TIMELINE -->
+        <div class="panel">
+          <div class="panel-head">
+            <h3>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+              ประวัติการเดินทาง
+            </h3>
+          </div>
+          <div class="panel-body" style="padding:16px 20px;">
+            <div class="timeline" id="timeline"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ ALL BOOKINGS ══ -->
+    <div class="tab-page" id="page-all">
+      <div class="booking-list" id="list-all"></div>
+      <div class="empty" id="empty-all" style="display:none;">
+        <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M3 12a9 9 0 1 0 9-9"/><path d="M12 8v4l3 3"/></svg>
+        <h3>ยังไม่มีการจอง</h3>
+        <p>เริ่มค้นหาทริปเดินป่าที่น่าสนใจได้เลย</p>
+        <a class="btn btn-primary" href="safesummit.html#travelers">ค้นหาทริป →</a>
+      </div>
+    </div>
+
+    <!-- ══ UPCOMING ══ -->
+    <div class="tab-page" id="page-upcoming">
+      <div class="booking-list" id="list-upcoming"></div>
+      <div class="empty" id="empty-upcoming" style="display:none;">
+        <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        <h3>ไม่มีทริปที่กำลังจะมาถึง</h3>
+        <p>จองทริปใหม่และเตรียมตัวออกเดิน!</p>
+        <a class="btn btn-primary" href="safesummit.html#travelers">ค้นหาทริป →</a>
+      </div>
+    </div>
+
+    <!-- ══ ONGOING ══ -->
+    <div class="tab-page" id="page-ongoing">
+      <div class="booking-list" id="list-ongoing"></div>
+      <div class="empty" id="empty-ongoing" style="display:none;">
+        <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M3 12a9 9 0 1 0 9-9"/><path d="M12 8v4l3 3"/></svg>
+        <h3>ไม่มีทริปที่กำลังเดินทาง</h3><p></p>
+      </div>
+    </div>
+
+    <!-- ══ COMPLETED ══ -->
+    <div class="tab-page" id="page-completed">
+      <div class="booking-list" id="list-completed"></div>
+      <div class="empty" id="empty-completed" style="display:none;">
+        <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>
+        <h3>ยังไม่มีทริปที่เสร็จสิ้น</h3><p>ออกเดินทางแล้วกลับมาเขียนรีวิว!</p>
+      </div>
+    </div>
+
+    <!-- ══ CANCELLED ══ -->
+    <div class="tab-page" id="page-cancelled">
+      <div class="booking-list" id="list-cancelled"></div>
+      <div class="empty" id="empty-cancelled" style="display:none;">
+        <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        <h3>ไม่มีการจองที่ยกเลิก</h3><p></p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ MODAL: DETAIL ══ -->
+<div class="modal-bg" id="modalDetail">
+  <div class="modal">
+    <div class="modal-h"><div><h3>รายละเอียดการจอง</h3><p id="detailRef"></p></div><button class="modal-x" onclick="closeModal('modalDetail')">×</button></div>
+    <div class="modal-b">
+      <div id="detailRows"></div>
+      <div class="modal-foot">
+        <button class="btn btn-ghost" onclick="closeModal('modalDetail')">ปิด</button>
+        <button class="btn btn-red" id="detailCancelBtn" style="display:none">ยกเลิกการจอง</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: CANCEL ══ -->
+<div class="modal-bg" id="modalCancel">
+  <div class="modal">
+    <div class="modal-h"><div><h3>ยกเลิกการจอง</h3><p id="cancelSub"></p></div><button class="modal-x" onclick="closeModal('modalCancel')">×</button></div>
+    <div class="modal-b">
+      <div class="warn-box" id="cancelPolicy"></div>
+      <div class="receipt" id="cancelReceipt"></div>
+      <div class="fld"><label>เหตุผล (ไม่บังคับ)</label><textarea id="cancelReason" placeholder="เช่น ติดธุระ ไม่สามารถไปได้"></textarea></div>
+      <div class="modal-foot">
+        <button class="btn btn-ghost" onclick="closeModal('modalCancel')">ย้อนกลับ</button>
+        <button class="btn btn-red" onclick="confirmCancel()">ยืนยันยกเลิก</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: REVIEW ══ -->
+<div class="modal-bg" id="modalReview">
+  <div class="modal">
+    <div class="modal-h"><div><h3>เขียนรีวิว</h3><p id="reviewSub"></p></div><button class="modal-x" onclick="closeModal('modalReview')">×</button></div>
+    <div class="modal-b">
+      <div class="info-note">รีวิวจะแสดงสาธารณะในหน้าทริปและช่วยนักเดินป่าคนอื่นตัดสินใจ</div>
+      <div class="fld" style="text-align:center;">
+        <label style="text-align:left;">คะแนนโดยรวม</label>
+        <div class="star-row" id="starRow"></div>
+        <div class="star-label" id="starLabel">เลือกคะแนน</div>
+      </div>
+      <div class="fld"><label>ความคิดเห็น</label><textarea id="reviewText" placeholder="เล่าประสบการณ์ให้คนอื่นรู้..."></textarea></div>
+      <div class="modal-foot">
+        <button class="btn btn-ghost" onclick="closeModal('modalReview')">ยกเลิก</button>
+        <button class="btn btn-gold" onclick="submitReview()">ส่งรีวิว ★</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ══════════════════════════════════
+   SCENES
+══════════════════════════════════ */
+const SCENES={
+  sunrise:`<svg class="scene" viewBox="0 0 300 200" preserveAspectRatio="xMidYMid slice" style="position:absolute;inset:0;width:100%;height:100%"><defs><linearGradient id="sa" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F0A35E"/><stop offset=".55" stop-color="#E2672B"/><stop offset="1" stop-color="#8A3F1E"/></linearGradient></defs><rect width="300" height="200" fill="url(#sa)"/><circle cx="210" cy="60" r="28" fill="#FBE3B8" opacity=".9"/><path d="M0,180 L0,120 L90,130 L160,112 L300,128 L300,180Z" fill="#5C3A22" opacity=".55"/><path d="M0,200 L0,148 L110,138 L300,144 L300,200Z" fill="#3A2416"/></svg>`,
+  peak:`<svg class="scene" viewBox="0 0 300 200" preserveAspectRatio="xMidYMid slice" style="position:absolute;inset:0;width:100%;height:100%"><defs><linearGradient id="sb" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3E5A6E"/><stop offset=".5" stop-color="#7E8FA0"/><stop offset="1" stop-color="#C9A98A"/></linearGradient></defs><rect width="300" height="200" fill="url(#sb)"/><circle cx="70" cy="52" r="22" fill="#F5E2C0" opacity=".85"/><path d="M150,36 L220,148 L80,148Z" fill="#2F3E4A"/><path d="M150,36 L175,74 L150,94 L130,70Z" fill="#4A5A66" opacity=".7"/><rect x="0" y="150" width="300" height="50" fill="#24323C"/></svg>`,
+  forest:`<svg class="scene" viewBox="0 0 300 200" preserveAspectRatio="xMidYMid slice" style="position:absolute;inset:0;width:100%;height:100%"><defs><linearGradient id="sc" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#BFE0C8"/><stop offset="1" stop-color="#6FA37A"/></linearGradient></defs><rect width="300" height="200" fill="url(#sc)"/><path d="M0,0 L300,0 L300,82 L220,70 L120,92 L0,74Z" fill="#4E7E58" opacity=".7"/><path d="M0,200 L0,92 L90,104 L180,86 L300,100 L300,200Z" fill="#2F5638"/><path d="M130,70 L144,70 L150,190 L124,190Z" fill="#EAF4EC" opacity=".9"/></svg>`
+};
+
+/* ══════════════════════════════════
+   DATA
+══════════════════════════════════ */
+const REGION_LABEL={north:'ภาคเหนือ',northeast:'ภาคอีสาน',central:'ภาคกลาง',east:'ภาคตะวันออก',west:'ภาคตะวันตก',south:'ภาคใต้'};
+const REGION_COLOR={north:'#3E6E8E',northeast:'#E2672B',south:'#5C8A5A',central:'#C9A24B',east:'#7A5C8A',west:'#C07A3A'};
+const STATUS_LABEL={confirmed:'ยืนยันแล้ว',pending:'รอยืนยัน',ongoing:'กำลังเดินทาง',completed:'เสร็จสิ้น',cancelled:'ยกเลิกแล้ว'};
+const STAR_LABEL=['','แย่มาก','พอใช้','ดี','ดีมาก','ยอดเยี่ยม!'];
+
+const SEED=[
+  {id:'b1',tripId:'t6',tripName:{th:'ดอยอินทนนท์ กิ่วแม่ปาน'},org:'ไกด์ล้านนา',prov:'เชียงใหม่',region:'north',date:'2026-08-09',price:2200,seats:2,total:4400,status:'confirmed',bookedAt:'2026-06-10',badge:'Verified Pro',scene:'peak',bookingRef:'SS-2608-001',orgPhone:'082-345-6789',orgLine:'@lannaguide'},
+  {id:'b2',tripId:'t1',tripName:{th:'ภูกระดึง 3 วัน 2 คืน'},org:'เหนือสุดเทรค',prov:'เลย',region:'northeast',date:'2026-07-12',price:2900,seats:1,total:2900,status:'confirmed',bookedAt:'2026-06-08',badge:'Verified Pro',scene:'sunrise',bookingRef:'SS-2607-014',orgPhone:'081-234-5678',orgLine:'@northtrek'},
+  {id:'b3',tripId:'t3',tripName:{th:'เขาช่อง น้ำตกกะเปาะ'},org:'ใต้สุดแทร็ก',prov:'ตรัง',region:'south',date:'2026-06-18',price:890,seats:2,total:1780,status:'ongoing',bookedAt:'2026-05-20',badge:'Verified Basic',scene:'forest',bookingRef:'SS-2606-007',orgPhone:'083-456-7890',orgLine:'@southtrack'},
+  {id:'b4',tripId:'t4',tripName:{th:'ภูชี้ฟ้า ทะเลหมอก'},org:'เหนือสุดเทรค',prov:'เชียงราย',region:'north',date:'2026-05-30',price:1800,seats:2,total:3600,status:'completed',bookedAt:'2026-04-15',badge:'Verified Pro',scene:'peak',bookingRef:'SS-2605-003',orgPhone:'081-234-5678',orgLine:'@northtrek',reviewed:false,rating:0},
+  {id:'b5',tripId:'t2',tripName:{th:'ดอยหลวงเชียงดาว 2 วัน 1 คืน'},org:'ไกด์ล้านนา',prov:'เชียงใหม่',region:'north',date:'2026-04-20',price:3500,seats:1,total:3500,status:'completed',bookedAt:'2026-03-01',badge:'Verified Pro',scene:'peak',bookingRef:'SS-2604-022',orgPhone:'082-345-6789',orgLine:'@lannaguide',reviewed:true,rating:5},
+  {id:'b6',tripId:'t5',tripName:{th:'เขาใหญ่ ผากล้วยไม้'},org:'กลางเทรล',prov:'นครราชสีมา',region:'northeast',date:'2026-06-02',price:1500,seats:2,total:3000,status:'cancelled',bookedAt:'2026-05-10',badge:'Verified Basic',scene:'sunrise',bookingRef:'SS-2606-031',cancelledAt:'2026-05-28',refundAmt:3000,refundStatus:'คืนเงินแล้ว'},
+];
+
+let BOOKINGS=[], cancelId=null, reviewId=null, reviewRating=0, currentTab='dash';
+
+function load(){
+  try{ const r=localStorage.getItem('safesummit:mybookings'); BOOKINGS=r?JSON.parse(r):JSON.parse(JSON.stringify(SEED)); }
+  catch(e){ BOOKINGS=JSON.parse(JSON.stringify(SEED)); }
+  // backfill region if missing
+  BOOKINGS.forEach(b=>{ if(!b.region){ const regionMap={เลย:'northeast',เชียงใหม่:'north',เชียงราย:'north',ตรัง:'south',นครราชสีมา:'northeast',กรุงเทพมหานคร:'central'}; b.region=regionMap[b.prov]||'north'; } });
+}
+function save(){ localStorage.setItem('safesummit:mybookings',JSON.stringify(BOOKINGS)); }
+
+const fmtM=n=>'฿'+(n||0).toLocaleString('th-TH');
+const fmtD=d=>d?new Date(d+'T00:00:00').toLocaleDateString('th-TH',{day:'numeric',month:'long',year:'numeric'}):'–';
+const fmtDs=d=>d?new Date(d+'T00:00:00').toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'2-digit'}):'–';
+const bName=b=>(b.tripName&&b.tripName.th)||b.tripName||'ทริป';
+const daysTill=d=>{ if(!d) return null; return Math.ceil((new Date(d+'T00:00:00')-new Date())/86400000); };
+function refundPct(d){ const n=daysTill(d); if(n==null) return 0; if(n>=14) return 100; if(n>=7) return 50; if(n>=3) return 25; return 0; }
+
+/* ══════════════════════════════════
+   HERO KPIs
+══════════════════════════════════ */
+function renderHeroKpis(){
+  const done=BOOKINGS.filter(b=>b.status==='completed').length;
+  const up=BOOKINGS.filter(b=>['confirmed','pending'].includes(b.status)).length;
+  const spent=BOOKINGS.filter(b=>b.status!=='cancelled').reduce((s,b)=>s+b.total,0);
+  const regions=new Set(BOOKINGS.filter(b=>b.status==='completed').map(b=>b.region)).size;
+  document.getElementById('heroKpis').innerHTML=`
+    <div class="hkpi"><div class="val">${BOOKINGS.length}</div><div class="lbl">ทริปทั้งหมด</div></div>
+    <div class="hkpi"><div class="val">${done}</div><div class="lbl">เสร็จสิ้น</div></div>
+    <div class="hkpi"><div class="val">${up}</div><div class="lbl">กำลังจะมาถึง</div></div>
+    <div class="hkpi"><div class="val">${fmtM(spent)}</div><div class="lbl">ยอดรวมทั้งหมด</div></div>`;
+}
+
+/* ══════════════════════════════════
+   TABS
+══════════════════════════════════ */
+const TABS=[
+  {key:'dash',  label:'ภาพรวม',        page:'page-dash',      match:null},
+  {key:'all',   label:'ทั้งหมด',        page:'page-all',       match:()=>true},
+  {key:'upcoming',label:'กำลังจะมาถึง',page:'page-upcoming',  match:b=>['confirmed','pending'].includes(b.status)},
+  {key:'ongoing',label:'กำลังเดินทาง', page:'page-ongoing',   match:b=>b.status==='ongoing'},
+  {key:'completed',label:'เสร็จสิ้น',  page:'page-completed', match:b=>b.status==='completed'},
+  {key:'cancelled',label:'ยกเลิก',     page:'page-cancelled', match:b=>b.status==='cancelled'},
+];
+function renderTabs(){
+  document.getElementById('tabRow').innerHTML=TABS.map(t=>{
+    const n=t.match?BOOKINGS.filter(t.match).length:null;
+    const cnt=n!=null?`<span class="cnt">${n}</span>`:'';
+    return `<button class="tab-btn ${currentTab===t.key?'active':''}" onclick="setTab('${t.key}')">${t.label}${cnt}</button>`;
+  }).join('');
+}
+function setTab(k){
+  currentTab=k;
+  document.querySelectorAll('.tab-page').forEach(p=>p.classList.remove('active'));
+  const tab=TABS.find(t=>t.key===k);
+  document.getElementById(tab.page).classList.add('active');
+  if(k==='dash') renderDash();
+  else renderList(tab);
+  renderTabs();
+}
+
+/* ══════════════════════════════════
+   DASHBOARD
+══════════════════════════════════ */
+function renderDash(){
+  renderDashKpis();
+  renderDonut();
+  renderTimeline();
+}
+function renderDashKpis(){
+  const done=BOOKINGS.filter(b=>b.status==='completed').length;
+  const spent=BOOKINGS.filter(b=>b.status!=='cancelled').reduce((s,b)=>s+b.total,0);
+  const favRegion=getFavRegion();
+  const reviewed=BOOKINGS.filter(b=>b.reviewed).length;
+  document.getElementById('dashKpis').innerHTML=`
+    <div class="dk k-trip"><div class="lbl">ทริปทั้งหมด</div><div class="val">${BOOKINGS.length}</div><div class="sub">ตลอดช่วงเวลา</div></div>
+    <div class="dk k-done"><div class="lbl">เสร็จสิ้น</div><div class="val">${done}</div><div class="sub">คืนเงินแล้ว / จบทริป</div></div>
+    <div class="dk k-money"><div class="lbl">ยอดรวมที่จ่าย</div><div class="val">${fmtM(spent)}</div><div class="sub">ไม่รวมที่ยกเลิก</div></div>
+    <div class="dk k-region"><div class="lbl">ภาคที่ชอบ</div><div class="val" style="font-size:16px;padding-top:4px;">${REGION_LABEL[favRegion]||'–'}</div><div class="sub">จากประวัติการจอง</div></div>`;
+}
+function getFavRegion(){
+  const count={};
+  BOOKINGS.filter(b=>b.status!=='cancelled').forEach(b=>{ count[b.region]=(count[b.region]||0)+1; });
+  return Object.entries(count).sort((a,b)=>b[1]-a[1])[0]?.[0]||'north';
+}
+
+/* ── DONUT CHART ── */
+function renderDonut(){
+  const count={};
+  BOOKINGS.filter(b=>b.status!=='cancelled').forEach(b=>{ count[b.region]=(count[b.region]||0)+1; });
+  const total=Object.values(count).reduce((s,n)=>s+n,0)||1;
+  const entries=Object.entries(count).sort((a,b)=>b[1]-a[1]);
+
+  const cx=90,cy=90,R=72,r=48;
+  let svg=``;
+  let angle=-90; // start from top
+
+  // draw slices
+  entries.forEach(([reg,n])=>{
+    const deg=(n/total)*360;
+    const path=donutSlice(cx,cy,R,r,angle,angle+deg);
+    const color=REGION_COLOR[reg]||'#B59A6E';
+    svg+=`<path d="${path}" fill="${color}" stroke="white" stroke-width="1.5"><title>${REGION_LABEL[reg]||reg}: ${n} ทริป</title></path>`;
+    angle+=deg;
+  });
+  // center text
+  svg+=`<text x="${cx}" y="${cy-7}" text-anchor="middle" font-family="Kanit,sans-serif" font-size="22" font-weight="800" fill="#2B2118">${BOOKINGS.filter(b=>b.status!=='cancelled').length}</text>`;
+  svg+=`<text x="${cx}" y="${cy+10}" text-anchor="middle" font-family="Bai Jamjuree,monospace" font-size="9" fill="#6B5D4A" letter-spacing="1">TRIPS</text>`;
+
+  document.getElementById('donutSvg').innerHTML=svg;
+
+  // legend
+  const maxN=entries[0]?.[1]||1;
+  document.getElementById('chartLegend').innerHTML=entries.map(([reg,n])=>`
+    <div class="legend-item">
+      <div class="legend-dot" style="background:${REGION_COLOR[reg]||'#B59A6E'}"></div>
+      <span class="legend-name">${REGION_LABEL[reg]||reg}</span>
+      <div class="legend-bar-wrap"><div class="legend-bar" style="width:${Math.round(n/maxN*100)}%;background:${REGION_COLOR[reg]||'#B59A6E'}"></div></div>
+      <span class="legend-count">${n}</span>
+    </div>`).join('');
+}
+
+function donutSlice(cx,cy,R,ir,startDeg,endDeg){
+  const rad=d=>d*Math.PI/180;
+  const pt=(r,d)=>({x:cx+r*Math.cos(rad(d)),y:cy+r*Math.sin(rad(d))});
+  const s1=pt(R,startDeg), e1=pt(R,endDeg);
+  const s2=pt(ir,endDeg), e2=pt(ir,startDeg);
+  const lg=endDeg-startDeg>180?1:0;
+  return `M ${s1.x} ${s1.y} A ${R} ${R} 0 ${lg} 1 ${e1.x} ${e1.y} L ${s2.x} ${s2.y} A ${ir} ${ir} 0 ${lg} 0 ${e2.x} ${e2.y} Z`;
+}
+
+/* ── TIMELINE ── */
+function renderTimeline(){
+  const sorted=[...BOOKINGS].sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  if(!sorted.length){
+    document.getElementById('timeline').innerHTML='<p style="color:var(--text-muted);font-size:13.5px;text-align:center;padding:20px 0;">ยังไม่มีประวัติการเดินทาง</p>';
+    return;
+  }
+  let html='', lastYear='';
+  sorted.forEach(b=>{
+    const year=b.date?b.date.slice(0,4):'–';
+    if(year!==lastYear){ html+=`<div class="tl-year">${(+year+543)||year}</div>`; lastYear=year; }
+    const rc=REGION_COLOR[b.region]||'#B59A6E';
+    const stars=b.reviewed&&b.rating?'★'.repeat(b.rating):'';
+    html+=`<div class="tl-item" onclick="openDetail('${b.id}')">
+      <div class="tl-dot ${b.status}"></div>
+      <div class="tl-card">
+        <div class="tl-date">${fmtDs(b.date)}</div>
+        <div class="tl-name">${bName(b)}</div>
+        <div class="tl-org">${b.org} · ${b.prov}</div>
+        <div class="tl-foot">
+          <span class="tl-price">${fmtM(b.total)}</span>
+          <span style="display:flex;align-items:center;font-size:11.5px;color:var(--text-muted)">
+            <span class="tl-region-dot" style="background:${rc}"></span>${REGION_LABEL[b.region]||''}
+            ${stars?`<span style="color:var(--accent-gold);margin-left:8px;font-size:12px;">${stars}</span>`:''}
+          </span>
+        </div>
+      </div>
+    </div>`;
+  });
+  document.getElementById('timeline').innerHTML=html;
+}
+
+/* ══════════════════════════════════
+   BOOKING CARDS
+══════════════════════════════════ */
+function renderList(tab){
+  const list=BOOKINGS.filter(tab.match).sort((a,b)=>(b.bookedAt||'').localeCompare(a.bookedAt||''));
+  const listEl=document.getElementById('list-'+tab.key);
+  const emptyEl=document.getElementById('empty-'+tab.key);
+  if(!list.length){ listEl.innerHTML=''; emptyEl.style.display='block'; return; }
+  emptyEl.style.display='none';
+  listEl.innerHTML=list.map(b=>bcardHTML(b)).join('');
+}
+
+function bcardHTML(b){
+  const days=daysTill(b.date);
+  const scene=SCENES[b.scene]||SCENES.peak;
+  let acts='';
+  const chip=days!=null&&days>0&&['confirmed','pending'].includes(b.status)?`<span class="countdown-chip">อีก ${days} วัน</span>`:'';
+
+  if(['confirmed','pending'].includes(b.status)){
+    acts+=`<button class="btn btn-ghost" onclick="openDetail('${b.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v4m0 4h.01"/></svg>รายละเอียด</button>`;
+    acts+=`<button class="btn btn-red" onclick="openCancel('${b.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>ยกเลิก</button>`;
+  } else if(b.status==='ongoing'){
+    acts+=`<button class="btn btn-ghost" onclick="openDetail('${b.id}')">รายละเอียด</button>`;
+    acts+=`<button class="btn btn-primary" onclick="openDetail('${b.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.9v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.8 12.8 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6z"/></svg>ติดต่อผู้จัด</button>`;
+  } else if(b.status==='completed'){
+    acts+=`<button class="btn btn-ghost" onclick="openDetail('${b.id}')">รายละเอียด</button>`;
+    acts+=b.reviewed
+      ?`<span style="display:flex;align-items:center;gap:3px;font-size:12.5px;color:var(--accent-gold);font-weight:600;">★ รีวิวแล้ว</span>`
+      :`<button class="btn btn-gold" onclick="openReview('${b.id}')">★ เขียนรีวิว</button>`;
+  } else if(b.status==='cancelled'){
+    acts+=`<button class="btn btn-ghost" onclick="openDetail('${b.id}')">รายละเอียด</button>`;
+    if(b.refundStatus) acts+=`<span style="font-size:12px;color:#5C8A5A;font-weight:600;">✓ ${b.refundStatus}</span>`;
+  }
+
+  return `<div class="bcard">
+    <div class="bcard-thumb" style="min-height:110px;position:relative;">${scene}</div>
+    <div class="bcard-body">
+      <div class="bcard-head">
+        <div><div class="bcard-title">${bName(b)}</div><div class="bcard-org">${b.org} · ${b.badge}</div></div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;">
+          <span class="pill ${b.status}">${STATUS_LABEL[b.status]||b.status}</span>
+          ${chip}
+        </div>
+      </div>
+      <div class="bcard-meta">
+        <div class="bmeta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>${fmtDs(b.date)}</div>
+        <div class="bmeta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17.657 16.243L13.414 20.485a2 2 0 0 1-2.828 0L6.343 16.243a8 8 0 1 1 11.314 0z"/><circle cx="12" cy="11" r="3"/></svg>${b.prov}</div>
+        <div class="bmeta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg>${b.seats} คน</div>
+        ${b.reviewed&&b.rating?`<div style="color:var(--accent-gold);font-size:13px;">${'★'.repeat(b.rating)}${'☆'.repeat(5-b.rating)}</div>`:''}
+      </div>
+      <div class="bcard-foot">
+        <div class="bprice">${fmtM(b.total)} <span>รวม ${b.seats} คน</span></div>
+        <div class="bacts">${acts}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ══════════════════════════════════
+   DETAIL MODAL
+══════════════════════════════════ */
+function openDetail(id){
+  const b=BOOKINGS.find(x=>x.id===id); if(!b) return;
+  document.getElementById('detailRef').textContent='เลขที่จอง: '+b.bookingRef;
+  document.getElementById('detailRows').innerHTML=`
+    <div class="detail-row"><span class="l">ทริป</span><span class="v">${bName(b)}</span></div>
+    <div class="detail-row"><span class="l">ผู้จัด</span><span class="v">${b.org}</span></div>
+    <div class="detail-row"><span class="l">วันเดินทาง</span><span class="v">${fmtD(b.date)}</span></div>
+    <div class="detail-row"><span class="l">จังหวัด</span><span class="v">${b.prov}</span></div>
+    <div class="detail-row"><span class="l">จำนวนที่นั่ง</span><span class="v">${b.seats} คน</span></div>
+    <div class="detail-row"><span class="l">ยอดชำระ</span><span class="v" style="color:var(--accent-trail)">${fmtM(b.total)}</span></div>
+    <div class="detail-row"><span class="l">สถานะ</span><span class="v"><span class="pill ${b.status}">${STATUS_LABEL[b.status]||b.status}</span></span></div>
+    <div class="detail-row"><span class="l">ติดต่อผู้จัด</span><span class="v">${b.orgPhone||'–'} · ${b.orgLine||'–'}</span></div>
+    ${b.cancelledAt?`<div class="detail-row"><span class="l">วันยกเลิก</span><span class="v">${fmtD(b.cancelledAt)}</span></div>`:''}
+    ${b.refundAmt!=null?`<div class="detail-row"><span class="l">คืนเงิน</span><span class="v" style="color:#5C8A5A">${fmtM(b.refundAmt)}</span></div>`:''}`;
+  const cb=document.getElementById('detailCancelBtn');
+  if(['confirmed','pending'].includes(b.status)){ cb.style.display=''; cb.onclick=()=>{ closeModal('modalDetail'); openCancel(id); }; }
+  else cb.style.display='none';
+  openModal('modalDetail');
+}
+
+/* ══════════════════════════════════
+   CANCEL
+══════════════════════════════════ */
+function openCancel(id){
+  const b=BOOKINGS.find(x=>x.id===id); if(!b) return; cancelId=id;
+  document.getElementById('cancelSub').textContent=bName(b);
+  const pct=refundPct(b.date), refund=Math.round(b.total*pct/100), days=daysTill(b.date);
+  document.getElementById('cancelPolicy').innerHTML=`<b>นโยบายคืนเงิน:</b> ยกเลิกก่อน ${days??'?'} วัน → คืน ${pct}% = ${fmtM(refund)}<br><small>14+ วัน = 100% · 7+ วัน = 50% · 3+ วัน = 25% · น้อยกว่านั้น = ไม่คืน</small>`;
+  document.getElementById('cancelReceipt').innerHTML=`
+    <div class="r-row"><span>ยอดที่จ่าย</span><span>${fmtM(b.total)}</span></div>
+    <div class="r-row"><span>คืนเงิน ${pct}%</span><span style="color:#5C8A5A">${fmtM(refund)}</span></div>
+    <div class="r-row total"><span>ค่าธรรมเนียมยกเลิก</span><span class="v">${fmtM(b.total-refund)}</span></div>`;
+  document.getElementById('cancelReason').value='';
+  openModal('modalCancel');
+}
+function confirmCancel(){
+  const b=BOOKINGS.find(x=>x.id===cancelId); if(!b) return;
+  const pct=refundPct(b.date);
+  b.status='cancelled'; b.cancelledAt=new Date().toISOString().slice(0,10);
+  b.cancelReason=document.getElementById('cancelReason').value.trim();
+  b.refundAmt=Math.round(b.total*pct/100);
+  b.refundStatus=b.refundAmt>0?'คืนเงินแล้ว':'ไม่มีการคืนเงิน';
+  save(); refreshAll(); closeModal('modalCancel');
+  toast('ยกเลิกแล้ว'+(b.refundAmt>0?' — คืน '+fmtM(b.refundAmt)+' ภายใน 3-5 วัน':''));
+}
+
+/* ══════════════════════════════════
+   REVIEW
+══════════════════════════════════ */
+function openReview(id){
+  const b=BOOKINGS.find(x=>x.id===id); if(!b) return; reviewId=id; reviewRating=0;
+  document.getElementById('reviewSub').textContent=bName(b)+' · '+b.org;
+  document.getElementById('reviewText').value='';
+  renderStars(0); openModal('modalReview');
+}
+function renderStars(n){
+  reviewRating=n;
+  document.getElementById('starRow').innerHTML=[1,2,3,4,5].map(i=>`<button class="star-btn ${i<=n?'active':''}" onclick="renderStars(${i})">★</button>`).join('');
+  document.getElementById('starLabel').textContent=STAR_LABEL[n]||'เลือกคะแนน';
+}
+function submitReview(){
+  if(!reviewRating){ toast('กรุณาเลือกคะแนน'); return; }
+  const b=BOOKINGS.find(x=>x.id===reviewId); if(!b) return;
+  b.reviewed=true; b.rating=reviewRating;
+  save(); refreshAll(); closeModal('modalReview');
+  toast('ขอบคุณสำหรับรีวิว '+'★'.repeat(reviewRating));
+}
+
+/* ══════════════════════════════════
+   UTILS
+══════════════════════════════════ */
+function openModal(id){ document.getElementById(id).classList.add('show'); }
+function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+document.querySelectorAll('.modal-bg').forEach(bg=>bg.addEventListener('click',e=>{ if(e.target===bg) bg.classList.remove('show'); }));
+
+let toastTimer;
+function toast(msg){
+  const el=document.getElementById('toast'); el.textContent=msg;
+  el.style.opacity='1'; el.style.transform='translateX(-50%) translateY(0)';
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>{ el.style.opacity='0'; el.style.transform='translateX(-50%) translateY(20px)'; },3000);
+}
+
+function refreshAll(){
+  renderHeroKpis(); renderTabs();
+  if(currentTab==='dash') renderDash();
+  else{ const tab=TABS.find(t=>t.key===currentTab); if(tab&&tab.match) renderList(tab); }
+}
+
+/* ══════════════════════════════════
+   INIT
+══════════════════════════════════ */
+load();
+renderHeroKpis();
+renderTabs();
+renderDash();
+</script>
+</body>
+</html>

@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SafeSummit — ทุกยอดเขา มีเส้นทางที่ไว้ใจได้</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Kanit:wght@600;700;800&family=Sarabun:wght@400;500;600;700&family=Bai+Jamjuree:wght@400;500;600&display=swap');
+
+:root{
+  --bg-deep:#2A2118;
+  --bg-deep-2:#3A2C1C;
+  --bg-light:#FAF6EA;
+  --card-light:#FFFFFF;
+  --bg-card:#F3ECDA;
+  --accent-trail:#E2672B;
+  --accent-gold:#C9A24B;
+  --text-light:#EDE7D6;
+  --text-dark:#2B2118;
+  --text-muted:#6B5D4A;
+  --line-muted:#B59A6E;
+  --shadow: 0 14px 34px rgba(40,28,18,.16);
+  --shadow-dark: 0 14px 34px rgba(0,0,0,.3);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:'Sarabun',sans-serif;color:var(--text-dark);background:var(--bg-light);line-height:1.65;}
+.wrap{max-width:1120px;margin:0 auto;padding:0 28px;}
+a{text-decoration:none;color:inherit;}
+ul{list-style:none;}
+img,svg{display:block;}
+
+h1,h2,h3{font-family:'Kanit',sans-serif;}
+.eyebrow{
+  font-family:'Bai Jamjuree',monospace;font-size:12.5px;letter-spacing:.16em;
+  text-transform:uppercase;display:flex;align-items:center;gap:10px;margin-bottom:14px;
+}
+.eyebrow::before{content:"";width:22px;height:1px;background:currentColor;display:inline-block;opacity:.6;}
+
+.btn{
+  font-family:'Sarabun',sans-serif;font-weight:600;font-size:15px;
+  padding:13px 26px;border-radius:6px;display:inline-flex;align-items:center;gap:8px;
+  cursor:pointer;border:1.5px solid transparent;transition:transform .15s ease, box-shadow .15s ease;
+}
+.btn:hover{transform:translateY(-2px);}
+.btn-primary{background:var(--accent-trail);color:#fff;box-shadow:0 10px 22px rgba(226,103,43,.32);}
+.btn-ghost{border-color:rgba(237,231,214,.5);color:var(--text-light);}
+.btn-ghost.on-light{border-color:rgba(43,33,24,.3);color:var(--text-dark);}
+.btn-dark{background:var(--bg-deep);color:var(--text-light);}
+
+/* ---------- NAV ---------- */
+header{
+  position:sticky;top:0;z-index:50;background:rgba(42,33,24,.92);backdrop-filter:blur(6px);
+  border-bottom:1px solid rgba(181,154,110,.2);
+}
+.nav-wrap{display:flex;align-items:center;justify-content:space-between;padding:16px 28px;max-width:1120px;margin:0 auto;}
+.logo{display:flex;align-items:center;gap:13px;font-family:'Kanit',sans-serif;font-weight:800;font-size:31px;color:var(--text-light);letter-spacing:.01em;}
+.logo .mark{width:50px;height:50px;}
+.logo .wordmark{display:inline-flex;align-items:flex-end;line-height:1;}
+.logo .istar{position:relative;display:inline-block;}
+.logo .istar .stem{color:var(--text-light);}
+.logo .istar .star{position:absolute;left:50%;top:-0.46em;transform:translateX(-50%);width:0.52em;height:0.52em;color:var(--accent-gold);}
+.nav-links{display:flex;gap:30px;font-size:14.5px;color:var(--line-muted);}
+.nav-links a:hover{color:var(--text-light);}
+.nav-ctas{display:flex;gap:10px;align-items:center;}
+.lang-toggle{display:flex;border:1px solid rgba(182,162,131,.4);border-radius:20px;overflow:hidden;margin-right:4px;}
+.lang-btn{background:transparent;border:none;color:var(--line-muted);font-family:'Bai Jamjuree',monospace;font-size:12px;font-weight:500;padding:7px 13px;cursor:pointer;transition:background .15s ease,color .15s ease;}
+.lang-btn.active{background:var(--accent-gold);color:var(--bg-deep);font-weight:600;}
+@media (max-width:760px){ .nav-links{display:none;} .nav-ctas .btn-ghost{display:none;} }
+@media (max-width:480px){
+  .nav-wrap{flex-wrap:wrap;row-gap:10px;padding:14px 18px;}
+  .logo{font-size:20px;gap:8px;}
+  .logo .mark{width:32px;height:32px;}
+  .nav-ctas{width:100%;justify-content:flex-end;}
+}
+
+/* ---------- HERO ---------- */
+.hero{
+  background:radial-gradient(ellipse at 25% -10%, var(--bg-deep-2), var(--bg-deep) 62%);
+  color:var(--text-light);position:relative;overflow:hidden;padding:80px 0 64px;
+}
+.hero .topo{position:absolute;inset:0;opacity:.16;pointer-events:none;}
+.hero-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:48px;align-items:center;position:relative;}
+.hero h1{font-weight:800;font-size:clamp(34px,5vw,52px);line-height:1.14;margin-bottom:18px;}
+.hero h1 em{font-style:normal;color:var(--accent-trail);}
+.hero .eyebrow{color:var(--accent-gold);}
+.hero p.lede{font-size:16.5px;color:var(--line-muted);max-width:480px;margin-bottom:32px;}
+.hero-ctas{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:42px;}
+.hero-stats{display:flex;gap:34px;flex-wrap:wrap;}
+.hero-stats .s{font-family:'Bai Jamjuree',monospace;}
+.hero-stats .s b{display:block;font-size:22px;color:var(--accent-gold);}
+.hero-stats .s span{font-size:12px;color:var(--text-light);opacity:.75;}
+
+/* stamp graphic */
+.stamp-wrap{display:flex;justify-content:center;position:relative;}
+.stamp{width:240px;height:240px;transform:rotate(-9deg);}
+.stamp circle.outer{fill:none;stroke:var(--accent-gold);stroke-width:2.5;stroke-dasharray:4 5;}
+.stamp circle.inner{fill:none;stroke:var(--accent-gold);stroke-width:1.2;}
+.stamp text{fill:var(--accent-gold);font-family:'Bai Jamjuree',monospace;letter-spacing:2px;}
+
+/* ---------- TRUST STRIP ---------- */
+.trust{background:var(--bg-light);padding:54px 0;border-bottom:1px solid rgba(43,33,24,.08);}
+.trust-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:22px;}
+.trust-item{display:flex;gap:14px;align-items:flex-start;}
+.trust-item svg{width:30px;height:30px;flex-shrink:0;color:var(--accent-trail);stroke:var(--accent-trail);}
+.trust-item h4{font-size:15px;font-weight:700;margin-bottom:4px;font-family:'Sarabun',sans-serif;}
+.trust-item p{font-size:13px;color:var(--text-muted);}
+@media (max-width:860px){.trust-grid{grid-template-columns:1fr 1fr;}}
+
+/* ---------- SECTION shared ---------- */
+section.block{padding:88px 0;background:var(--bg-light);}
+.block h2{font-weight:700;font-size:clamp(26px,3.4vw,36px);margin-bottom:12px;color:var(--text-dark);}
+.block p.sub{font-size:15.5px;max-width:560px;margin-bottom:46px;color:var(--text-muted);}
+.on-dark{background:#1A0E06;color:var(--text-light);}
+.on-dark h2{color:#FFFFFF;text-shadow:0 2px 10px rgba(0,0,0,.4);}
+.on-dark .eyebrow{color:var(--accent-gold);}
+.on-dark p.sub{color:#D4C4A8;}
+.on-light-org{background:var(--bg-light);color:var(--text-dark);}
+.on-light-org h2{color:#1A1008;font-weight:800;}
+.on-light-org .eyebrow{color:var(--accent-trail);}
+.on-light-org p.sub{color:#4A3D2E;}
+.on-light-org .org-card{background:#FFFFFF;border:1px solid rgba(43,33,24,.12);border-radius:10px;padding:26px 22px;box-shadow:0 4px 16px rgba(43,33,24,.07);}
+.on-light-org .org-card h4{color:#1A1008;font-size:16.5px;font-weight:700;margin-bottom:8px;font-family:'Sarabun',sans-serif;}
+.on-light-org .org-card p{color:#4A3D2E;font-size:13.5px;}
+.on-light-org .tier{border-color:rgba(43,33,24,.25);color:#4A3D2E;}
+.on-light-org .tier-arrow{color:#9B8E7A;}
+
+/* search mock */
+.search-mock{
+  display:flex;flex-wrap:wrap;gap:8px;background:var(--card-light);border-radius:12px;box-shadow:var(--shadow);
+  padding:10px;margin-bottom:40px;
+}
+.search-mock .field{position:relative;flex:1 1 calc(50% - 4px);min-width:0;padding:8px 32px 8px 12px;border:1px solid #ECE3CB;border-radius:8px;background:#FCFAF3;}
+.search-mock .field label{display:block;font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px;font-family:'Bai Jamjuree',monospace;}
+.search-mock .field select{
+  appearance:none;-webkit-appearance:none;-moz-appearance:none;border:none;background:transparent;
+  font-family:'Sarabun',sans-serif;font-size:13px;font-weight:600;color:var(--text-dark);
+  width:100%;padding:0;cursor:pointer;
+}
+.search-mock .field::after{
+  content:"▾";position:absolute;right:10px;top:50%;transform:translateY(2px);font-size:16px;color:var(--text-muted);pointer-events:none;
+}
+.search-mock .go{
+  flex:1 1 100%;width:100%;background:var(--accent-trail);color:#fff;border-radius:8px;
+  padding:12px;display:flex;align-items:center;justify-content:center;gap:9px;
+  font-weight:700;font-size:15px;border:none;cursor:pointer;
+}
+.search-mock .go:hover{filter:brightness(1.05);}
+
+/* trip cards */
+.trip-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
+.trip-card{background:var(--card-light);border-radius:10px;overflow:hidden;box-shadow:var(--shadow);}
+.trip-img{height:160px;position:relative;overflow:hidden;}
+.trip-img svg.scene{position:absolute;inset:0;width:100%;height:100%;}
+.trip-badge{
+  position:absolute;top:12px;left:12px;background:rgba(255,255,255,.92);
+  font-family:'Bai Jamjuree',monospace;font-size:10.5px;font-weight:600;color:var(--text-dark);
+  padding:5px 10px;border-radius:20px;display:flex;align-items:center;gap:5px;
+}
+.trip-badge svg{width:11px;height:11px;color:var(--accent-trail);}
+.trip-body{padding:18px 20px 20px;}
+.trip-body h4{font-family:'Sarabun',sans-serif;font-size:16.5px;font-weight:700;margin-bottom:6px;}
+.trip-meta{font-size:12.5px;color:var(--text-muted);margin-bottom:12px;}
+.trip-foot{display:flex;justify-content:space-between;align-items:center;}
+.trip-price{font-family:'Bai Jamjuree',monospace;font-weight:600;color:var(--accent-trail);}
+.trip-price span{font-size:11px;color:var(--text-muted);}
+.trip-rating{font-size:13px;color:var(--accent-gold);font-weight:600;}
+@media (max-width:860px){.trip-grid{grid-template-columns:1fr;}}
+.book-btn{
+  display:block;width:100%;margin-top:12px;padding:10px;border-radius:8px;
+  background:var(--accent-trail);color:#fff;font-family:'Sarabun',sans-serif;
+  font-weight:700;font-size:14px;text-align:center;border:none;cursor:pointer;
+  transition:filter .15s;text-decoration:none;
+}
+.book-btn:hover{filter:brightness(1.08);}
+.book-btn-full{background:#D5C8AE;color:#9B8E7A;cursor:not-allowed;}
+.trip-seats-left{
+  position:absolute;bottom:10px;right:10px;
+  background:rgba(255,255,255,.9);
+  font-family:'Bai Jamjuree',monospace;font-size:10.5px;font-weight:600;
+  color:var(--accent-trail);padding:3px 9px;border-radius:20px;
+}
+
+/* organizer value cards */
+.org-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-bottom:48px;}
+.org-card{background:rgba(237,231,214,.10);border:1px solid rgba(181,154,110,.35);border-radius:10px;padding:26px 22px;}
+.org-card svg{width:28px;height:28px;color:var(--accent-gold);margin-bottom:14px;}
+.org-card h4{font-size:16.5px;font-weight:700;margin-bottom:8px;font-family:'Sarabun',sans-serif;color:#FFFFFF;}
+.org-card p{font-size:13.5px;color:#C8B898;}
+@media (max-width:860px){.org-grid{grid-template-columns:1fr;}}
+
+.tier-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:40px;}
+.tier{font-family:'Bai Jamjuree',monospace;font-size:12.5px;padding:7px 14px;border-radius:20px;border:1px solid rgba(181,154,110,.4);color:var(--line-muted);}
+.tier.active{background:var(--accent-gold);color:var(--bg-deep);border-color:var(--accent-gold);font-weight:600;}
+.tier-arrow{color:var(--line-muted);}
+
+/* testimonials */
+.testi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;}
+.testi-card{background:var(--card-light);border-radius:10px;padding:26px 24px;box-shadow:var(--shadow);}
+.testi-card .quote{font-size:14.5px;color:var(--text-dark);margin-bottom:18px;}
+.testi-card .who{display:flex;align-items:center;gap:10px;}
+.testi-card .avatar{width:36px;height:36px;border-radius:50%;background:var(--accent-trail);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Kanit',sans-serif;font-weight:700;font-size:14px;}
+.testi-card .name{font-size:13.5px;font-weight:700;}
+.testi-card .role{font-size:12px;color:var(--text-muted);}
+@media (max-width:860px){.testi-grid{grid-template-columns:1fr;}}
+
+/* final CTA */
+.final-cta{
+  background:linear-gradient(135deg,var(--bg-deep-2),var(--bg-deep));color:var(--text-light);
+  text-align:center;padding:90px 0;
+}
+.final-cta h2{font-size:clamp(26px,4vw,40px);margin-bottom:14px;}
+.final-cta p{color:var(--line-muted);margin-bottom:34px;}
+.final-cta .hero-ctas{justify-content:center;}
+
+/* footer */
+footer{background:var(--bg-deep);color:var(--line-muted);padding:54px 0 30px;border-top:1px solid rgba(181,154,110,.2);}
+.foot-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:30px;margin-bottom:36px;}
+.foot-grid h5{font-family:'Bai Jamjuree',monospace;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent-gold);margin-bottom:14px;}
+.foot-grid li{font-size:13.5px;margin-bottom:9px;}
+.foot-grid li a:hover{color:var(--text-light);}
+.foot-bottom{border-top:1px solid rgba(181,154,110,.2);padding-top:22px;font-size:12.5px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+@media (max-width:760px){.foot-grid{grid-template-columns:1fr 1fr;}}
+@media (max-width:760px){.hero-grid{grid-template-columns:1fr;} .stamp-wrap{order:-1;} .stamp{width:160px;height:160px;}}
+
+/* ===== additions for v4 ===== */
+/* login dropdown */
+.login-wrap{position:relative;}
+.login-menu{
+  position:absolute;top:calc(100% + 8px);right:0;background:var(--card-light);border-radius:8px;
+  box-shadow:0 16px 40px rgba(0,0,0,.28);min-width:210px;padding:7px;display:none;z-index:60;
+}
+.login-wrap.open .login-menu{display:block;}
+.login-menu a{display:flex;align-items:center;gap:10px;padding:11px 13px;border-radius:6px;font-size:14px;color:var(--text-dark);font-weight:500;}
+.login-menu a:hover{background:var(--bg-card);}
+.login-menu a svg{width:18px;height:18px;color:var(--accent-trail);flex-shrink:0;}
+.login-menu .mtitle{font-family:'Bai Jamjuree',monospace;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);padding:8px 13px 4px;}
+
+/* filter moved to hero-top band */
+.filter-band{background:linear-gradient(135deg,#2E1C0E,#1C1008);padding:54px 0 60px;position:relative;overflow:hidden;border-bottom:1px solid rgba(181,154,110,.25);}
+.filter-band .topo{position:absolute;inset:0;opacity:.28;pointer-events:none;}
+.filter-band .inner{position:relative;}
+.filter-band .eyebrow{color:var(--accent-gold);}
+.filter-band h1{font-family:'Kanit',sans-serif;font-weight:800;font-size:clamp(28px,4.4vw,44px);line-height:1.16;color:#FFFFFF;margin-bottom:14px;text-shadow:0 2px 12px rgba(0,0,0,.5);}
+.filter-band h1 em{font-style:normal;color:var(--accent-trail);}
+.filter-band p.lede{color:#EDE7D6;opacity:1;font-size:15.5px;max-width:520px;margin-bottom:30px;text-shadow:0 1px 6px rgba(0,0,0,.4);}
+.filter-band .hero-stats{margin-top:26px;}
+
+/* footer text contrast fix: brighten body copy so it doesn't blend */
+footer p.foot-blurb{color:var(--text-light);opacity:.92;}
+footer .foot-grid li a{color:var(--text-light);opacity:.8;}
+footer .foot-grid li a:hover{opacity:1;color:var(--accent-gold);}
+.foot-bottom{color:var(--line-muted);}
+.foot-bottom span:first-child{color:var(--text-light);opacity:.85;}
+
+@media (max-width:760px){ .login-menu{right:auto;left:0;} }
+
+/* ===== AUTH OVERLAYS ===== */
+.auth-overlay .bg-topo{position:fixed;inset:0;opacity:.14;pointer-events:none;}
+.auth-overlay .card{background:var(--bg-light);width:100%;max-width:440px;border-radius:18px;box-shadow:var(--shadow);padding:38px 34px 32px;position:relative;z-index:2;}
+.auth-overlay .logo{display:flex;align-items:center;gap:11px;justify-content:center;font-family:'Kanit',sans-serif;font-weight:800;font-size:25px;color:var(--text-dark);margin-bottom:6px;}
+.auth-overlay .logo .mark{width:38px;height:38px;}
+.auth-overlay .logo .istar{position:relative;display:inline-block;}
+.auth-overlay .logo .istar .star{position:absolute;left:50%;top:-0.46em;transform:translateX(-50%);width:0.5em;height:0.5em;color:var(--accent-gold);}
+.auth-overlay .tagline{text-align:center;color:var(--text-muted);font-size:13.5px;margin-bottom:26px;}
+.auth-overlay .role-tabs{display:flex;gap:8px;background:var(--bg-card);border-radius:12px;padding:5px;margin-bottom:26px;}
+.auth-overlay .role-tab{flex:1;text-align:center;padding:11px;border-radius:9px;font-size:14px;font-weight:600;color:var(--text-muted);cursor:pointer;border:none;background:transparent;font-family:'Sarabun',sans-serif;transition:all .15s ease;}
+.auth-overlay .role-tab.active{background:var(--card-light);color:var(--accent-trail);box-shadow:0 3px 10px rgba(40,28,18,.08);}
+.auth-overlay h1{font-family:'Kanit',sans-serif;font-size:21px;font-weight:700;margin-bottom:4px;text-align:center;}
+.auth-overlay .sub{text-align:center;color:var(--text-muted);font-size:13.5px;margin-bottom:24px;}
+.auth-overlay .field{margin-bottom:16px;}
+.auth-overlay .field label{display:block;font-size:12.5px;font-weight:600;color:var(--text-dark);margin-bottom:6px;}
+.auth-overlay .field input{width:100%;padding:13px 15px;border:1px solid #E0D5BD;border-radius:10px;font-family:'Sarabun',sans-serif;font-size:15px;background:var(--card-light);color:var(--text-dark);}
+.auth-overlay .field input:focus{outline:none;border-color:var(--accent-gold);box-shadow:0 0 0 3px rgba(201,162,75,.18);}
+.auth-overlay .row-between{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;font-size:13px;}
+.auth-overlay .row-between label{display:flex;align-items:center;gap:7px;color:var(--text-muted);cursor:pointer;}
+.auth-overlay .row-between a{color:var(--accent-trail);font-weight:600;}
+.auth-overlay .btn-primary{width:100%;background:var(--accent-trail);color:#fff;border:none;border-radius:10px;padding:14px;font-family:'Sarabun',sans-serif;font-weight:700;font-size:15.5px;cursor:pointer;box-shadow:0 10px 22px rgba(226,103,43,.28);}
+.auth-overlay .btn-primary:hover{filter:brightness(1.05);}
+.auth-overlay .divider{display:flex;align-items:center;gap:12px;margin:22px 0;color:var(--text-muted);font-size:12.5px;}
+.auth-overlay .divider::before, .auth-overlay .divider::after{content:"";flex:1;height:1px;background:#E0D5BD;}
+.auth-overlay .social{display:flex;gap:10px;}
+.auth-overlay .social button{flex:1;border:1px solid #E0D5BD;background:var(--card-light);border-radius:10px;padding:11px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:13.5px;font-weight:600;color:var(--text-dark);cursor:pointer;font-family:'Sarabun',sans-serif;}
+.auth-overlay .social button svg{width:18px;height:18px;}
+.auth-overlay .foot-link{text-align:center;margin-top:24px;font-size:14px;color:var(--text-muted);}
+.auth-overlay .foot-link a{color:var(--accent-trail);font-weight:700;}
+.auth-overlay .back{position:absolute;top:20px;left:22px;color:var(--text-muted);font-size:13px;display:flex;align-items:center;gap:5px;z-index:3;}
+.auth-overlay .back:hover{color:var(--text-dark);}
+.auth-overlay .lang-toggle{position:absolute;top:18px;right:20px;display:flex;border:1px solid rgba(182,162,131,.5);border-radius:20px;overflow:hidden;z-index:3;}
+.auth-overlay .lang-btn{background:transparent;border:none;color:var(--line-muted);font-family:'Bai Jamjuree',monospace;font-size:11.5px;font-weight:500;padding:6px 11px;cursor:pointer;}
+.auth-overlay .lang-btn.active{background:var(--accent-gold);color:var(--bg-deep);font-weight:600;}
+.auth-overlay .two-col{display:flex;gap:12px;}
+.auth-overlay .two-col .field{flex:1;}
+.auth-overlay .org-only{display:none;}
+.auth-overlay .org-box{background:#FBF4E2;border:1px dashed var(--accent-gold);border-radius:12px;padding:16px;margin-bottom:16px;}
+.auth-overlay .org-box .ob-title{font-size:13px;font-weight:700;color:var(--text-dark);display:flex;align-items:center;gap:7px;margin-bottom:6px;}
+.auth-overlay .org-box .ob-title svg{width:16px;height:16px;color:var(--accent-trail);}
+.auth-overlay .org-box p{font-size:12.5px;color:var(--text-muted);margin-bottom:12px;}
+.auth-overlay .upload{border:1px solid #E0D5BD;border-radius:10px;padding:13px 15px;font-size:13.5px;color:var(--text-muted);background:var(--card-light);display:flex;align-items:center;gap:9px;cursor:pointer;}
+.auth-overlay .upload svg{width:18px;height:18px;color:var(--accent-trail);}
+.auth-overlay .terms{display:flex;align-items:flex-start;gap:9px;font-size:13px;color:var(--text-muted);margin:8px 0 20px;}
+.auth-overlay .terms a{color:var(--accent-trail);font-weight:600;}
+.auth-overlay .card svg:not(.mark):not(.star){max-width:22px;max-height:22px;}
+.auth-overlay{position:fixed;inset:0;background:var(--bg-deep);z-index:200;display:none;align-items:center;justify-content:center;padding:32px 20px;overflow-y:auto;}
+.auth-overlay.show{display:flex;}
+.auth-overlay .bg-topo{position:absolute;inset:0;opacity:.14;pointer-events:none;}
+.auth-overlay .card{max-height:none;}
+.auth-overlay .back{cursor:pointer;}
+
+/* ===== ADMIN DASHBOARD OVERLAY ===== */
+.dash-overlay{position:fixed;inset:0;background:var(--bg-light);z-index:210;display:none;overflow-y:auto;}
+.dash-overlay.show{display:block;}
+.dash-top{background:var(--bg-deep);color:var(--text-light);position:sticky;top:0;z-index:5;border-bottom:1px solid rgba(201,162,75,.2);}
+.dash-top .row{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;max-width:1240px;margin:0 auto;}
+.dash-brand{display:flex;align-items:center;gap:11px;font-family:'Kanit',sans-serif;font-weight:800;font-size:20px;color:var(--text-light);}
+.dash-brand .mark{width:32px;height:32px;}
+.dash-brand .istar{position:relative;display:inline-block;}
+.dash-brand .istar .star{position:absolute;left:50%;top:-0.42em;transform:translateX(-50%);width:0.46em;height:0.46em;color:var(--accent-gold);}
+.dash-brand .tag{font-family:'Bai Jamjuree',monospace;font-size:10.5px;letter-spacing:.1em;color:var(--accent-gold);border:1px solid rgba(201,162,75,.4);padding:3px 9px;border-radius:20px;margin-left:4px;text-transform:uppercase;}
+.dash-close{background:rgba(237,231,214,.1);border:1px solid rgba(237,231,214,.25);color:var(--text-light);border-radius:9px;padding:8px 15px;font-size:13.5px;font-weight:600;display:flex;align-items:center;gap:7px;cursor:pointer;font-family:'Sarabun',sans-serif;}
+.dash-close svg{width:15px;height:15px;}
+.dash-wrap{max-width:1240px;margin:0 auto;padding:0 24px;}
+.dash-phead{padding:30px 0 6px;}
+.dash-phead h1{font-family:'Kanit',sans-serif;font-size:26px;font-weight:700;color:var(--text-dark);}
+.dash-phead p{color:var(--text-muted);font-size:14px;margin-top:2px;}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:22px 0 10px;}
+.kpi{background:var(--card-light);border-radius:14px;padding:18px 20px;box-shadow:var(--shadow);border-left:4px solid var(--accent-gold);}
+.kpi .label{font-family:'Bai Jamjuree',monospace;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;}
+.kpi .val{font-family:'Kanit',sans-serif;font-size:25px;font-weight:700;line-height:1;color:var(--text-dark);}
+.kpi .sub{font-size:12px;color:var(--text-muted);margin-top:6px;}
+.kpi.k-open{border-left-color:#3E6E8E;}
+.kpi.k-soon{border-left-color:#C99A3B;}
+.kpi.k-done{border-left-color:#5C8A5A;}
+.kpi.k-money{border-left-color:var(--accent-trail);}
+@media(max-width:840px){.kpis{grid-template-columns:1fr 1fr;}}
+.dash-toolbar{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:24px 0 14px;flex-wrap:wrap;}
+.dtabs{display:flex;gap:6px;background:var(--bg-card);border-radius:11px;padding:5px;flex-wrap:wrap;}
+.dtab{border:none;background:transparent;padding:9px 15px;border-radius:8px;font-size:13.5px;font-weight:600;color:var(--text-muted);display:flex;align-items:center;gap:7px;cursor:pointer;font-family:'Sarabun',sans-serif;}
+.dtab .count{font-family:'Bai Jamjuree',monospace;font-size:11px;background:rgba(107,93,74,.18);padding:1px 7px;border-radius:10px;}
+.dtab.active{background:var(--card-light);color:var(--accent-trail);box-shadow:0 3px 9px rgba(40,28,18,.08);}
+.dtab.active .count{background:rgba(226,103,43,.16);color:var(--accent-trail);}
+.dash-actions{display:flex;gap:10px;}
+.dbtn{border:none;border-radius:9px;padding:10px 16px;font-size:13.5px;font-weight:600;display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-family:'Sarabun',sans-serif;}
+.dbtn svg{width:16px;height:16px;}
+.dbtn-primary{background:var(--accent-trail);color:#fff;}
+.dbtn-export{background:#1D6F42;color:#fff;}
+.dbtn-ghost{background:var(--card-light);color:var(--text-dark);border:1px solid #E6DCC6;}
+.dpanel{background:var(--card-light);border-radius:16px;box-shadow:var(--shadow);overflow:hidden;margin-bottom:14px;}
+.dtable-scroll{overflow-x:auto;}
+.dpanel table{width:100%;border-collapse:collapse;}
+.dpanel thead th{text-align:left;font-family:'Bai Jamjuree',monospace;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--text-muted);padding:14px 18px;border-bottom:1px solid #E6DCC6;background:#FCFAF3;white-space:nowrap;}
+.dpanel tbody td{padding:15px 18px;border-bottom:1px solid #E6DCC6;font-size:14px;vertical-align:middle;color:var(--text-dark);}
+.dpanel tbody tr:last-child td{border-bottom:none;}
+.dpanel tbody tr:hover{background:#FCFAF3;}
+.d-name{font-weight:700;}
+.d-org{font-size:12px;color:var(--text-muted);margin-top:1px;}
+.d-muted{color:var(--text-muted);font-size:13px;}
+.d-seats{font-family:'Bai Jamjuree',monospace;font-size:13px;}
+.d-seatbar{height:5px;border-radius:3px;background:#E6DCC6;margin-top:5px;overflow:hidden;width:78px;}
+.d-seatbar i{display:block;height:100%;background:var(--accent-gold);}
+.d-money{font-family:'Bai Jamjuree',monospace;font-weight:600;color:var(--text-dark);}
+.dpill{font-family:'Bai Jamjuree',monospace;font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;display:inline-flex;align-items:center;gap:5px;white-space:nowrap;}
+.dpill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;}
+.dpill.open{background:rgba(62,110,142,.13);color:#3E6E8E;}
+.dpill.full{background:rgba(201,154,59,.15);color:#C99A3B;}
+.dpill.ongoing{background:rgba(226,103,43,.13);color:var(--accent-trail);}
+.dpill.completed{background:rgba(92,138,90,.15);color:#5C8A5A;}
+.dpill.cancelled{background:rgba(192,85,47,.13);color:#C0552F;}
+.drowact{display:flex;gap:6px;justify-content:flex-end;}
+.diconbtn{border:1px solid #E6DCC6;background:var(--card-light);border-radius:8px;padding:6px 10px;font-size:12.5px;font-weight:600;color:var(--text-dark);display:inline-flex;align-items:center;gap:5px;white-space:nowrap;cursor:pointer;font-family:'Sarabun',sans-serif;}
+.diconbtn svg{width:14px;height:14px;}
+.diconbtn.close-btn{border-color:rgba(92,138,90,.5);color:#5C8A5A;}
+.diconbtn:hover{background:#FCFAF3;}
+.dempty{text-align:center;padding:54px 20px;color:var(--text-muted);}
+.dempty svg{width:42px;height:42px;color:#E6DCC6;margin-bottom:12px;}
+.dmodal-bg{position:fixed;inset:0;background:rgba(30,20,12,.55);display:none;align-items:center;justify-content:center;z-index:230;padding:20px;}
+.dmodal-bg.show{display:flex;}
+.dmodal{background:var(--bg-light);border-radius:18px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 30px 70px rgba(0,0,0,.3);}
+.dmodal-h{padding:22px 26px 0;display:flex;justify-content:space-between;align-items:flex-start;}
+.dmodal-h h3{font-family:'Kanit',sans-serif;font-size:19px;font-weight:700;color:var(--text-dark);}
+.dmodal-h p{font-size:13px;color:var(--text-muted);margin-top:2px;}
+.dmodal-x{border:none;background:var(--bg-card);width:32px;height:32px;border-radius:9px;font-size:17px;color:var(--text-muted);flex-shrink:0;cursor:pointer;}
+.dmodal-b{padding:18px 26px 26px;}
+.dfld{margin-bottom:15px;}
+.dfld label{display:block;font-size:12.5px;font-weight:600;margin-bottom:6px;color:var(--text-dark);}
+.dfld input,.dfld select{width:100%;padding:11px 13px;border:1px solid #E6DCC6;border-radius:9px;font-family:'Sarabun',sans-serif;font-size:14.5px;background:var(--card-light);color:var(--text-dark);}
+.dfld input:focus,.dfld select:focus{outline:none;border-color:var(--accent-gold);box-shadow:0 0 0 3px rgba(201,162,75,.16);}
+.dfld-row{display:flex;gap:12px;}
+.dfld-row .dfld{flex:1;}
+.dmodal-foot{display:flex;gap:10px;justify-content:flex-end;margin-top:6px;}
+.dnote{background:#FBF4E2;border:1px dashed var(--accent-gold);border-radius:10px;padding:12px 14px;font-size:13px;color:var(--text-muted);margin-bottom:16px;}
+.dnote b{color:var(--text-dark);}
+.dfoot-note{text-align:center;color:var(--text-muted);font-size:12.5px;padding:20px 0 40px;}
+@media(max-width:760px){.dpanel table{min-width:780px;}}
+
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav-wrap">
+    <a class="logo" href="#top" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;">
+      <svg class="mark" viewBox="0 0 48 48" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M8,33 L21,14 L34,33" stroke="#C9A24B" stroke-width="3.2"/><path d="M15,25 L20,31 L31,17" stroke="#E2672B" stroke-width="3.2"/></svg>
+      <span class="wordmark">SafeSumm<span class="istar"><span class="stem">ı</span><svg class="star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.6 6.6L21.5 9.2l-5 4.8 1.4 7L12 17.8 6.1 21l1.4-7-5-4.8 6.9-.6z"/></svg></span>t</span>
+    </a>
+    <nav class="nav-links">
+      <a href="#travelers" data-th="สำหรับนักเดินป่า" data-en="For Hikers">สำหรับนักเดินป่า</a>
+      <a href="#organizers" data-th="สำหรับผู้จัดทริป" data-en="For Organizers">สำหรับผู้จัดทริป</a>
+      <a href="#how" data-th="วิธีใช้งาน" data-en="How it works">วิธีใช้งาน</a>
+    </nav>
+    <div class="nav-ctas">
+      <div class="lang-toggle">
+        <button type="button" class="lang-btn active" onclick="switchLang('th',this)">TH</button>
+        <button type="button" class="lang-btn" onclick="switchLang('en',this)">EN</button>
+      </div>
+      <div class="login-wrap" id="loginWrap">
+        <a class="btn btn-ghost" href="#" onclick="toggleLogin(event)" data-th="เข้าสู่ระบบ ▾" data-en="Log in ▾">เข้าสู่ระบบ ▾</a>
+        <div class="login-menu">
+          <div class="mtitle" data-th="เข้าสู่ระบบในฐานะ" data-en="Log in as">เข้าสู่ระบบในฐานะ</div>
+          <a href="my-trips.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg><span data-th="ทริปของฉัน" data-en="My Trips">ทริปของฉัน</span></a>
+          <a href="#" onclick="showAuth('login','organizer',event)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 21h18"/><path d="M5 21V9l7-5 7 5v12"/><path d="M9 21v-6h6v6"/></svg><span data-th="ผู้จัดทริป" data-en="Trip Organizer">ผู้จัดทริป</span></a>
+          <div style="height:1px;background:#E6DCC6;margin:5px 8px;"></div>
+          <a href="admin.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg><span data-th="แดชบอร์ดแอดมิน" data-en="Admin dashboard">แดชบอร์ดแอดมิน</span></a>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- FILTER BAND (top) -->
+<section class="filter-band">
+  <svg class="topo" viewBox="0 0 1120 360" preserveAspectRatio="none">
+    <g fill="none" stroke="#B59A6E" stroke-width="1">
+      <path d="M-20,60 C160,20 320,110 540,60 C760,10 920,100 1160,50"/>
+      <path d="M-20,120 C160,80 320,170 540,120 C760,70 920,160 1160,110"/>
+      <path d="M-20,180 C160,140 320,230 540,180 C760,130 920,220 1160,170"/>
+    </g>
+  </svg>
+  <div class="wrap inner">
+    <div class="eyebrow" data-th="SafeSummit — ตัวกลางเดินป่าที่เช็คแล้ว" data-en="SafeSummit — verified trekking marketplace">SafeSummit — ตัวกลางเดินป่าที่เช็คแล้ว</div>
+    <h1 data-th="ทุกยอดเขา มีเส้นทางที่<em>ไว้ใจได้</em>" data-en="Every summit has a trail you can <em>trust</em>">ทุกยอดเขา มีเส้นทางที่<em>ไว้ใจได้</em></h1>
+    <p class="lede" data-th="รวมผู้จัดทริปเดินป่าที่ผ่านการยืนยันตัวจริงไว้ที่เดียว ทั่วไทย เงินของคุณปลอดภัยจนกว่าทริปจะจบ" data-en="Every verified trekking organizer in Thailand, in one place. Your money stays safe until the trip is over.">รวมผู้จัดทริปเดินป่าที่ผ่านการยืนยันตัวจริงไว้ที่เดียว ทั่วไทย เงินของคุณปลอดภัยจนกว่าทริปจะจบ</p>
+
+    <div class="search-mock">
+      <div class="field">
+        <label data-th="ภาค" data-en="Region">ภาค</label>
+        <select id="regionSel">
+          <option value="all" data-th="ทั้งหมด" data-en="All regions">ทั้งหมด</option>
+          <option value="north" data-th="ภาคเหนือ" data-en="Northern">ภาคเหนือ</option>
+          <option value="northeast" data-th="ภาคตะวันออกเฉียงเหนือ" data-en="Northeastern">ภาคตะวันออกเฉียงเหนือ</option>
+          <option value="central" data-th="ภาคกลาง" data-en="Central">ภาคกลาง</option>
+          <option value="east" data-th="ภาคตะวันออก" data-en="Eastern">ภาคตะวันออก</option>
+          <option value="west" data-th="ภาคตะวันตก" data-en="Western">ภาคตะวันตก</option>
+          <option value="south" data-th="ภาคใต้" data-en="Southern">ภาคใต้</option>
+        </select>
+      </div>
+      <div class="field">
+        <label data-th="จังหวัด" data-en="Province">จังหวัด</label>
+        <select id="provinceSel"></select>
+      </div>
+      <div class="field">
+        <label data-th="ช่วงราคา" data-en="Price range">ช่วงราคา</label>
+        <select id="priceSel">
+          <option value="all" data-th="ทั้งหมด" data-en="All prices">ทั้งหมด</option>
+          <option value="lt2000" data-th="ต่ำกว่า ฿2,000" data-en="Under ฿2,000">ต่ำกว่า ฿2,000</option>
+          <option value="2000-3000" data-th="฿2,000 - 3,000" data-en="฿2,000 - 3,000">฿2,000 - 3,000</option>
+          <option value="3000-5000" data-th="฿3,000 - 5,000" data-en="฿3,000 - 5,000">฿3,000 - 5,000</option>
+          <option value="gt5000" data-th="มากกว่า ฿5,000" data-en="Over ฿5,000">มากกว่า ฿5,000</option>
+        </select>
+      </div>
+      <div class="field"><label data-th="วันที่" data-en="Date">วันที่</label>
+        <select>
+          <option data-th="ทั้งหมด" data-en="Any date">ทั้งหมด</option>
+          <option>ก.ค. 2569</option><option>ส.ค. 2569</option><option>ก.ย. 2569</option><option>ต.ค. 2569</option>
+        </select>
+      </div>
+      <button class="go" onclick="applyTripFilter()" data-th="ค้นหาทริป" data-en="Search trips">ค้นหาทริป</button>
+    </div>
+
+    <div class="hero-stats">
+      <div class="s"><b>120+</b><span data-th="ผู้จัดที่ผ่านการยืนยัน" data-en="Verified organizers">ผู้จัดที่ผ่านการยืนยัน</span></div>
+      <div class="s"><b>850+</b><span data-th="ทริปจัดสำเร็จ" data-en="Trips completed">ทริปจัดสำเร็จ</span></div>
+      <div class="s"><b>4.8/5</b><span data-th="คะแนนรีวิวเฉลี่ย" data-en="Avg. review score">คะแนนรีวิวเฉลี่ย</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- TRUST STRIP -->
+<section class="trust" id="how">
+  <div class="wrap trust-grid">
+    <div class="trust-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>
+      <div><h4 data-th="ตรวจใบอนุญาตจริง" data-en="Real license checks">ตรวจใบอนุญาตจริง</h4><p data-th="เทียบกับฐานข้อมูลกรมการท่องเที่ยวก่อนอนุมัติ" data-en="Verified against the Tourism Department database before approval">เทียบกับฐานข้อมูลกรมการท่องเที่ยวก่อนอนุมัติ</p></div>
+    </div>
+    <div class="trust-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><rect x="4" y="10" width="16" height="10" rx="1.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+      <div><h4 data-th="เงินกักไว้ใน Escrow" data-en="Money held in escrow">เงินกักไว้ใน Escrow</h4><p data-th="จ่ายให้ผู้จัดก็ต่อเมื่อทริปจบแล้วเท่านั้น" data-en="Released to the organizer only after the trip ends">จ่ายให้ผู้จัดก็ต่อเมื่อทริปจบแล้วเท่านั้น</p></div>
+    </div>
+    <div class="trust-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M12 17l-6 3 1-7-5-5h7l3-7 3 7h7l-5 5 1 7z"/></svg>
+      <div><h4 data-th="รีวิวจากลูกค้าจริง" data-en="Reviews from real customers">รีวิวจากลูกค้าจริง</h4><p data-th="รีวิวได้เมื่อจองและจ่ายผ่านระบบเท่านั้น" data-en="Only those who booked and paid through us can review">รีวิวได้เมื่อจองและจ่ายผ่านระบบเท่านั้น</p></div>
+    </div>
+    <div class="trust-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M3 12a9 9 0 1 0 9-9"/><path d="M3 4v8h8"/></svg>
+      <div><h4 data-th="คืนเงินอัตโนมัติ" data-en="Automatic refunds">คืนเงินอัตโนมัติ</h4><p data-th="ถ้าทริปไม่ครบคนขั้นต่ำ ไม่ต้องรอผู้จัดตัดสินใจ" data-en="If a trip misses its minimum, you are refunded automatically">ถ้าทริปไม่ครบคนขั้นต่ำ ไม่ต้องรอผู้จัดตัดสินใจ</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- FOR TRAVELERS -->
+<section class="block" id="travelers">
+  <div class="wrap">
+    <div class="eyebrow" style="color:var(--accent-trail);" data-th="สำหรับนักเดินป่า" data-en="For Hikers">สำหรับนักเดินป่า</div>
+    <h2 data-th="ทริปแนะนำที่ผ่านการยืนยันแล้ว" data-en="Recommended verified trips">ทริปแนะนำที่ผ่านการยืนยันแล้ว</h2>
+    <p class="sub" data-th="ทุกทริปมาจากผู้จัดที่ตรวจสอบแล้ว เทียบราคาและรีวิวได้ก่อนตัดสินใจ" data-en="Every trip comes from a verified organizer. Compare prices and reviews before you decide.">ทุกทริปมาจากผู้จัดที่ตรวจสอบแล้ว เทียบราคาและรีวิวได้ก่อนตัดสินใจ</p>
+
+    <div class="trip-grid" id="tripGrid"></div>
+    <p id="noResults" style="display:none;text-align:center;color:var(--text-muted);font-size:15px;padding:20px 0;" data-th="ไม่พบทริปที่ตรงกับเงื่อนไข ลองปรับตัวกรองดูอีกครั้ง" data-en="No trips match your filters. Try adjusting them.">ไม่พบทริปที่ตรงกับเงื่อนไข ลองปรับตัวกรองดูอีกครั้ง</p>
+  </div>
+</section>
+
+<!-- FOR ORGANIZERS -->
+<section class="block on-light-org" id="organizers">
+  <div class="wrap">
+    <div class="eyebrow" data-th="สำหรับผู้จัดทริป" data-en="For Organizers">สำหรับผู้จัดทริป</div>
+    <h2 data-th="ขยายฐานลูกค้าไทย+ต่างชาติ ไม่ต้องนั่งตอบ DM ทั้งวัน" data-en="Reach Thai & international customers, without answering DMs all day">ขยายฐานลูกค้าไทย+ต่างชาติ ไม่ต้องนั่งตอบ DM ทั้งวัน</h2>
+    <p class="sub" data-th="เปิดบัญชี ส่งเอกสารยืนยันครั้งเดียว แล้วให้ระบบจัดการการจองและเงินที่เหลือ" data-en="Open an account, verify once, and let the system handle bookings and payments.">เปิดบัญชี ส่งเอกสารยืนยันครั้งเดียว แล้วให้ระบบจัดการการจองและเงินที่เหลือ</p>
+
+    <div class="org-grid">
+      <div class="org-card">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a6 6 0 0 1 6-6h0a6 6 0 0 1 6 6v2"/><path d="M17 11a4 4 0 0 0 0-8"/></svg>
+        <h4 data-th="เข้าถึงลูกค้าใหม่" data-en="Reach new customers">เข้าถึงลูกค้าใหม่</h4>
+        <p data-th="ทั้งคนไทยและนักท่องเที่ยวต่างชาติที่หาทริปเดินป่าไม่เจอที่ไหน" data-en="Thai and foreign travelers who can't find trekking trips anywhere else">ทั้งคนไทยและนักท่องเที่ยวต่างชาติที่หาทริปเดินป่าไม่เจอที่ไหน</p>
+      </div>
+      <div class="org-card">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18"/></svg>
+        <h4 data-th="ไม่ต้องนั่งตอบ DM" data-en="No more DM juggling">ไม่ต้องนั่งตอบ DM</h4>
+        <p data-th="ลูกค้าจองและจ่ายเงินในระบบโดยตรง ไม่ต้องเช็คสลิปเอง" data-en="Customers book and pay in-app. No more checking transfer slips.">ลูกค้าจองและจ่ายเงินในระบบโดยตรง ไม่ต้องเช็คสลิปเอง</p>
+      </div>
+      <div class="org-card">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="10" width="16" height="10" rx="1.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+        <h4 data-th="การันตีได้เงินครบ" data-en="Guaranteed payout">การันตีได้เงินครบ</h4>
+        <p data-th="เงินอยู่ใน Escrow รอไว้แล้ว จบทริปรับเงินทันที" data-en="Funds wait in escrow, released the moment the trip ends">เงินอยู่ใน Escrow รอไว้แล้ว จบทริปรับเงินทันที</p>
+      </div>
+    </div>
+
+    <div class="tier-row">
+      <span class="tier">Unverified</span><span class="tier-arrow">→</span>
+      <span class="tier">Verified Basic</span><span class="tier-arrow">→</span>
+      <span class="tier active">Verified Pro</span>
+    </div>
+
+    <a class="btn btn-primary" href="#" onclick="showAuth('register','organizer',event)" data-th="สมัครเป็นผู้จัด →" data-en="Become an organizer →">สมัครเป็นผู้จัด →</a>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="block">
+  <div class="wrap">
+    <div class="eyebrow" style="color:var(--accent-trail);" data-th="เสียงจากผู้ใช้งานจริง" data-en="From real users">เสียงจากผู้ใช้งานจริง</div>
+    <h2 data-th="ทั้งสองฝั่งพูดเป็นเสียงเดียวกัน" data-en="Both sides agree">ทั้งสองฝั่งพูดเป็นเสียงเดียวกัน</h2>
+    <p class="sub" data-th="ความเห็นจากนักเดินป่าและผู้จัดทริปที่ใช้งานแพลตฟอร์ม" data-en="Feedback from hikers and organizers using the platform">ความเห็นจากนักเดินป่าและผู้จัดทริปที่ใช้งานแพลตฟอร์ม</p>
+    <div class="testi-grid">
+      <div class="testi-card">
+        <p class="quote" data-th="&quot;จองง่ายกว่าทักเพจเยอะ แถมเห็นรีวิวจริงก่อนตัดสินใจ&quot;" data-en="&quot;Far easier than messaging a page, and I can see real reviews first.&quot;">"จองง่ายกว่าทักเพจเยอะ แถมเห็นรีวิวจริงก่อนตัดสินใจ"</p>
+        <div class="who"><div class="avatar">ม</div><div><div class="name">มินตรา</div><div class="role" data-th="นักเดินป่า, กรุงเทพฯ" data-en="Hiker, Bangkok">นักเดินป่า, กรุงเทพฯ</div></div></div>
+      </div>
+      <div class="testi-card">
+        <p class="quote" data-th="&quot;ลูกค้าต่างชาติเพิ่มขึ้นเยอะตั้งแต่เปิดเป็นผู้จัด Verified Pro&quot;" data-en="&quot;Foreign customers jumped once I became a Verified Pro organizer.&quot;">"ลูกค้าต่างชาติเพิ่มขึ้นเยอะตั้งแต่เปิดเป็นผู้จัด Verified Pro"</p>
+        <div class="who"><div class="avatar">อ</div><div><div class="name">เอกชัย</div><div class="role" data-th="ผู้จัดทริป, ภาคเหนือ" data-en="Organizer, Northern Thailand">ผู้จัดทริป, ภาคเหนือ</div></div></div>
+      </div>
+      <div class="testi-card">
+        <p class="quote" data-th="&quot;อุ่นใจขึ้นมาก รู้ว่าเงินไม่หายไปไหนจนกว่าทริปจะเสร็จ&quot;" data-en="&quot;Much more reassuring knowing my money is safe until the trip is done.&quot;">"อุ่นใจขึ้นมาก รู้ว่าเงินไม่หายไปไหนจนกว่าทริปจะเสร็จ"</p>
+        <div class="who"><div class="avatar">S</div><div><div class="name">Sarah</div><div class="role" data-th="นักท่องเที่ยว, ออสเตรเลีย" data-en="Traveler, Australia">นักท่องเที่ยว, ออสเตรเลีย</div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="final-cta">
+  <div class="wrap">
+    <h2 data-th="พร้อมเริ่มเดินป่าแบบไว้ใจได้หรือยัง?" data-en="Ready to trek with confidence?">พร้อมเริ่มเดินป่าแบบไว้ใจได้หรือยัง?</h2>
+    <p data-th="ไม่มีค่าใช้จ่ายในการสมัคร เริ่มค้นหาหรือลงทะเบียนได้ทันที" data-en="No signup fee. Start searching or register right away.">ไม่มีค่าใช้จ่ายในการสมัคร เริ่มค้นหาหรือลงทะเบียนได้ทันที</p>
+    <div class="hero-ctas">
+      <a class="btn btn-primary" href="#travelers" data-th="ค้นหาทริปเดินป่า →" data-en="Find a trek →">ค้นหาทริปเดินป่า →</a>
+      <a class="btn btn-ghost" href="#" onclick="showAuth('register','organizer',event)" data-th="สมัครเป็นผู้จัด" data-en="Become an organizer">สมัครเป็นผู้จัด</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a class="logo" href="#top" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;" style="margin-bottom:10px;">
+          <svg class="mark" viewBox="0 0 48 48" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M8,33 L21,14 L34,33" stroke="#C9A24B" stroke-width="3.2"/><path d="M15,25 L20,31 L31,17" stroke="#E2672B" stroke-width="3.2"/></svg>
+          SAFESUMMIT
+        </a>
+        <p class="foot-blurb" style="font-size:13px;max-width:240px;" data-th="ตัวกลางจองทริปเดินป่าที่ตรวจสอบผู้จัดจริง ก่อนให้เปิดขายทริป" data-en="A trekking marketplace that verifies every organizer before they can sell trips.">ตัวกลางจองทริปเดินป่าที่ตรวจสอบผู้จัดจริง ก่อนให้เปิดขายทริป</p>
+      </div>
+      <div><h5 data-th="สำหรับนักเดินป่า" data-en="For Hikers">สำหรับนักเดินป่า</h5><ul><li><a href="#travelers" data-th="ค้นหาทริป" data-en="Search trips">ค้นหาทริป</a></li><li><a href="#" onclick="showAuth('register','customer',event)" data-th="วิธีจอง" data-en="How to book">วิธีจอง</a></li><li><a href="#" onclick="return false" data-th="นโยบายคืนเงิน" data-en="Refund policy">นโยบายคืนเงิน</a></li></ul></div>
+      <div><h5 data-th="สำหรับผู้จัด" data-en="For Organizers">สำหรับผู้จัด</h5><ul><li><a href="#" onclick="showAuth('register','organizer',event)" data-th="สมัครเป็นผู้จัด" data-en="Become an organizer">สมัครเป็นผู้จัด</a></li><li><a href="#" onclick="return false" data-th="ขั้นตอนยืนยันตัวตน" data-en="Verification steps">ขั้นตอนยืนยันตัวตน</a></li><li><a href="#" onclick="return false" data-th="ค่าคอมมิชชั่น" data-en="Commission fees">ค่าคอมมิชชั่น</a></li></ul></div>
+      <div><h5 data-th="บริษัท" data-en="Company">บริษัท</h5><ul><li><a href="#" onclick="return false" data-th="เกี่ยวกับเรา" data-en="About us">เกี่ยวกับเรา</a></li><li><a href="#" onclick="return false" data-th="ติดต่อเรา" data-en="Contact">ติดต่อเรา</a></li><li><a href="#" onclick="return false" data-th="ข้อกำหนดการใช้งาน" data-en="Terms of use">ข้อกำหนดการใช้งาน</a></li></ul></div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2569 SafeSummit. All rights reserved.</span>
+      <span data-th="ออกแบบเพื่อใช้เป็นต้นแบบนำเสนอแนวคิดแพลตฟอร์ม" data-en="Built as a concept prototype for the platform idea">ออกแบบเพื่อใช้เป็นต้นแบบนำเสนอแนวคิดแพลตฟอร์ม</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+const PROVINCES = {
+  north: ["เชียงใหม่","เชียงราย","แม่ฮ่องสอน","ลำปาง","ลำพูน","น่าน","พะเยา","แพร่","อุตรดิตถ์","ตาก","สุโขทัย","กำแพงเพชร","พิษณุโลก","พิจิตร","เพชรบูรณ์","นครสวรรค์","อุทัยธานี"],
+  northeast: ["นครราชสีมา","บุรีรัมย์","สุรินทร์","ศรีสะเกษ","อุบลราชธานี","ยโสธร","ชัยภูมิ","อำนาจเจริญ","หนองบัวลำภู","ขอนแก่น","อุดรธานี","เลย","หนองคาย","มหาสารคาม","ร้อยเอ็ด","กาฬสินธุ์","สกลนคร","นครพนม","มุกดาหาร","บึงกาฬ"],
+  central: ["กรุงเทพมหานคร","นนทบุรี","ปทุมธานี","สมุทรปราการ","พระนครศรีอยุธยา","อ่างทอง","ลพบุรี","สิงห์บุรี","ชัยนาท","สระบุรี","นครนายก","สมุทรสาคร","สมุทรสงคราม","นครปฐม","สุพรรณบุรี"],
+  east: ["ชลบุรี","ระยอง","จันทบุรี","ตราด","ฉะเชิงเทรา","ปราจีนบุรี","สระแก้ว"],
+  west: ["กาญจนบุรี","ราชบุรี","เพชรบุรี","ประจวบคีรีขันธ์"],
+  south: ["ชุมพร","ระนอง","สุราษฎร์ธานี","พังงา","ภูเก็ต","กระบี่","นครศรีธรรมราช","ตรัง","พัทลุง","สตูล","สงขลา","ปัตตานี","ยะลา","นราธิวาส"]
+};
+const REGION_LABEL = {north:{th:'ภาคเหนือ',en:'North'},northeast:{th:'ภาคอีสาน',en:'Northeast'},central:{th:'ภาคกลาง',en:'Central'},east:{th:'ภาคตะวันออก',en:'East'},west:{th:'ภาคตะวันตก',en:'West'},south:{th:'ภาคใต้',en:'South'}};
+const STATUS_LABELS = {open:{th:'เปิดรับจอง',en:'Open'},full:{th:'เต็มแล้ว',en:'Full'},ongoing:{th:'กำลังเดินทาง',en:'Ongoing'},completed:{th:'จบแล้ว',en:'Completed'},cancelled:{th:'ยกเลิก',en:'Cancelled'}};
+
+// scenic SVG presets reused by region theme
+const SCENES = {
+  sunrise:`<svg class="scene" viewBox="0 0 300 160" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="s_a" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F0A35E"/><stop offset="0.55" stop-color="#E2672B"/><stop offset="1" stop-color="#8A3F1E"/></linearGradient></defs><rect width="300" height="160" fill="url(#s_a)"/><circle cx="210" cy="58" r="26" fill="#FBE3B8" opacity="0.92"/><path d="M0,150 L0,108 L70,112 L120,104 L300,116 L300,150 Z" fill="#5C3A22" opacity="0.55"/><path d="M0,160 L0,128 L90,120 L150,126 L300,118 L300,160 Z" fill="#3A2416"/></svg>`,
+  peak:`<svg class="scene" viewBox="0 0 300 160" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="s_b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3E5A6E"/><stop offset="0.5" stop-color="#7E8FA0"/><stop offset="1" stop-color="#C9A98A"/></linearGradient></defs><rect width="300" height="160" fill="url(#s_b)"/><circle cx="70" cy="48" r="20" fill="#F5E2C0" opacity="0.85"/><path d="M150,30 L210,120 L90,120 Z" fill="#2F3E4A"/><path d="M150,30 L172,63 L150,78 L132,58 Z" fill="#4A5A66" opacity="0.7"/><path d="M40,160 L40,118 L120,128 L300,112 L300,160 Z" fill="#24323C"/><rect x="0" y="120" width="300" height="20" fill="#E8E0D2" opacity="0.45"/></svg>`,
+  forest:`<svg class="scene" viewBox="0 0 300 160" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="s_c" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#BFE0C8"/><stop offset="1" stop-color="#6FA37A"/></linearGradient></defs><rect width="300" height="160" fill="url(#s_c)"/><path d="M0,0 L300,0 L300,70 L210,60 L120,78 L0,64 Z" fill="#4E7E58" opacity="0.7"/><path d="M0,160 L0,72 L80,84 L160,70 L240,86 L300,74 L300,160 Z" fill="#2F5638"/><path d="M120,60 L132,60 L138,150 L114,150 Z" fill="#EAF4EC" opacity="0.9"/><path d="M150,160 L150,96 L230,108 L300,98 L300,160 Z" fill="#1F3B27" opacity="0.85"/></svg>`
+};
+function sceneFor(t){ if(t.scene) return SCENES[t.scene]||SCENES.peak; return ({north:SCENES.peak,northeast:SCENES.sunrise,south:SCENES.forest})[t.region]||SCENES.peak; }
+
+// ===== SHARED TRIP DATA =====
+let TRIPS = [];
+const SEED_TRIPS = [
+  {id:'t1', name:{th:'ภูกระดึง 3 วัน 2 คืน',en:'Phu Kradueng 3D2N'}, org:'เหนือสุดเทรค', region:'northeast', prov:'เลย', date:'2026-07-12', cap:15, booked:11, price:2900, status:'open', badge:'Verified Pro', rating:4.9, scene:'sunrise'},
+  {id:'t2', name:{th:'ดอยหลวงเชียงดาว 2 วัน 1 คืน',en:'Doi Luang Chiang Dao 2D1N'}, org:'ไกด์ล้านนา', region:'north', prov:'เชียงใหม่', date:'2026-07-05', cap:10, booked:10, price:3500, status:'full', badge:'Verified Pro', rating:4.8, scene:'peak'},
+  {id:'t3', name:{th:'เขาช่อง น้ำตกกะเปาะ',en:'Khao Chong Waterfall'}, org:'ใต้สุดแทร็ก', region:'south', prov:'ตรัง', date:'2026-06-18', cap:20, booked:14, price:890, status:'ongoing', badge:'Verified Basic', rating:4.7, scene:'forest'},
+  {id:'t4', name:{th:'ภูชี้ฟ้า ทะเลหมอก',en:'Phu Chi Fa Sea of Mist'}, org:'เหนือสุดเทรค', region:'north', prov:'เชียงราย', date:'2026-05-30', cap:18, booked:18, price:1800, status:'completed', badge:'Verified Pro', rating:4.9, scene:'peak', actual:18, revenue:32400},
+  {id:'t5', name:{th:'เขาใหญ่ ผากล้วยไม้',en:'Khao Yai Pha Kluai Mai'}, org:'กลางเทรล', region:'northeast', prov:'นครราชสีมา', date:'2026-06-02', cap:12, booked:4, price:1500, status:'cancelled', badge:'Verified Basic', rating:4.5, scene:'sunrise'},
+  {id:'t6', name:{th:'ดอยอินทนนท์ กิ่วแม่ปาน',en:'Doi Inthanon Kew Mae Pan'}, org:'ไกด์ล้านนา', region:'north', prov:'เชียงใหม่', date:'2026-08-09', cap:16, booked:6, price:2200, status:'open', badge:'Verified Pro', rating:4.8, scene:'peak'},
+];
+
+const curLang = () => (document.documentElement.lang === 'en' ? 'en' : 'th');
+
+async function loadTrips(){
+  try{ const res = await window.storage.get('safesummit:trips'); if(res && res.value){ TRIPS = JSON.parse(res.value); return; } }catch(e){}
+  TRIPS = JSON.parse(JSON.stringify(SEED_TRIPS));
+  await persistTrips();
+}
+async function persistTrips(){ try{ await window.storage.set('safesummit:trips', JSON.stringify(TRIPS)); }catch(e){ console.error('save failed',e); } }
+
+// ===== LANDING: render public trip cards from data =====
+function priceMatch(p, range){
+  if(range==='all'||!range) return true;
+  if(range==='lt2000') return p<2000;
+  if(range==='2000-3000') return p>=2000&&p<=3000;
+  if(range==='3000-5000') return p>3000&&p<=5000;
+  if(range==='gt5000') return p>5000;
+  return true;
+}
+function renderTripCards(region='all', price='all'){
+  const lang = curLang();
+  const grid = document.getElementById('tripGrid');
+  if(!grid) return;
+  // public list = only open + full, then apply filters
+  const list = TRIPS.filter(t => ['open','full'].includes(t.status))
+    .filter(t => region==='all' || t.region===region)
+    .filter(t => priceMatch(t.price, price));
+  grid.innerHTML = list.map(t => {
+    const regLabel = (REGION_LABEL[t.region]||{})[lang]||'';
+    const meta = `${t.prov} · ${regLabel}`;
+    const avail = t.cap - t.booked;
+    const isFull = t.status === 'full';
+    const bookBtn = isFull
+      ? `<button class="book-btn book-btn-full" disabled data-th="เต็มแล้ว" data-en="Full">${lang==='en'?'Full':'เต็มแล้ว'}</button>`
+      : `<a class="book-btn" href="booking.html?id=${t.id}" data-th="จองทริป" data-en="Book now">${lang==='en'?'Book now →':'จองทริป →'}</a>`;
+    return `<div class="trip-card">
+      <div class="trip-img">${sceneFor(t)}
+        <div class="trip-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>${t.badge}</div>
+        ${!isFull ? `<div class="trip-seats-left">${avail} ${lang==='en'?'seats left':'ที่นั่งว่าง'}</div>` : ''}
+      </div>
+      <div class="trip-body">
+        <h4>${t.name[lang]||t.name.th}</h4>
+        <div class="trip-meta">${meta}</div>
+        <div class="trip-foot"><div class="trip-price">฿${t.price.toLocaleString('th-TH')} <span>${lang==='en'?'/person':'/คน'}</span></div><div class="trip-rating">★ ${t.rating||'–'}</div></div>
+        ${bookBtn}
+      </div>
+    </div>`;
+  }).join('');
+  const none = document.getElementById('noResults');
+  if(none) none.style.display = list.length===0 ? 'block' : 'none';
+}
+
+function populateProvinces(){
+  const region = document.getElementById('regionSel').value;
+  const provSel = document.getElementById('provinceSel');
+  const lang = curLang();
+  const allLabel = lang === 'en' ? 'All provinces' : 'ทั้งหมด';
+  let opts = '<option data-th="ทั้งหมด" data-en="All provinces">'+allLabel+'</option>';
+  if(region !== 'all'){ opts += (PROVINCES[region]||[]).map(p => `<option>${p}</option>`).join(''); }
+  provSel.innerHTML = opts;
+}
+const regionSelEl = document.getElementById('regionSel');
+if(regionSelEl){ regionSelEl.addEventListener('change', populateProvinces); populateProvinces(); }
+
+function applyTripFilter(){
+  const region = document.getElementById('regionSel').value;
+  const price = document.getElementById('priceSel').value;
+  renderTripCards(region, price);
+  document.getElementById('travelers').scrollIntoView({behavior:'smooth'});
+}
+
+
+function switchLang(lang, btn){
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.documentElement.lang = lang;
+  document.querySelectorAll('[data-'+lang+']').forEach(el => {
+    el.innerHTML = el.getAttribute('data-'+lang);
+  });
+  // re-render JS-generated content so it follows the language too
+  if(typeof refreshLanding==='function') refreshLanding();
+  if(typeof renderDash==='function' && document.getElementById('dashOverlay') && document.getElementById('dashOverlay').classList.contains('show')) renderDash();
+  if(typeof populateProvinces==='function') populateProvinces();
+}
+
+function toggleLogin(e){
+  e.preventDefault();
+  document.getElementById('loginWrap').classList.toggle('open');
+}
+document.addEventListener('click', function(e){
+  const w = document.getElementById('loginWrap');
+  if(w && !w.contains(e.target)) w.classList.remove('open');
+});
+
+// ===== AUTH ROUTER =====
+function setAuthRole(page, role){
+  const ov = document.getElementById('overlay-'+page);
+  const tc = ov.querySelector('#tab-customer');
+  const to = ov.querySelector('#tab-organizer');
+  if(tc&&to){ tc.classList.toggle('active', role==='customer'); to.classList.toggle('active', role==='organizer'); }
+  const orgBlock = ov.querySelector('#orgBlock');
+  if(orgBlock) orgBlock.style.display = role==='organizer' ? 'block' : 'none';
+  const sub = ov.querySelector('#roleSub');
+  const lang = document.documentElement.lang || 'th';
+  if(sub){
+    if(page==='login'){
+      sub.setAttribute('data-th', role==='organizer'?'เข้าสู่ระบบในฐานะผู้จัดทริป':'เข้าสู่ระบบในฐานะลูกค้า / นักเดินป่า');
+      sub.setAttribute('data-en', role==='organizer'?'Log in as a trip organizer':'Log in as a customer / hiker');
+    } else {
+      sub.setAttribute('data-th', role==='organizer'?'สมัครในฐานะผู้จัดทริป':'สมัครในฐานะลูกค้า / นักเดินป่า');
+      sub.setAttribute('data-en', role==='organizer'?'Sign up as a trip organizer':'Sign up as a customer / hiker');
+    }
+    sub.innerHTML = sub.getAttribute('data-'+lang);
+  }
+  // make tab buttons switch role in place
+  if(tc) tc.setAttribute('onclick', "setAuthRole('"+page+"','customer')");
+  if(to) to.setAttribute('onclick', "setAuthRole('"+page+"','organizer')");
+  // make the cross-link (login<->register) carry the current role
+  const toReg = ov.querySelector('#toRegister');
+  if(toReg) toReg.setAttribute('onclick', "showAuth('register','"+role+"',event)");
+  const toLog = ov.querySelector('#toLogin');
+  if(toLog) toLog.setAttribute('onclick', "showAuth('login','"+role+"',event)");
+}
+function showAuth(page, role, e){
+  if(e) e.preventDefault();
+  document.getElementById('overlay-login').classList.remove('show');
+  document.getElementById('overlay-register').classList.remove('show');
+  const ov = document.getElementById('overlay-'+page);
+  setAuthRole(page, role||'customer');
+  ov.classList.add('show');
+  document.body.style.overflow='hidden';
+  // re-apply current language so overlay matches landing
+  var lang=document.documentElement.lang||'th';
+  ov.querySelectorAll('[data-'+lang+']').forEach(function(el){ el.innerHTML=el.getAttribute('data-'+lang); });
+  // close login dropdown if open
+  var lw=document.getElementById('loginWrap'); if(lw) lw.classList.remove('open');
+}
+function closeAuth(e){
+  if(e) e.preventDefault();
+  document.getElementById('overlay-login').classList.remove('show');
+  document.getElementById('overlay-register').classList.remove('show');
+  document.body.style.overflow='';
+}
+// re-apply current language to overlay content when shown is handled by switchLang globally
+
+
+// ============================================================
+//  ADMIN DASHBOARD LOGIC (shares TRIPS with the landing page)
+// ============================================================
+const DASH_TABS = [
+  {key:'all', th:'ทั้งหมด', en:'All', match:()=>true},
+  {key:'upcoming', th:'กำลังจะเกิด', en:'Upcoming', match:t=>['open','full'].includes(t.status)},
+  {key:'toclose', th:'รอปิดงาน', en:'To close', match:t=>t.status==='ongoing'},
+  {key:'completed', th:'ปิดแล้ว', en:'Completed', match:t=>t.status==='completed'},
+  {key:'cancelled', th:'ยกเลิก', en:'Cancelled', match:t=>t.status==='cancelled'},
+];
+let dashTab = 'all';
+let editingId = null, closingId = null;
+
+function fmtMoney(n){ return '฿' + (n||0).toLocaleString('th-TH'); }
+function fmtDate(d){ if(!d) return '–'; return new Date(d+'T00:00:00').toLocaleDateString(curLang()==='en'?'en-GB':'th-TH',{day:'numeric',month:'short',year:'2-digit'}); }
+function tripTotal(t){ if(t.status==='completed' && t.revenue!=null) return t.revenue; return (t.booked||0)*(t.price||0); }
+function tripName(t){ return (t.name && (t.name[curLang()]||t.name.th)) || t.name; }
+
+function renderDashKPIs(){
+  const upcoming = TRIPS.filter(t=>['open','full'].includes(t.status)).length;
+  const toclose = TRIPS.filter(t=>t.status==='ongoing').length;
+  const done = TRIPS.filter(t=>t.status==='completed').length;
+  const revenue = TRIPS.filter(t=>t.status==='completed').reduce((s,t)=>s+tripTotal(t),0);
+  const L = curLang();
+  const t = (th,en)=> L==='en'?en:th;
+  document.getElementById('dashKpis').innerHTML = `
+    <div class="kpi k-open"><div class="label">${t('ทริปทั้งหมด','All trips')}</div><div class="val">${TRIPS.length}</div><div class="sub">${t('ในระบบตอนนี้','currently in system')}</div></div>
+    <div class="kpi k-soon"><div class="label">${t('กำลังจะเกิด','Upcoming')}</div><div class="val">${upcoming}</div><div class="sub">${t('เปิดรับ + รอออกเดินทาง','open + full')}</div></div>
+    <div class="kpi k-money"><div class="label">${t('รอปิดงาน','To close')}</div><div class="val">${toclose}</div><div class="sub">${t('กำลังเดินทางอยู่','ongoing now')}</div></div>
+    <div class="kpi k-done"><div class="label">${t('รายได้ปิดงานแล้ว','Closed revenue')}</div><div class="val">${fmtMoney(revenue)}</div><div class="sub">${t('จาก','from')} ${done} ${t('ทริปที่จบ','completed')}</div></div>`;
+}
+function renderDashTabs(){
+  const L=curLang();
+  document.getElementById('dashTabs').innerHTML = DASH_TABS.map(tab=>{
+    const n = TRIPS.filter(tab.match).length;
+    return `<button class="dtab ${dashTab===tab.key?'active':''}" onclick="setDashTab('${tab.key}')">${L==='en'?tab.en:tab.th}<span class="count">${n}</span></button>`;
+  }).join('');
+}
+function renderDashRows(){
+  const def = DASH_TABS.find(t=>t.key===dashTab);
+  const list = TRIPS.filter(def.match).slice().sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  const tbody = document.getElementById('dashRows');
+  const empty = document.getElementById('dashEmpty');
+  const L=curLang();
+  if(list.length===0){ tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  tbody.innerHTML = list.map(t=>{
+    const pct = t.cap ? Math.min(100, Math.round((t.booked/t.cap)*100)) : 0;
+    const seatTxt = (t.status==='completed' && t.actual!=null) ? `${t.actual} ${L==='en'?'joined':'ไปจริง'}` : `${t.booked}/${t.cap}`;
+    let act='';
+    if(t.status==='ongoing'){ act += `<button class="diconbtn close-btn" onclick="openClose('${t.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>${L==='en'?'Close':'ปิดงาน'}</button>`; }
+    act += `<button class="diconbtn" onclick="openEdit('${t.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>${L==='en'?'Edit':'แก้ไข'}</button>`;
+    return `<tr>
+      <td><div class="d-name">${tripName(t)}</div><div class="d-org">${t.org}</div></td>
+      <td class="d-muted">${t.prov}</td>
+      <td class="d-muted">${fmtDate(t.date)}</td>
+      <td><span class="d-seats">${seatTxt}</span><div class="d-seatbar"><i style="width:${pct}%"></i></div></td>
+      <td class="d-money">${fmtMoney(t.price)}</td>
+      <td class="d-money">${fmtMoney(tripTotal(t))}</td>
+      <td><span class="dpill ${t.status}">${(STATUS_LABELS[t.status]||{})[L]||t.status}</span></td>
+      <td><div class="drowact">${act}</div></td>
+    </tr>`;
+  }).join('');
+}
+function renderDash(){ renderDashKPIs(); renderDashTabs(); renderDashRows(); }
+function setDashTab(k){ dashTab=k; renderDashTabs(); renderDashRows(); }
+
+function openDash(e){ if(e) e.preventDefault();
+  var lw=document.getElementById('loginWrap'); if(lw) lw.classList.remove('open');
+  document.getElementById('dashOverlay').classList.add('show');
+  document.body.style.overflow='hidden';
+  renderDash();
+}
+function closeDash(){ document.getElementById('dashOverlay').classList.remove('show'); document.body.style.overflow=''; }
+
+// add / edit
+function openAdd(){
+  editingId=null;
+  document.getElementById('dAddTitle').textContent = curLang()==='en'?'Add new trip':'เพิ่มทริปใหม่';
+  ['df-name','df-org','df-prov','df-date'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('df-region').value='north';
+  document.getElementById('df-cap').value=12; document.getElementById('df-booked').value=0;
+  document.getElementById('df-price').value=2900; document.getElementById('df-status').value='open';
+  document.getElementById('df-badge').value='Verified Pro';
+  dShowModal('dmodalAdd');
+}
+function openEdit(id){
+  const t=TRIPS.find(x=>x.id===id); if(!t) return; editingId=id;
+  document.getElementById('dAddTitle').textContent = curLang()==='en'?'Edit trip':'แก้ไขทริป';
+  document.getElementById('df-name').value=tripName(t);
+  document.getElementById('df-org').value=t.org||'';
+  document.getElementById('df-region').value=t.region||'north';
+  document.getElementById('df-prov').value=t.prov||'';
+  document.getElementById('df-date').value=t.date||'';
+  document.getElementById('df-cap').value=t.cap||0;
+  document.getElementById('df-booked').value=t.booked||0;
+  document.getElementById('df-price').value=t.price||0;
+  document.getElementById('df-status').value=t.status||'open';
+  document.getElementById('df-badge').value=t.badge||'Verified Pro';
+  dShowModal('dmodalAdd');
+}
+async function saveTrip(){
+  const name=document.getElementById('df-name').value.trim();
+  if(!name){ dToast(curLang()==='en'?'Please enter a trip name':'กรุณากรอกชื่อทริป'); return; }
+  const data={
+    org:document.getElementById('df-org').value.trim()||'–',
+    region:document.getElementById('df-region').value,
+    prov:document.getElementById('df-prov').value.trim()||'–',
+    date:document.getElementById('df-date').value,
+    cap:+document.getElementById('df-cap').value||0,
+    booked:+document.getElementById('df-booked').value||0,
+    price:+document.getElementById('df-price').value||0,
+    status:document.getElementById('df-status').value,
+    badge:document.getElementById('df-badge').value,
+  };
+  if(editingId){
+    const t=TRIPS.find(x=>x.id===editingId);
+    if(typeof t.name==='object'){ t.name[curLang()]=name; } else { t.name=name; }
+    Object.assign(t,data);
+    dToast(curLang()==='en'?'Changes saved':'บันทึกการแก้ไขแล้ว');
+  }else{
+    TRIPS.push(Object.assign({id:'t'+Date.now(), name:{th:name,en:name}, rating:4.8}, data));
+    dToast(curLang()==='en'?'Trip added':'เพิ่มทริปแล้ว');
+  }
+  await persistTrips(); renderDash(); refreshLanding(); dCloseModal('dmodalAdd');
+}
+
+// close trip
+function openClose(id){
+  const t=TRIPS.find(x=>x.id===id); if(!t) return; closingId=id;
+  document.getElementById('dCloseSub').textContent = tripName(t)+' · '+t.org;
+  document.getElementById('dc-actual').value=t.booked;
+  document.getElementById('dc-revenue').value=t.booked*t.price;
+  document.getElementById('dc-note').value='';
+  dShowModal('dmodalClose');
+}
+async function confirmClose(){
+  const t=TRIPS.find(x=>x.id===closingId); if(!t) return;
+  t.status='completed';
+  t.actual=+document.getElementById('dc-actual').value||0;
+  t.revenue=+document.getElementById('dc-revenue').value||0;
+  t.closeNote=document.getElementById('dc-note').value.trim();
+  t.closedAt=new Date().toISOString().slice(0,10);
+  await persistTrips(); renderDash(); refreshLanding(); dCloseModal('dmodalClose');
+  dToast(curLang()==='en'?'Trip closed':'ปิดงานทริปเรียบร้อย');
+}
+
+// keep landing cards in sync with whatever filter is currently set
+function refreshLanding(){
+  const r=document.getElementById('regionSel'); const p=document.getElementById('priceSel');
+  renderTripCards(r?r.value:'all', p?p.value:'all');
+}
+
+// export excel (CSV w/ BOM)
+function exportExcel(){
+  const def = DASH_TABS.find(t=>t.key===dashTab);
+  const list = TRIPS.filter(def.match);
+  const L=curLang();
+  const headers=['ชื่อทริป','ผู้จัด','จังหวัด','วันเดินทาง','ที่นั่งทั้งหมด','จองแล้ว','ผู้ร่วมจริง','ราคาต่อคน','ยอดรวม','สถานะ','วันปิดงาน','หมายเหตุ'];
+  const rows=list.map(t=>[tripName(t),t.org,t.prov,t.date||'',t.cap,t.booked,(t.actual!=null?t.actual:''),t.price,tripTotal(t),(STATUS_LABELS[t.status]||{}).th||t.status,(t.closedAt||''),(t.closeNote||'')]);
+  let csv=[headers,...rows].map(r=>r.map(c=>{const s=String(c).replace(/"/g,'""');return /[",\n]/.test(s)?`"${s}"`:s;}).join(',')).join('\n');
+  csv='\uFEFF'+csv;
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob); const a=document.createElement('a');
+  a.href=url; a.download=`SafeSummit_${def.key}_${new Date().toISOString().slice(0,10)}.csv`; a.click();
+  URL.revokeObjectURL(url);
+  dToast(curLang()==='en'?'Summary downloaded':'ดาวน์โหลดไฟล์สรุปแล้ว');
+}
+
+// dash modal + toast
+function dShowModal(id){ document.getElementById(id).classList.add('show'); }
+function dCloseModal(id){ document.getElementById(id).classList.remove('show'); }
+document.querySelectorAll('.dmodal-bg').forEach(bg=>{ bg.addEventListener('click',e=>{ if(e.target===bg) bg.classList.remove('show'); }); });
+let dToastTimer, dToastEl;
+function dToast(msg){
+  if(!dToastEl){ dToastEl=document.createElement('div'); dToastEl.className='toast'; dToastEl.innerHTML='<span></span>'; document.body.appendChild(dToastEl);
+    dToastEl.style.cssText='position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(20px);background:#2A2118;color:#EDE7D6;padding:13px 22px;border-radius:11px;font-size:14px;font-weight:600;box-shadow:0 14px 34px rgba(0,0,0,.3);opacity:0;transition:.25s;z-index:300;'; }
+  dToastEl.firstChild.textContent=msg;
+  dToastEl.style.opacity='1'; dToastEl.style.transform='translateX(-50%) translateY(0)';
+  clearTimeout(dToastTimer); dToastTimer=setTimeout(()=>{ dToastEl.style.opacity='0'; dToastEl.style.transform='translateX(-50%) translateY(20px)'; },2400);
+}
+
+// ===== INIT =====
+(async function(){ await loadTrips(); renderTripCards('all','all'); })();
+
+</script>
+
+<div class="auth-overlay" id="overlay-login"><svg class="bg-topo" viewBox="0 0 1200 800" preserveAspectRatio="none"><g fill="none" stroke="#B59A6E" stroke-width="1"><path d="M-20,160 C260,100 480,240 740,160 C980,90 1120,220 1260,140"/><path d="M-20,260 C260,200 480,340 740,260 C980,190 1120,320 1260,240"/><path d="M-20,360 C260,300 480,440 740,360 C980,290 1120,420 1260,340"/><path d="M-20,460 C260,400 480,540 740,460 C980,390 1120,520 1260,440"/></g></svg><a class="back" href="#" onclick="closeAuth(event)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg><span data-th="กลับหน้าแรก" data-en="Back home">กลับหน้าแรก</span></a><div class="lang-toggle"><button class="lang-btn active" onclick="switchLang('th',this)">TH</button><button class="lang-btn" onclick="switchLang('en',this)">EN</button></div><div class="card">
+  <div class="logo">
+    <svg class="mark" viewBox="0 0 48 48" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M8,33 L21,14 L34,33" stroke="#C9A24B" stroke-width="3.4"/><path d="M15,25 L20,31 L31,17" stroke="#E2672B" stroke-width="3.4"/></svg>
+    <span>SafeSumm<span class="istar">ı<svg class="star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.6 6.6L21.5 9.2l-5 4.8 1.4 7L12 17.8 6.1 21l1.4-7-5-4.8 6.9-.6z"/></svg></span>t</span>
+  </div>
+  <p class="tagline" data-th="ตัวกลางเดินป่าที่เช็คแล้ว" data-en="The verified trekking marketplace">ตัวกลางเดินป่าที่เช็คแล้ว</p>
+
+  <div class="role-tabs">
+    <button class="role-tab active" id="tab-customer" onclick="setRole('customer')" data-th="ลูกค้า / นักเดินป่า" data-en="Customer / Hiker">ลูกค้า / นักเดินป่า</button>
+    <button class="role-tab" id="tab-organizer" onclick="setRole('organizer')" data-th="ผู้จัดทริป" data-en="Trip Organizer">ผู้จัดทริป</button>
+  </div>
+
+  <h1 data-th="เข้าสู่ระบบ" data-en="Log in">เข้าสู่ระบบ</h1>
+  <p class="sub" id="roleSub" data-th="เข้าสู่ระบบในฐานะลูกค้า / นักเดินป่า" data-en="Log in as a customer / hiker">เข้าสู่ระบบในฐานะลูกค้า / นักเดินป่า</p>
+
+  <div class="field">
+    <label data-th="อีเมล" data-en="Email">อีเมล</label>
+    <input type="email" placeholder="you@example.com">
+  </div>
+  <div class="field">
+    <label data-th="รหัสผ่าน" data-en="Password">รหัสผ่าน</label>
+    <input type="password" placeholder="••••••••">
+  </div>
+  <div class="row-between">
+    <label><input type="checkbox"> <span data-th="จดจำฉันไว้" data-en="Remember me">จดจำฉันไว้</span></label>
+    <a href="#" onclick="return false" data-th="ลืมรหัสผ่าน?" data-en="Forgot password?">ลืมรหัสผ่าน?</a>
+  </div>
+  <button class="btn-primary" data-th="เข้าสู่ระบบ" data-en="Log in">เข้าสู่ระบบ</button>
+
+  <div class="divider" data-th="หรือเข้าสู่ระบบด้วย" data-en="or continue with">หรือเข้าสู่ระบบด้วย</div>
+  <div class="social">
+    <button><svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.5 12.2c0-.7-.1-1.4-.2-2H12v3.8h5.9a5 5 0 0 1-2.2 3.3v2.7h3.6c2.1-2 3.3-4.9 3.3-7.8z"/><path fill="#34A853" d="M12 23c2.9 0 5.4-1 7.2-2.7l-3.6-2.7c-1 .7-2.2 1-3.6 1-2.8 0-5.1-1.9-6-4.4H2.3v2.8A11 11 0 0 0 12 23z"/><path fill="#FBBC05" d="M6 14.2a6.6 6.6 0 0 1 0-4.2V7.2H2.3a11 11 0 0 0 0 9.8z"/><path fill="#EA4335" d="M12 5.4c1.6 0 3 .5 4.1 1.6l3.1-3.1A11 11 0 0 0 12 1 11 11 0 0 0 2.3 7.2L6 10c.9-2.6 3.2-4.5 6-4.5z"/></svg>Google</button>
+    <button><svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.69 4.53-4.69 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.25h3.33l-.53 3.49h-2.8V24C19.61 23.1 24 18.1 24 12.07z"/></svg>Facebook</button>
+  </div>
+
+  <p class="foot-link" data-th="ยังไม่มีบัญชี?" data-en="Don't have an account?">ยังไม่มีบัญชี? <a id="toRegister" href="#" onclick="showAuth('register','customer',event)" data-th="สมัครสมาชิก" data-en="Sign up">สมัครสมาชิก</a></p>
+</div></div>
+<div class="auth-overlay" id="overlay-register"><svg class="bg-topo" viewBox="0 0 1200 800" preserveAspectRatio="none"><g fill="none" stroke="#B59A6E" stroke-width="1"><path d="M-20,160 C260,100 480,240 740,160 C980,90 1120,220 1260,140"/><path d="M-20,260 C260,200 480,340 740,260 C980,190 1120,320 1260,240"/><path d="M-20,360 C260,300 480,440 740,360 C980,290 1120,420 1260,340"/><path d="M-20,460 C260,400 480,540 740,460 C980,390 1120,520 1260,440"/></g></svg><a class="back" href="#" onclick="closeAuth(event)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg><span data-th="กลับหน้าแรก" data-en="Back home">กลับหน้าแรก</span></a><div class="lang-toggle"><button class="lang-btn active" onclick="switchLang('th',this)">TH</button><button class="lang-btn" onclick="switchLang('en',this)">EN</button></div><div class="card">
+  <div class="logo">
+    <svg class="mark" viewBox="0 0 48 48" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M8,33 L21,14 L34,33" stroke="#C9A24B" stroke-width="3.4"/><path d="M15,25 L20,31 L31,17" stroke="#E2672B" stroke-width="3.4"/></svg>
+    <span>SafeSumm<span class="istar">ı<svg class="star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.6 6.6L21.5 9.2l-5 4.8 1.4 7L12 17.8 6.1 21l1.4-7-5-4.8 6.9-.6z"/></svg></span>t</span>
+  </div>
+  <p class="tagline" data-th="ตัวกลางเดินป่าที่เช็คแล้ว" data-en="The verified trekking marketplace">ตัวกลางเดินป่าที่เช็คแล้ว</p>
+
+  <div class="role-tabs">
+    <button class="role-tab active" id="tab-customer" onclick="setRole('customer')" data-th="ลูกค้า / นักเดินป่า" data-en="Customer / Hiker">ลูกค้า / นักเดินป่า</button>
+    <button class="role-tab" id="tab-organizer" onclick="setRole('organizer')" data-th="ผู้จัดทริป" data-en="Trip Organizer">ผู้จัดทริป</button>
+  </div>
+
+  <h1 data-th="สมัครสมาชิก" data-en="Create account">สมัครสมาชิก</h1>
+  <p class="sub" id="roleSub" data-th="สมัครในฐานะลูกค้า / นักเดินป่า" data-en="Sign up as a customer / hiker">สมัครในฐานะลูกค้า / นักเดินป่า</p>
+
+  <div class="two-col">
+    <div class="field"><label data-th="ชื่อ" data-en="First name">ชื่อ</label><input type="text"></div>
+    <div class="field"><label data-th="นามสกุล" data-en="Last name">นามสกุล</label><input type="text"></div>
+  </div>
+  <div class="field"><label data-th="อีเมล" data-en="Email">อีเมล</label><input type="email" placeholder="you@example.com"></div>
+  <div class="field"><label data-th="เบอร์โทรศัพท์" data-en="Phone number">เบอร์โทรศัพท์</label><input type="tel" placeholder="08x-xxx-xxxx"></div>
+  <div class="field"><label data-th="รหัสผ่าน" data-en="Password">รหัสผ่าน</label><input type="password" placeholder="••••••••"></div>
+
+  <!-- organizer-only verification block -->
+  <div class="org-only" id="orgBlock">
+    <div class="field"><label data-th="ชื่อเพจ / ชื่อธุรกิจ" data-en="Page / business name">ชื่อเพจ / ชื่อธุรกิจ</label><input type="text"></div>
+    <div class="org-box">
+      <div class="ob-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg><span data-th="เอกสารยืนยันตัวตน" data-en="Verification documents">เอกสารยืนยันตัวตน</span></div>
+      <p data-th="อัปโหลดใบอนุญาตมัคคุเทศก์ หรือใบอนุญาตธุรกิจนำเที่ยว เพื่อรับตรา Verified (ข้ามได้ สมัครเป็น Basic ก่อน)" data-en="Upload your guide license or tour business license to earn a Verified badge (optional — start as Basic).">อัปโหลดใบอนุญาตมัคคุเทศก์ หรือใบอนุญาตธุรกิจนำเที่ยว เพื่อรับตรา Verified (ข้ามได้ สมัครเป็น Basic ก่อน)</p>
+      <label class="upload"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg><span data-th="เลือกไฟล์เอกสาร" data-en="Choose document file">เลือกไฟล์เอกสาร</span><input type="file" hidden></label>
+    </div>
+  </div>
+
+  <label class="terms"><input type="checkbox"> <span data-th="ฉันยอมรับข้อกำหนดการใช้งานและนโยบายความเป็นส่วนตัว" data-en="I accept the terms of use and privacy policy">ฉันยอมรับ<a href="#" onclick="return false" data-th="ข้อกำหนดการใช้งาน" data-en="terms of use">ข้อกำหนดการใช้งาน</a>และนโยบายความเป็นส่วนตัว</span></label>
+
+  <button class="btn-primary" id="submitBtn" data-th="สร้างบัญชี" data-en="Create account">สร้างบัญชี</button>
+
+  <p class="foot-link" data-th="มีบัญชีอยู่แล้ว?" data-en="Already have an account?">มีบัญชีอยู่แล้ว? <a id="toLogin" href="#" onclick="showAuth('login','customer',event)" data-th="เข้าสู่ระบบ" data-en="Log in">เข้าสู่ระบบ</a></p>
+</div></div>
+
+<!-- ===== ADMIN DASHBOARD OVERLAY ===== -->
+<div class="dash-overlay" id="dashOverlay">
+  <div class="dash-top">
+    <div class="row">
+      <div class="dash-brand">
+        <svg class="mark" viewBox="0 0 48 48" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M8,33 L21,14 L34,33" stroke="#C9A24B" stroke-width="3.4"/><path d="M15,25 L20,31 L31,17" stroke="#E2672B" stroke-width="3.4"/></svg>
+        <span>SafeSumm<span class="istar">ı<svg class="star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.6 6.6L21.5 9.2l-5 4.8 1.4 7L12 17.8 6.1 21l1.4-7-5-4.8 6.9-.6z"/></svg></span>t</span>
+        <span class="tag">Admin</span>
+      </div>
+      <button class="dash-close" onclick="closeDash()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg><span data-th="ปิดแดชบอร์ด" data-en="Close dashboard">ปิดแดชบอร์ด</span></button>
+    </div>
+  </div>
+  <div class="dash-wrap">
+    <div class="dash-phead">
+      <h1 data-th="ติดตามและปิดงานทริป" data-en="Track & close trips">ติดตามและปิดงานทริป</h1>
+      <p data-th="ภาพรวมทุกทริปจากผู้จัดทั้งหมด — ติดตามสถานะ ปิดงาน และดึงสรุปออกมาทำรายงาน" data-en="All trips from every organizer — follow up, close out, and export summaries.">ภาพรวมทุกทริปจากผู้จัดทั้งหมด — ติดตามสถานะ ปิดงาน และดึงสรุปออกมาทำรายงาน</p>
+    </div>
+    <div class="kpis" id="dashKpis"></div>
+    <div class="dash-toolbar">
+      <div class="dtabs" id="dashTabs"></div>
+      <div class="dash-actions">
+        <button class="dbtn dbtn-export" onclick="exportExcel()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>Export Excel</button>
+        <button class="dbtn dbtn-primary" onclick="openAdd()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg><span data-th="เพิ่มทริป" data-en="Add trip">เพิ่มทริป</span></button>
+      </div>
+    </div>
+    <div class="dpanel">
+      <div class="dtable-scroll">
+        <table>
+          <thead><tr>
+            <th data-th="ทริป / ผู้จัด" data-en="Trip / Organizer">ทริป / ผู้จัด</th>
+            <th data-th="จังหวัด" data-en="Province">จังหวัด</th>
+            <th data-th="วันเดินทาง" data-en="Date">วันเดินทาง</th>
+            <th data-th="ที่นั่ง" data-en="Seats">ที่นั่ง</th>
+            <th data-th="ราคา/คน" data-en="Price">ราคา/คน</th>
+            <th data-th="ยอดรวม" data-en="Total">ยอดรวม</th>
+            <th data-th="สถานะ" data-en="Status">สถานะ</th>
+            <th style="text-align:right;" data-th="จัดการ" data-en="Actions">จัดการ</th>
+          </tr></thead>
+          <tbody id="dashRows"></tbody>
+        </table>
+      </div>
+      <div class="dempty" id="dashEmpty" style="display:none;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 7v10l9 4 9-4V7"/></svg>
+        <p data-th="ยังไม่มีทริปในสถานะนี้" data-en="No trips in this status yet">ยังไม่มีทริปในสถานะนี้</p>
+      </div>
+    </div>
+    <div class="dfoot-note" data-th="ข้อมูลถูกบันทึกไว้ในเครื่องนี้โดยอัตโนมัติ — หน้าทริปแนะนำจะแสดงเฉพาะทริปที่เปิดรับจองและเต็มแล้ว" data-en="Data is saved on this device automatically — the public trip list shows only open and full trips.">ข้อมูลถูกบันทึกไว้ในเครื่องนี้โดยอัตโนมัติ — หน้าทริปแนะนำจะแสดงเฉพาะทริปที่เปิดรับจองและเต็มแล้ว</div>
+  </div>
+</div>
+
+<!-- ADD / EDIT modal -->
+<div class="dmodal-bg" id="dmodalAdd">
+  <div class="dmodal">
+    <div class="dmodal-h"><div><h3 id="dAddTitle" data-th="เพิ่มทริปใหม่" data-en="Add new trip">เพิ่มทริปใหม่</h3><p data-th="กรอกรายละเอียดทริปเพื่อเริ่มติดตาม" data-en="Fill in trip details to start tracking">กรอกรายละเอียดทริปเพื่อเริ่มติดตาม</p></div><button class="dmodal-x" onclick="dCloseModal('dmodalAdd')">×</button></div>
+    <div class="dmodal-b">
+      <div class="dfld"><label data-th="ชื่อทริป" data-en="Trip name">ชื่อทริป</label><input id="df-name" placeholder="เช่น ภูกระดึง 3 วัน 2 คืน"></div>
+      <div class="dfld"><label data-th="ชื่อผู้จัด" data-en="Organizer">ชื่อผู้จัด</label><input id="df-org" placeholder="เช่น เหนือสุดเทรค"></div>
+      <div class="dfld-row">
+        <div class="dfld"><label data-th="ภาค" data-en="Region">ภาค</label>
+          <select id="df-region"><option value="north">ภาคเหนือ</option><option value="northeast">ภาคอีสาน</option><option value="central">ภาคกลาง</option><option value="east">ภาคตะวันออก</option><option value="west">ภาคตะวันตก</option><option value="south">ภาคใต้</option></select>
+        </div>
+        <div class="dfld"><label data-th="จังหวัด" data-en="Province">จังหวัด</label><input id="df-prov" placeholder="เช่น เลย"></div>
+      </div>
+      <div class="dfld-row">
+        <div class="dfld"><label data-th="วันเดินทาง" data-en="Date">วันเดินทาง</label><input id="df-date" type="date"></div>
+        <div class="dfld"><label data-th="ราคา/คน (฿)" data-en="Price/person">ราคา/คน (฿)</label><input id="df-price" type="number" min="0" value="2900"></div>
+      </div>
+      <div class="dfld-row">
+        <div class="dfld"><label data-th="ที่นั่งทั้งหมด" data-en="Capacity">ที่นั่งทั้งหมด</label><input id="df-cap" type="number" min="1" value="12"></div>
+        <div class="dfld"><label data-th="จองแล้ว" data-en="Booked">จองแล้ว</label><input id="df-booked" type="number" min="0" value="0"></div>
+        <div class="dfld"><label data-th="ตรา" data-en="Badge">ตรา</label><select id="df-badge"><option>Verified Pro</option><option>Verified Basic</option></select></div>
+      </div>
+      <div class="dfld"><label data-th="สถานะ" data-en="Status">สถานะ</label>
+        <select id="df-status"><option value="open" data-th="เปิดรับจอง" data-en="Open">เปิดรับจอง</option><option value="full" data-th="เต็มแล้ว รอออกเดินทาง" data-en="Full">เต็มแล้ว รอออกเดินทาง</option><option value="ongoing" data-th="กำลังเดินทาง" data-en="Ongoing">กำลังเดินทาง</option><option value="completed" data-th="จบแล้ว" data-en="Completed">จบแล้ว</option><option value="cancelled" data-th="ยกเลิก" data-en="Cancelled">ยกเลิก</option></select>
+      </div>
+      <div class="dmodal-foot"><button class="dbtn dbtn-ghost" onclick="dCloseModal('dmodalAdd')" data-th="ยกเลิก" data-en="Cancel">ยกเลิก</button><button class="dbtn dbtn-primary" onclick="saveTrip()" data-th="บันทึก" data-en="Save">บันทึก</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- CLOSE modal -->
+<div class="dmodal-bg" id="dmodalClose">
+  <div class="dmodal">
+    <div class="dmodal-h"><div><h3 data-th="ปิดงานทริป" data-en="Close trip">ปิดงานทริป</h3><p id="dCloseSub"></p></div><button class="dmodal-x" onclick="dCloseModal('dmodalClose')">×</button></div>
+    <div class="dmodal-b">
+      <div class="dnote" data-th="การปิดงานจะเปลี่ยนสถานะเป็น <b>จบแล้ว</b> และบันทึกยอดสรุปของทริปนี้" data-en="Closing sets the status to <b>Completed</b> and records this trip's summary.">การปิดงานจะเปลี่ยนสถานะเป็น <b>จบแล้ว</b> และบันทึกยอดสรุปของทริปนี้</div>
+      <div class="dfld-row">
+        <div class="dfld"><label data-th="จำนวนผู้ร่วมจริง" data-en="Actual participants">จำนวนผู้ร่วมจริง</label><input id="dc-actual" type="number" min="0"></div>
+        <div class="dfld"><label data-th="รายได้รวมจริง (฿)" data-en="Actual revenue">รายได้รวมจริง (฿)</label><input id="dc-revenue" type="number" min="0"></div>
+      </div>
+      <div class="dfld"><label data-th="หมายเหตุการปิดงาน (ไม่บังคับ)" data-en="Closing note (optional)">หมายเหตุการปิดงาน (ไม่บังคับ)</label><input id="dc-note" placeholder="เช่น อากาศดี ไม่มีปัญหา"></div>
+      <div class="dmodal-foot"><button class="dbtn dbtn-ghost" onclick="dCloseModal('dmodalClose')" data-th="ยกเลิก" data-en="Cancel">ยกเลิก</button><button class="dbtn dbtn-primary" onclick="confirmClose()" data-th="ยืนยันปิดงาน" data-en="Confirm">ยืนยันปิดงาน</button></div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

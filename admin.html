@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SafeSummit — Admin</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Kanit:wght@600;700;800&family=Sarabun:wght@400;500;600;700&family=Bai+Jamjuree:wght@400;500;600&display=swap');
+
+:root{
+  --bg-deep:#2A2118;
+  --bg-deep-2:#3A2C1C;
+  --bg-light:#FAF6EA;
+  --card-light:#FFFFFF;
+  --bg-card:#F3ECDA;
+  --accent-trail:#E2672B;
+  --accent-gold:#C9A24B;
+  --text-light:#EDE7D6;
+  --text-dark:#2B2118;
+  --text-muted:#6B5D4A;
+  --line-muted:#B59A6E;
+  --shadow:0 4px 20px rgba(40,28,18,.10);
+  --shadow-dark:0 14px 34px rgba(0,0,0,.3);
+  --sidebar-w:220px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:'Sarabun',sans-serif;color:var(--text-dark);background:var(--bg-light);min-height:100vh;display:flex;flex-direction:column;}
+a{text-decoration:none;color:inherit;}
+ul{list-style:none;}
+img,svg{display:block;}
+h1,h2,h3{font-family:'Kanit',sans-serif;}
+
+/* ---- TOP BAR ---- */
+.topbar{
+  background:var(--bg-deep);color:var(--text-light);
+  position:sticky;top:0;z-index:50;border-bottom:1px solid rgba(201,162,75,.2);
+}
+.topbar-inner{display:flex;align-items:center;justify-content:space-between;padding:13px 24px;}
+.brand{display:flex;align-items:center;gap:10px;font-family:'Kanit',sans-serif;font-weight:800;font-size:20px;color:var(--text-light);}
+.brand .mark{width:32px;height:32px;}
+.brand .istar{position:relative;display:inline-block;}
+.brand .istar .star{position:absolute;left:50%;top:-0.42em;transform:translateX(-50%);width:0.46em;height:0.46em;color:var(--accent-gold);}
+.brand .tag{font-family:'Bai Jamjuree',monospace;font-size:10.5px;letter-spacing:.1em;color:var(--accent-gold);border:1px solid rgba(201,162,75,.4);padding:3px 9px;border-radius:20px;margin-left:4px;text-transform:uppercase;}
+.topbar-right{display:flex;align-items:center;gap:14px;}
+.back-btn{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--line-muted);border:1px solid rgba(181,154,110,.3);border-radius:8px;padding:7px 14px;transition:.15s;}
+.back-btn:hover{color:var(--text-light);border-color:rgba(181,154,110,.6);}
+.back-btn svg{width:14px;height:14px;}
+.admin-chip{font-family:'Bai Jamjuree',monospace;font-size:11px;background:rgba(226,103,43,.18);color:var(--accent-trail);border:1px solid rgba(226,103,43,.3);padding:4px 10px;border-radius:20px;}
+
+/* ---- LAYOUT ---- */
+.layout{display:flex;flex:1;min-height:0;}
+
+/* ---- SIDEBAR ---- */
+.sidebar{
+  width:var(--sidebar-w);background:var(--bg-deep-2);border-right:1px solid rgba(181,154,110,.15);
+  flex-shrink:0;position:sticky;top:57px;height:calc(100vh - 57px);overflow-y:auto;
+}
+.sidebar-section{padding:20px 12px 8px;font-family:'Bai Jamjuree',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:rgba(181,154,110,.5);}
+.nav-item{
+  display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:9px;margin:2px 8px;
+  font-size:14px;font-weight:600;color:var(--line-muted);cursor:pointer;transition:.15s;border:none;background:transparent;width:calc(100% - 16px);text-align:left;font-family:'Sarabun',sans-serif;
+}
+.nav-item svg{width:17px;height:17px;flex-shrink:0;}
+.nav-item:hover{background:rgba(237,231,214,.06);color:var(--text-light);}
+.nav-item.active{background:rgba(226,103,43,.16);color:var(--accent-trail);}
+.nav-item .badge{margin-left:auto;font-family:'Bai Jamjuree',monospace;font-size:10px;background:rgba(226,103,43,.25);color:var(--accent-trail);padding:1px 7px;border-radius:10px;}
+.nav-item.active .badge{background:rgba(226,103,43,.3);}
+
+/* ---- MAIN ---- */
+.main{flex:1;overflow-y:auto;padding:28px 32px;}
+.page{display:none;}
+.page.active{display:block;}
+.page-head{margin-bottom:24px;}
+.page-head h1{font-size:24px;font-weight:700;margin-bottom:4px;}
+.page-head p{font-size:14px;color:var(--text-muted);}
+
+/* ---- KPI CARDS ---- */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;}
+.kpi{background:var(--card-light);border-radius:12px;padding:16px 18px;box-shadow:var(--shadow);border-left:4px solid var(--accent-gold);}
+.kpi .label{font-family:'Bai Jamjuree',monospace;font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;}
+.kpi .val{font-family:'Kanit',sans-serif;font-size:26px;font-weight:700;line-height:1;color:var(--text-dark);}
+.kpi .sub{font-size:12px;color:var(--text-muted);margin-top:5px;}
+.kpi .delta{font-size:11.5px;font-weight:600;margin-top:4px;}
+.kpi .delta.up{color:#5C8A5A;}
+.kpi .delta.down{color:#C0552F;}
+.kpi.k-trip{border-left-color:#3E6E8E;}
+.kpi.k-org{border-left-color:var(--accent-gold);}
+.kpi.k-money{border-left-color:var(--accent-trail);}
+.kpi.k-user{border-left-color:#5C8A5A;}
+@media(max-width:900px){.kpis{grid-template-columns:1fr 1fr;}}
+
+/* ---- PANELS ---- */
+.panel{background:var(--card-light);border-radius:14px;box-shadow:var(--shadow);overflow:hidden;margin-bottom:18px;}
+.panel-head{padding:16px 20px;border-bottom:1px solid #E6DCC6;display:flex;align-items:center;justify-content:space-between;}
+.panel-head h3{font-family:'Sarabun',sans-serif;font-size:15px;font-weight:700;color:var(--text-dark);}
+.panel-head .ph-right{display:flex;gap:8px;}
+.tscroll{overflow-x:auto;}
+.panel table{width:100%;border-collapse:collapse;}
+.panel thead th{text-align:left;font-family:'Bai Jamjuree',monospace;font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--text-muted);padding:12px 16px;border-bottom:1px solid #E6DCC6;background:#FCFAF3;white-space:nowrap;}
+.panel tbody td{padding:13px 16px;border-bottom:1px solid #E6DCC6;font-size:13.5px;vertical-align:middle;color:var(--text-dark);}
+.panel tbody tr:last-child td{border-bottom:none;}
+.panel tbody tr:hover{background:#FCFAF3;}
+.d-name{font-weight:700;}
+.d-sub{font-size:11.5px;color:var(--text-muted);margin-top:1px;}
+.d-muted{color:var(--text-muted);font-size:13px;}
+.d-money{font-family:'Bai Jamjuree',monospace;font-weight:600;}
+
+/* ---- PILLS ---- */
+.pill{font-family:'Bai Jamjuree',monospace;font-size:10.5px;font-weight:600;padding:3px 9px;border-radius:20px;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;}
+.pill::before{content:"";width:5px;height:5px;border-radius:50%;background:currentColor;}
+.pill.open{background:rgba(62,110,142,.13);color:#3E6E8E;}
+.pill.full{background:rgba(201,154,59,.15);color:#C99A3B;}
+.pill.ongoing{background:rgba(226,103,43,.13);color:var(--accent-trail);}
+.pill.completed{background:rgba(92,138,90,.15);color:#5C8A5A;}
+.pill.cancelled{background:rgba(192,85,47,.13);color:#C0552F;}
+.pill.approved{background:rgba(92,138,90,.15);color:#5C8A5A;}
+.pill.pending{background:rgba(201,154,59,.15);color:#C99A3B;}
+.pill.suspended{background:rgba(192,85,47,.13);color:#C0552F;}
+
+/* ---- BUTTONS ---- */
+.btn{border:none;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-family:'Sarabun',sans-serif;transition:.15s;}
+.btn svg{width:14px;height:14px;}
+.btn-primary{background:var(--accent-trail);color:#fff;}
+.btn-primary:hover{filter:brightness(1.08);}
+.btn-green{background:#5C8A5A;color:#fff;}
+.btn-green:hover{filter:brightness(1.08);}
+.btn-red{background:#C0552F;color:#fff;}
+.btn-red:hover{filter:brightness(1.08);}
+.btn-ghost{background:var(--card-light);color:var(--text-dark);border:1px solid #E6DCC6;}
+.btn-ghost:hover{background:#FCFAF3;}
+.btn-export{background:#1D6F42;color:#fff;}
+.btn-export:hover{filter:brightness(1.08);}
+.icon-btn{border:1px solid #E6DCC6;background:var(--card-light);border-radius:7px;padding:5px 9px;font-size:12px;font-weight:600;color:var(--text-dark);display:inline-flex;align-items:center;gap:4px;cursor:pointer;font-family:'Sarabun',sans-serif;}
+.icon-btn svg{width:13px;height:13px;}
+.icon-btn:hover{background:#FCFAF3;}
+.icon-btn.approve{border-color:rgba(92,138,90,.5);color:#5C8A5A;}
+.icon-btn.suspend{border-color:rgba(192,85,47,.4);color:#C0552F;}
+.row-acts{display:flex;gap:5px;justify-content:flex-end;}
+
+/* ---- TABS (trip filter) ---- */
+.tab-row{display:flex;gap:6px;background:var(--bg-card);border-radius:10px;padding:4px;margin-bottom:16px;flex-wrap:wrap;}
+.tab-btn{border:none;background:transparent;padding:7px 14px;border-radius:7px;font-size:13px;font-weight:600;color:var(--text-muted);cursor:pointer;font-family:'Sarabun',sans-serif;display:flex;align-items:center;gap:6px;}
+.tab-btn .cnt{font-family:'Bai Jamjuree',monospace;font-size:10.5px;background:rgba(107,93,74,.16);padding:1px 6px;border-radius:8px;}
+.tab-btn.active{background:var(--card-light);color:var(--accent-trail);box-shadow:0 2px 8px rgba(40,28,18,.08);}
+.tab-btn.active .cnt{background:rgba(226,103,43,.15);color:var(--accent-trail);}
+
+/* ---- TOOLBAR ---- */
+.toolbar{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;}
+.search-input{padding:8px 12px;border:1px solid #E6DCC6;border-radius:8px;font-family:'Sarabun',sans-serif;font-size:13.5px;background:var(--card-light);color:var(--text-dark);min-width:200px;}
+.search-input:focus{outline:none;border-color:var(--accent-gold);}
+.toolbar-left{display:flex;gap:8px;align-items:center;}
+
+/* ---- OVERVIEW GRID ---- */
+.ov-grid{display:grid;grid-template-columns:1.6fr 1fr;gap:18px;margin-bottom:18px;}
+@media(max-width:860px){.ov-grid{grid-template-columns:1fr;}}
+
+/* Activity feed */
+.activity-list{padding:12px 0;}
+.act-item{display:flex;gap:12px;align-items:flex-start;padding:10px 18px;border-bottom:1px solid #F0E8D4;}
+.act-item:last-child{border-bottom:none;}
+.act-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px;}
+.act-dot.new{background:#5C8A5A;}
+.act-dot.close{background:var(--accent-trail);}
+.act-dot.cancel{background:#C0552F;}
+.act-dot.pend{background:#C99A3B;}
+.act-text{font-size:13px;color:var(--text-dark);line-height:1.5;}
+.act-time{font-size:11.5px;color:var(--text-muted);margin-top:2px;}
+
+/* Organizer tier summary */
+.tier-bar{padding:16px 18px;}
+.tier-row2{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.tier-name{font-size:13.5px;font-weight:600;}
+.tier-count{font-family:'Bai Jamjuree',monospace;font-size:13px;color:var(--text-muted);}
+.tier-track{height:7px;border-radius:4px;background:#E6DCC6;overflow:hidden;}
+.tier-track i{display:block;height:100%;border-radius:4px;}
+.tier-pro i{background:var(--accent-gold);}
+.tier-basic i{background:#3E6E8E;}
+.tier-unverified i{background:#B59A6E;}
+
+/* ---- SEATBAR ---- */
+.seatbar{height:5px;border-radius:3px;background:#E6DCC6;margin-top:4px;overflow:hidden;width:72px;}
+.seatbar i{display:block;height:100%;background:var(--accent-gold);}
+
+/* ---- MODALS ---- */
+.modal-bg{position:fixed;inset:0;background:rgba(30,20,12,.55);display:none;align-items:center;justify-content:center;z-index:200;padding:20px;}
+.modal-bg.show{display:flex;}
+.modal{background:var(--bg-light);border-radius:16px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;box-shadow:0 30px 70px rgba(0,0,0,.28);}
+.modal-h{padding:20px 24px 0;display:flex;justify-content:space-between;align-items:flex-start;}
+.modal-h h3{font-family:'Kanit',sans-serif;font-size:18px;font-weight:700;color:var(--text-dark);}
+.modal-h p{font-size:12.5px;color:var(--text-muted);margin-top:2px;}
+.modal-x{border:none;background:var(--bg-card);width:30px;height:30px;border-radius:8px;font-size:16px;color:var(--text-muted);cursor:pointer;flex-shrink:0;}
+.modal-b{padding:16px 24px 24px;}
+.fld{margin-bottom:13px;}
+.fld label{display:block;font-size:12px;font-weight:600;margin-bottom:5px;color:var(--text-dark);}
+.fld input,.fld select,.fld textarea{width:100%;padding:9px 12px;border:1px solid #E6DCC6;border-radius:8px;font-family:'Sarabun',sans-serif;font-size:14px;background:var(--card-light);color:var(--text-dark);}
+.fld input:focus,.fld select:focus,.fld textarea:focus{outline:none;border-color:var(--accent-gold);box-shadow:0 0 0 3px rgba(201,162,75,.14);}
+.fld-row{display:flex;gap:10px;}
+.fld-row .fld{flex:1;}
+.modal-foot{display:flex;gap:8px;justify-content:flex-end;margin-top:8px;}
+.note-box{background:#FBF4E2;border:1px dashed var(--accent-gold);border-radius:9px;padding:11px 13px;font-size:12.5px;color:var(--text-muted);margin-bottom:13px;}
+.note-box b{color:var(--text-dark);}
+
+/* ---- TOAST ---- */
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:#2A2118;color:#EDE7D6;padding:12px 20px;border-radius:10px;font-size:13.5px;font-weight:600;box-shadow:0 14px 34px rgba(0,0,0,.3);opacity:0;transition:.25s;z-index:300;pointer-events:none;}
+
+/* ---- EMPTY ---- */
+.empty{text-align:center;padding:50px 20px;color:var(--text-muted);}
+.empty svg{width:40px;height:40px;color:#E6DCC6;margin:0 auto 10px;}
+
+/* ---- ORG AVATAR ---- */
+.org-avatar{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Kanit',sans-serif;font-weight:700;font-size:14px;color:#fff;flex-shrink:0;}
+
+/* ---- FINANCE CARDS ---- */
+.fin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px;}
+@media(max-width:860px){.fin-grid{grid-template-columns:1fr 1fr;}}
+.fin-card{background:var(--card-light);border-radius:12px;padding:18px;box-shadow:var(--shadow);}
+.fin-card .fc-label{font-family:'Bai Jamjuree',monospace;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;}
+.fin-card .fc-val{font-family:'Kanit',sans-serif;font-size:24px;font-weight:700;color:var(--text-dark);}
+.fin-card .fc-sub{font-size:12px;color:var(--text-muted);margin-top:4px;}
+.escrow-bar{height:10px;border-radius:5px;background:#E6DCC6;overflow:hidden;margin-top:10px;}
+.escrow-bar i{display:block;height:100%;background:var(--accent-gold);border-radius:5px;}
+
+@media(max-width:768px){
+  .sidebar{display:none;}
+  .main{padding:18px 16px;}
+  .kpis{grid-template-columns:1fr 1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <svg class="mark" viewBox="0 0 48 48" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M8,33 L21,14 L34,33" stroke="#C9A24B" stroke-width="3.2"/>
+        <path d="M15,25 L20,31 L31,17" stroke="#E2672B" stroke-width="3.2"/>
+      </svg>
+      <span>SafeSumm<span class="istar"><span style="color:var(--text-light)">ı</span><svg class="star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.6 6.6L21.5 9.2l-5 4.8 1.4 7L12 17.8 6.1 21l1.4-7-5-4.8 6.9-.6z"/></svg></span>t</span>
+      <span class="tag">Admin</span>
+    </div>
+    <div class="topbar-right">
+      <span class="admin-chip">SuperAdmin</span>
+      <a class="back-btn" href="safesummit.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+        กลับหน้าแรก
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-section">เมนูหลัก</div>
+    <button class="nav-item active" onclick="showPage('overview',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+      ภาพรวม
+    </button>
+    <button class="nav-item" onclick="showPage('trips',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12a9 9 0 0 0 9 9 9 9 0 0 0 9-9 9 9 0 0 0-9-9"/><path d="M3 12a9 9 0 0 1 9-9"/><path d="M12 8v4l3 3"/></svg>
+      ทริปทั้งหมด
+      <span class="badge" id="sideTrips">6</span>
+    </button>
+    <button class="nav-item" onclick="showPage('organizers',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v2"/></svg>
+      ผู้จัดทริป
+      <span class="badge" id="sideOrgs">2</span>
+    </button>
+    <button class="nav-item" onclick="showPage('finance',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+      การเงิน
+    </button>
+    <div class="sidebar-section" style="margin-top:10px;">ระบบ</div>
+    <button class="nav-item" onclick="showPage('settings',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      ตั้งค่าระบบ
+    </button>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- ======== OVERVIEW ======== -->
+    <div class="page active" id="page-overview">
+      <div class="page-head">
+        <h1>ภาพรวมระบบ</h1>
+        <p>สรุปข้อมูลและกิจกรรมล่าสุดของแพลตฟอร์ม SafeSummit</p>
+      </div>
+
+      <div class="kpis" id="ovKpis"></div>
+
+      <div class="ov-grid">
+        <!-- Recent trips -->
+        <div class="panel">
+          <div class="panel-head">
+            <h3>ทริปล่าสุด</h3>
+            <div class="ph-right">
+              <button class="btn btn-ghost" onclick="showPage('trips', document.querySelectorAll('.nav-item')[1])">ดูทั้งหมด →</button>
+            </div>
+          </div>
+          <div class="tscroll">
+            <table>
+              <thead><tr><th>ทริป</th><th>วันเดินทาง</th><th>ที่นั่ง</th><th>สถานะ</th></tr></thead>
+              <tbody id="ovTrips"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Activity + Tier -->
+        <div style="display:flex;flex-direction:column;gap:18px;">
+          <div class="panel">
+            <div class="panel-head"><h3>กิจกรรมล่าสุด</h3></div>
+            <div class="activity-list" id="actFeed"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><h3>สัดส่วนผู้จัด</h3></div>
+            <div class="tier-bar" id="tierBar"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======== TRIPS ======== -->
+    <div class="page" id="page-trips">
+      <div class="page-head">
+        <h1>ทริปทั้งหมด</h1>
+        <p>จัดการ เพิ่ม แก้ไข และปิดงานทริปจากผู้จัดทุกราย</p>
+      </div>
+
+      <div class="tab-row" id="tripTabs"></div>
+
+      <div class="toolbar">
+        <div class="toolbar-left">
+          <input class="search-input" id="tripSearch" placeholder="ค้นหาทริป หรือผู้จัด…" oninput="renderTrips()">
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-export" onclick="exportTrips()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+            Export CSV
+          </button>
+          <button class="btn btn-primary" onclick="openAddTrip()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+            เพิ่มทริป
+          </button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="tscroll">
+          <table>
+            <thead><tr>
+              <th>ทริป / ผู้จัด</th><th>จังหวัด</th><th>วันเดินทาง</th>
+              <th>ที่นั่ง</th><th>ราคา/คน</th><th>ยอดรวม</th><th>สถานะ</th><th style="text-align:right">จัดการ</th>
+            </tr></thead>
+            <tbody id="tripRows"></tbody>
+          </table>
+        </div>
+        <div class="empty" id="tripEmpty" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 7v10l9 4 9-4V7"/></svg>
+          <p>ไม่พบทริปในสถานะนี้</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======== ORGANIZERS ======== -->
+    <div class="page" id="page-organizers">
+      <div class="page-head">
+        <h1>ผู้จัดทริป</h1>
+        <p>ตรวจสอบและอนุมัติผู้จัดทริป รวมถึงจัดการสถานะการยืนยัน</p>
+      </div>
+
+      <div class="tab-row" id="orgTabs"></div>
+
+      <div class="toolbar">
+        <input class="search-input" id="orgSearch" placeholder="ค้นหาผู้จัด…" oninput="renderOrgs()">
+        <button class="btn btn-primary" onclick="openAddOrg()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+          เพิ่มผู้จัด
+        </button>
+      </div>
+
+      <div class="panel">
+        <div class="tscroll">
+          <table>
+            <thead><tr>
+              <th>ผู้จัด</th><th>ระดับ</th><th>สมัครเมื่อ</th>
+              <th>ทริปทั้งหมด</th><th>รายได้รวม</th><th>สถานะ</th><th style="text-align:right">จัดการ</th>
+            </tr></thead>
+            <tbody id="orgRows"></tbody>
+          </table>
+        </div>
+        <div class="empty" id="orgEmpty" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v2"/></svg>
+          <p>ไม่พบผู้จัดในกลุ่มนี้</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======== FINANCE ======== -->
+    <div class="page" id="page-finance">
+      <div class="page-head">
+        <h1>การเงิน</h1>
+        <p>สรุปรายได้ เงิน Escrow และการชำระเงินให้ผู้จัด</p>
+      </div>
+
+      <div class="fin-grid" id="finCards"></div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h3>รายการปิดงาน — รอโอนเงินให้ผู้จัด</h3>
+          <div class="ph-right">
+            <button class="btn btn-export" onclick="exportFinance()">Export CSV</button>
+          </div>
+        </div>
+        <div class="tscroll">
+          <table>
+            <thead><tr>
+              <th>ทริป</th><th>ผู้จัด</th><th>วันปิดงาน</th>
+              <th>ผู้ร่วมจริง</th><th>รายได้รวม</th><th>ค่า Platform (8%)</th><th>โอนให้ผู้จัด</th><th>สถานะ</th>
+            </tr></thead>
+            <tbody id="finRows"></tbody>
+          </table>
+        </div>
+        <div class="empty" id="finEmpty" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+          <p>ยังไม่มีรายการปิดงาน</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======== SETTINGS ======== -->
+    <div class="page" id="page-settings">
+      <div class="page-head">
+        <h1>ตั้งค่าระบบ</h1>
+        <p>ปรับการตั้งค่าทั่วไปของแพลตฟอร์ม</p>
+      </div>
+      <div class="panel" style="max-width:560px;">
+        <div class="panel-head"><h3>ค่าคอมมิชชั่น Platform</h3></div>
+        <div class="modal-b">
+          <div class="fld"><label>อัตราค่า Platform (% จากยอดทริป)</label><input id="set-commission" type="number" value="8" min="1" max="30"></div>
+          <div class="fld"><label>จำนวนวันก่อนโอนเงินให้ผู้จัด (หลังปิดงาน)</label><input id="set-payout-days" type="number" value="3" min="1"></div>
+          <div class="fld"><label>จำนวนผู้จองขั้นต่ำก่อนยืนยันทริป</label><input id="set-min-book" type="number" value="4" min="1"></div>
+          <div class="modal-foot" style="justify-content:flex-start;">
+            <button class="btn btn-primary" onclick="saveSettings()">บันทึกการตั้งค่า</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ADD/EDIT TRIP MODAL -->
+<div class="modal-bg" id="modalTrip">
+  <div class="modal">
+    <div class="modal-h"><div><h3 id="tripModalTitle">เพิ่มทริปใหม่</h3><p>กรอกรายละเอียดทริป</p></div><button class="modal-x" onclick="closeModal('modalTrip')">×</button></div>
+    <div class="modal-b">
+      <div class="fld"><label>ชื่อทริป</label><input id="tf-name" placeholder="เช่น ภูกระดึง 3 วัน 2 คืน"></div>
+      <div class="fld-row">
+        <div class="fld"><label>ผู้จัด</label>
+          <select id="tf-org"><option value="">-- เลือกผู้จัด --</option></select>
+        </div>
+        <div class="fld"><label>ตรา</label>
+          <select id="tf-badge"><option>Verified Pro</option><option>Verified Basic</option></select>
+        </div>
+      </div>
+      <div class="fld-row">
+        <div class="fld"><label>ภาค</label>
+          <select id="tf-region"><option value="north">ภาคเหนือ</option><option value="northeast">ภาคอีสาน</option><option value="central">ภาคกลาง</option><option value="east">ภาคตะวันออก</option><option value="west">ภาคตะวันตก</option><option value="south">ภาคใต้</option></select>
+        </div>
+        <div class="fld"><label>จังหวัด</label><input id="tf-prov" placeholder="เช่น เลย"></div>
+      </div>
+      <div class="fld-row">
+        <div class="fld"><label>วันเดินทาง</label><input id="tf-date" type="date"></div>
+        <div class="fld"><label>ราคา/คน (฿)</label><input id="tf-price" type="number" value="2900"></div>
+      </div>
+      <div class="fld-row">
+        <div class="fld"><label>ที่นั่งทั้งหมด</label><input id="tf-cap" type="number" value="12"></div>
+        <div class="fld"><label>จองแล้ว</label><input id="tf-booked" type="number" value="0"></div>
+      </div>
+      <div class="fld"><label>สถานะ</label>
+        <select id="tf-status">
+          <option value="open">เปิดรับจอง</option>
+          <option value="full">เต็มแล้ว</option>
+          <option value="ongoing">กำลังเดินทาง</option>
+          <option value="completed">จบแล้ว</option>
+          <option value="cancelled">ยกเลิก</option>
+        </select>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-ghost" onclick="closeModal('modalTrip')">ยกเลิก</button>
+        <button class="btn btn-primary" onclick="saveTrip()">บันทึก</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CLOSE TRIP MODAL -->
+<div class="modal-bg" id="modalClose">
+  <div class="modal">
+    <div class="modal-h"><div><h3>ปิดงานทริป</h3><p id="closeSubTitle"></p></div><button class="modal-x" onclick="closeModal('modalClose')">×</button></div>
+    <div class="modal-b">
+      <div class="note-box">การปิดงานจะเปลี่ยนสถานะเป็น <b>จบแล้ว</b> และบันทึกยอดสรุปของทริปนี้</div>
+      <div class="fld-row">
+        <div class="fld"><label>จำนวนผู้ร่วมจริง</label><input id="cl-actual" type="number" min="0"></div>
+        <div class="fld"><label>รายได้รวมจริง (฿)</label><input id="cl-revenue" type="number" min="0"></div>
+      </div>
+      <div class="fld"><label>หมายเหตุ (ไม่บังคับ)</label><input id="cl-note" placeholder="เช่น อากาศดี ไม่มีปัญหา"></div>
+      <div class="modal-foot">
+        <button class="btn btn-ghost" onclick="closeModal('modalClose')">ยกเลิก</button>
+        <button class="btn btn-primary" onclick="confirmClose()">ยืนยันปิดงาน</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD/EDIT ORG MODAL -->
+<div class="modal-bg" id="modalOrg">
+  <div class="modal">
+    <div class="modal-h"><div><h3 id="orgModalTitle">เพิ่มผู้จัด</h3><p>ข้อมูลผู้จัดทริป</p></div><button class="modal-x" onclick="closeModal('modalOrg')">×</button></div>
+    <div class="modal-b">
+      <div class="fld-row">
+        <div class="fld"><label>ชื่อผู้จัด / เพจ</label><input id="of-name" placeholder="เช่น เหนือสุดเทรค"></div>
+        <div class="fld"><label>ชื่อผู้ติดต่อ</label><input id="of-contact" placeholder="ชื่อ-นามสกุล"></div>
+      </div>
+      <div class="fld-row">
+        <div class="fld"><label>อีเมล</label><input id="of-email" type="email" placeholder="org@example.com"></div>
+        <div class="fld"><label>เบอร์โทร</label><input id="of-phone" placeholder="08x-xxx-xxxx"></div>
+      </div>
+      <div class="fld-row">
+        <div class="fld"><label>ระดับ</label>
+          <select id="of-tier"><option value="Verified Pro">Verified Pro</option><option value="Verified Basic">Verified Basic</option><option value="Unverified">Unverified</option></select>
+        </div>
+        <div class="fld"><label>สถานะ</label>
+          <select id="of-status"><option value="approved">อนุมัติแล้ว</option><option value="pending">รออนุมัติ</option><option value="suspended">ระงับ</option></select>
+        </div>
+      </div>
+      <div class="fld"><label>หมายเหตุ</label><input id="of-note" placeholder="หมายเหตุเพิ่มเติม (ถ้ามี)"></div>
+      <div class="modal-foot">
+        <button class="btn btn-ghost" onclick="closeModal('modalOrg')">ยกเลิก</button>
+        <button class="btn btn-primary" onclick="saveOrg()">บันทึก</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- APPROVE CONFIRM -->
+<div class="modal-bg" id="modalConfirm">
+  <div class="modal" style="max-width:400px;">
+    <div class="modal-h"><div><h3 id="confirmTitle">ยืนยัน</h3></div><button class="modal-x" onclick="closeModal('modalConfirm')">×</button></div>
+    <div class="modal-b">
+      <p id="confirmMsg" style="font-size:14px;color:var(--text-muted);margin-bottom:18px;"></p>
+      <div class="modal-foot">
+        <button class="btn btn-ghost" onclick="closeModal('modalConfirm')">ยกเลิก</button>
+        <button class="btn" id="confirmOkBtn" onclick="">ยืนยัน</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ===== DATA =====
+const SEED_TRIPS = [
+  {id:'t1',name:{th:'ภูกระดึง 3 วัน 2 คืน',en:'Phu Kradueng 3D2N'},org:'เหนือสุดเทรค',region:'northeast',prov:'เลย',date:'2026-07-12',cap:15,booked:11,price:2900,status:'open',badge:'Verified Pro',rating:4.9,scene:'sunrise'},
+  {id:'t2',name:{th:'ดอยหลวงเชียงดาว 2 วัน 1 คืน',en:'Doi Luang Chiang Dao 2D1N'},org:'ไกด์ล้านนา',region:'north',prov:'เชียงใหม่',date:'2026-07-05',cap:10,booked:10,price:3500,status:'full',badge:'Verified Pro',rating:4.8,scene:'peak'},
+  {id:'t3',name:{th:'เขาช่อง น้ำตกกะเปาะ',en:'Khao Chong Waterfall'},org:'ใต้สุดแทร็ก',region:'south',prov:'ตรัง',date:'2026-06-18',cap:20,booked:14,price:890,status:'ongoing',badge:'Verified Basic',rating:4.7,scene:'forest'},
+  {id:'t4',name:{th:'ภูชี้ฟ้า ทะเลหมอก',en:'Phu Chi Fa Sea of Mist'},org:'เหนือสุดเทรค',region:'north',prov:'เชียงราย',date:'2026-05-30',cap:18,booked:18,price:1800,status:'completed',badge:'Verified Pro',rating:4.9,scene:'peak',actual:18,revenue:32400,closedAt:'2026-06-01'},
+  {id:'t5',name:{th:'เขาใหญ่ ผากล้วยไม้',en:'Khao Yai Pha Kluai Mai'},org:'กลางเทรล',region:'northeast',prov:'นครราชสีมา',date:'2026-06-02',cap:12,booked:4,price:1500,status:'cancelled',badge:'Verified Basic',rating:4.5,scene:'sunrise'},
+  {id:'t6',name:{th:'ดอยอินทนนท์ กิ่วแม่ปาน',en:'Doi Inthanon Kew Mae Pan'},org:'ไกด์ล้านนา',region:'north',prov:'เชียงใหม่',date:'2026-08-09',cap:16,booked:6,price:2200,status:'open',badge:'Verified Pro',rating:4.8,scene:'peak'},
+];
+const SEED_ORGS = [
+  {id:'o1',name:'เหนือสุดเทรค',contact:'สมชาย ใจดี',email:'northtrek@email.com',phone:'081-234-5678',tier:'Verified Pro',status:'approved',joinedAt:'2025-03-12',note:''},
+  {id:'o2',name:'ไกด์ล้านนา',contact:'กมล วงศ์ทอง',email:'lanna@email.com',phone:'082-345-6789',tier:'Verified Pro',status:'approved',joinedAt:'2025-05-20',note:''},
+  {id:'o3',name:'ใต้สุดแทร็ก',contact:'สุดา รักป่า',email:'southtrack@email.com',phone:'083-456-7890',tier:'Verified Basic',status:'approved',joinedAt:'2025-09-10',note:''},
+  {id:'o4',name:'กลางเทรล',contact:'อนันต์ ชวนเที่ยว',email:'midtrail@email.com',phone:'084-567-8901',tier:'Verified Basic',status:'approved',joinedAt:'2025-11-03',note:''},
+  {id:'o5',name:'อีสานเดิน',contact:'วิไล ภักดี',email:'isaan@email.com',phone:'085-678-9012',tier:'Unverified',status:'pending',joinedAt:'2026-06-18',note:'รอตรวจเอกสารใบอนุญาต'},
+  {id:'o6',name:'ใต้เส้นทาง',contact:'ธนพล มีสุข',email:'southpath@email.com',phone:'086-789-0123',tier:'Unverified',status:'pending',joinedAt:'2026-06-20',note:'ส่งเอกสารไม่ครบ'},
+];
+
+let TRIPS = [], ORGS = [];
+let editTripId = null, editOrgId = null, closeTripId = null;
+let tripTabKey = 'all';
+let orgTabKey = 'all';
+
+const STORAGE_KEY = 'safesummit:trips';
+const ORG_KEY = 'safesummit:orgs';
+
+const TRIP_STATUS_LABELS = {open:'เปิดรับจอง',full:'เต็มแล้ว',ongoing:'กำลังเดินทาง',completed:'จบแล้ว',cancelled:'ยกเลิก'};
+const ORG_STATUS_LABELS = {approved:'อนุมัติแล้ว',pending:'รออนุมัติ',suspended:'ระงับ'};
+const COMMISSION = 0.08;
+
+function load(){
+  try{ const r=localStorage.getItem(STORAGE_KEY); if(r) TRIPS=JSON.parse(r); else TRIPS=JSON.parse(JSON.stringify(SEED_TRIPS)); }
+  catch(e){ TRIPS=JSON.parse(JSON.stringify(SEED_TRIPS)); }
+  try{ const r=localStorage.getItem(ORG_KEY); if(r) ORGS=JSON.parse(r); else ORGS=JSON.parse(JSON.stringify(SEED_ORGS)); }
+  catch(e){ ORGS=JSON.parse(JSON.stringify(SEED_ORGS)); }
+}
+function saveTrips(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(TRIPS)); }
+function saveOrgs(){ localStorage.setItem(ORG_KEY, JSON.stringify(ORGS)); }
+
+function tripName(t){ return (t.name&&(t.name.th||t.name.th))||t.name||'–'; }
+function fmtMoney(n){ return '฿'+(n||0).toLocaleString('th-TH'); }
+function fmtDate(d){ if(!d) return '–'; return new Date(d+'T00:00:00').toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'2-digit'}); }
+function tripRevenue(t){ if(t.status==='completed'&&t.revenue!=null) return t.revenue; return (t.booked||0)*(t.price||0); }
+function avatarColor(name){ const colors=['#E2672B','#3E6E8E','#5C8A5A','#C99A3B','#7A5C8A','#C0552F']; let h=0; for(let c of name) h=(h*31+c.charCodeAt(0))&0xffff; return colors[h%colors.length]; }
+
+// ===== PAGE NAVIGATION =====
+function showPage(key, el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+key).classList.add('active');
+  if(el) el.classList.add('active');
+  if(key==='overview') renderOverview();
+  if(key==='trips') renderTrips();
+  if(key==='organizers') renderOrgs();
+  if(key==='finance') renderFinance();
+}
+
+// ===== OVERVIEW =====
+function renderOverview(){
+  const totalRevenue = TRIPS.filter(t=>t.status==='completed').reduce((s,t)=>s+tripRevenue(t),0);
+  const pending = ORGS.filter(o=>o.status==='pending').length;
+  document.getElementById('ovKpis').innerHTML = `
+    <div class="kpi k-trip"><div class="label">ทริปทั้งหมด</div><div class="val">${TRIPS.length}</div><div class="sub">เปิดรับจอง ${TRIPS.filter(t=>t.status==='open').length} ทริป</div></div>
+    <div class="kpi k-org"><div class="label">ผู้จัดทริป</div><div class="val">${ORGS.length}</div><div class="sub"><span class="delta up">รออนุมัติ ${pending} ราย</span></div></div>
+    <div class="kpi k-money"><div class="label">รายได้รวม (ปิดแล้ว)</div><div class="val">${fmtMoney(totalRevenue)}</div><div class="sub">จาก ${TRIPS.filter(t=>t.status==='completed').length} ทริปที่จบ</div></div>
+    <div class="kpi k-user"><div class="label">นักเดินป่ารวม</div><div class="val">${TRIPS.reduce((s,t)=>s+(t.booked||0),0)}</div><div class="sub">จองทุกทริปรวมกัน</div></div>`;
+
+  // recent 5 trips
+  const recent = [...TRIPS].sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,5);
+  document.getElementById('ovTrips').innerHTML = recent.map(t=>`
+    <tr>
+      <td><div class="d-name">${tripName(t)}</div><div class="d-sub">${t.org}</div></td>
+      <td class="d-muted">${fmtDate(t.date)}</td>
+      <td><span style="font-family:'Bai Jamjuree',monospace;font-size:13px">${t.booked}/${t.cap}</span></td>
+      <td><span class="pill ${t.status}">${TRIP_STATUS_LABELS[t.status]||t.status}</span></td>
+    </tr>`).join('');
+
+  // activity
+  const acts = [
+    ...(TRIPS.filter(t=>t.status==='open').slice(0,2).map(t=>({dot:'new',text:`เปิดรับจอง: <b>${tripName(t)}</b>`,time:'ล่าสุด'}))),
+    ...(TRIPS.filter(t=>t.status==='completed').slice(0,1).map(t=>({dot:'close',text:`ปิดงานทริป: <b>${tripName(t)}</b>`,time:fmtDate(t.closedAt)}))),
+    ...(ORGS.filter(o=>o.status==='pending').map(o=>({dot:'pend',text:`รออนุมัติผู้จัด: <b>${o.name}</b>`,time:fmtDate(o.joinedAt)}))),
+    ...(TRIPS.filter(t=>t.status==='cancelled').slice(0,1).map(t=>({dot:'cancel',text:`ยกเลิกทริป: <b>${tripName(t)}</b>`,time:fmtDate(t.date)}))),
+  ].slice(0,6);
+  document.getElementById('actFeed').innerHTML = acts.map(a=>`
+    <div class="act-item"><div class="act-dot ${a.dot}"></div><div><div class="act-text">${a.text}</div><div class="act-time">${a.time}</div></div></div>`).join('');
+
+  // tier breakdown
+  const pro = ORGS.filter(o=>o.tier==='Verified Pro').length;
+  const basic = ORGS.filter(o=>o.tier==='Verified Basic').length;
+  const unver = ORGS.filter(o=>o.tier==='Unverified').length;
+  const total = ORGS.length||1;
+  document.getElementById('tierBar').innerHTML = `
+    <div class="tier-row2"><span class="tier-name">Verified Pro</span><span class="tier-count">${pro} ราย</span></div>
+    <div class="tier-track tier-pro" style="margin-bottom:12px;"><i style="width:${Math.round(pro/total*100)}%"></i></div>
+    <div class="tier-row2"><span class="tier-name">Verified Basic</span><span class="tier-count">${basic} ราย</span></div>
+    <div class="tier-track tier-basic" style="margin-bottom:12px;"><i style="width:${Math.round(basic/total*100)}%"></i></div>
+    <div class="tier-row2"><span class="tier-name">Unverified</span><span class="tier-count">${unver} ราย</span></div>
+    <div class="tier-track tier-unverified"><i style="width:${Math.round(unver/total*100)}%"></i></div>`;
+
+  // sidebar badge pending
+  document.getElementById('sideOrgs').textContent = pending||'';
+  document.getElementById('sideOrgs').style.display = pending ? '' : 'none';
+  document.getElementById('sideTrips').textContent = TRIPS.length;
+}
+
+// ===== TRIPS =====
+const TRIP_TABS = [
+  {key:'all',label:'ทั้งหมด',match:()=>true},
+  {key:'open',label:'เปิดรับจอง',match:t=>t.status==='open'},
+  {key:'full',label:'เต็มแล้ว',match:t=>t.status==='full'},
+  {key:'ongoing',label:'กำลังเดินทาง',match:t=>t.status==='ongoing'},
+  {key:'completed',label:'จบแล้ว',match:t=>t.status==='completed'},
+  {key:'cancelled',label:'ยกเลิก',match:t=>t.status==='cancelled'},
+];
+
+function renderTrips(){
+  const q = (document.getElementById('tripSearch')||{}).value||'';
+  // tabs
+  document.getElementById('tripTabs').innerHTML = TRIP_TABS.map(tab=>{
+    const n = TRIPS.filter(tab.match).length;
+    return `<button class="tab-btn ${tripTabKey===tab.key?'active':''}" onclick="setTripTab('${tab.key}')">${tab.label}<span class="cnt">${n}</span></button>`;
+  }).join('');
+  // rows
+  const def = TRIP_TABS.find(t=>t.key===tripTabKey);
+  let list = TRIPS.filter(def.match);
+  if(q) list = list.filter(t=>tripName(t).includes(q)||t.org.includes(q)||t.prov.includes(q));
+  list = list.sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  const tbody = document.getElementById('tripRows');
+  const empty = document.getElementById('tripEmpty');
+  if(!list.length){ tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  tbody.innerHTML = list.map(t=>{
+    const pct = t.cap ? Math.min(100,Math.round((t.booked/t.cap)*100)) : 0;
+    let acts = '';
+    if(t.status==='ongoing') acts += `<button class="icon-btn approve" onclick="openCloseTrip('${t.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>ปิดงาน</button>`;
+    acts += `<button class="icon-btn" onclick="openEditTrip('${t.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>แก้ไข</button>`;
+    return `<tr>
+      <td><div class="d-name">${tripName(t)}</div><div class="d-sub">${t.org} · ${t.badge}</div></td>
+      <td class="d-muted">${t.prov}</td>
+      <td class="d-muted">${fmtDate(t.date)}</td>
+      <td><span style="font-family:'Bai Jamjuree',monospace;font-size:13px">${t.status==='completed'&&t.actual!=null?t.actual+' ไปจริง':t.booked+'/'+t.cap}</span><div class="seatbar"><i style="width:${pct}%"></i></div></td>
+      <td class="d-money">${fmtMoney(t.price)}</td>
+      <td class="d-money">${fmtMoney(tripRevenue(t))}</td>
+      <td><span class="pill ${t.status}">${TRIP_STATUS_LABELS[t.status]||t.status}</span></td>
+      <td><div class="row-acts">${acts}</div></td>
+    </tr>`;
+  }).join('');
+}
+
+function setTripTab(k){ tripTabKey=k; renderTrips(); }
+
+function openAddTrip(){
+  editTripId=null;
+  document.getElementById('tripModalTitle').textContent='เพิ่มทริปใหม่';
+  ['tf-name','tf-prov'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('tf-region').value='north';
+  document.getElementById('tf-cap').value=12;
+  document.getElementById('tf-booked').value=0;
+  document.getElementById('tf-price').value=2900;
+  document.getElementById('tf-status').value='open';
+  document.getElementById('tf-badge').value='Verified Pro';
+  populateOrgSelect(); openModal('modalTrip');
+}
+function openEditTrip(id){
+  const t=TRIPS.find(x=>x.id===id); if(!t) return; editTripId=id;
+  document.getElementById('tripModalTitle').textContent='แก้ไขทริป';
+  document.getElementById('tf-name').value=tripName(t);
+  document.getElementById('tf-region').value=t.region||'north';
+  document.getElementById('tf-prov').value=t.prov||'';
+  document.getElementById('tf-date').value=t.date||'';
+  document.getElementById('tf-cap').value=t.cap||0;
+  document.getElementById('tf-booked').value=t.booked||0;
+  document.getElementById('tf-price').value=t.price||0;
+  document.getElementById('tf-status').value=t.status||'open';
+  document.getElementById('tf-badge').value=t.badge||'Verified Pro';
+  populateOrgSelect(t.org); openModal('modalTrip');
+}
+function populateOrgSelect(selected){
+  const sel = document.getElementById('tf-org');
+  sel.innerHTML = '<option value="">-- เลือกผู้จัด --</option>' +
+    ORGS.filter(o=>o.status==='approved').map(o=>`<option${o.name===selected?' selected':''}>${o.name}</option>`).join('');
+}
+function saveTrip(){
+  const name=document.getElementById('tf-name').value.trim();
+  if(!name){ toast('กรุณากรอกชื่อทริป'); return; }
+  const data={
+    org:document.getElementById('tf-org').value||'–',
+    region:document.getElementById('tf-region').value,
+    prov:document.getElementById('tf-prov').value.trim()||'–',
+    date:document.getElementById('tf-date').value,
+    cap:+document.getElementById('tf-cap').value||0,
+    booked:+document.getElementById('tf-booked').value||0,
+    price:+document.getElementById('tf-price').value||0,
+    status:document.getElementById('tf-status').value,
+    badge:document.getElementById('tf-badge').value,
+  };
+  if(editTripId){
+    const t=TRIPS.find(x=>x.id===editTripId);
+    if(typeof t.name==='object') t.name.th=name; else t.name=name;
+    Object.assign(t,data); toast('บันทึกการแก้ไขแล้ว');
+  } else {
+    TRIPS.push(Object.assign({id:'t'+Date.now(),name:{th:name,en:name},rating:4.8},data));
+    toast('เพิ่มทริปแล้ว');
+  }
+  saveTrips(); renderTrips(); renderOverview(); closeModal('modalTrip');
+}
+
+function openCloseTrip(id){
+  const t=TRIPS.find(x=>x.id===id); if(!t) return; closeTripId=id;
+  document.getElementById('closeSubTitle').textContent=tripName(t)+' · '+t.org;
+  document.getElementById('cl-actual').value=t.booked;
+  document.getElementById('cl-revenue').value=t.booked*t.price;
+  document.getElementById('cl-note').value='';
+  openModal('modalClose');
+}
+function confirmClose(){
+  const t=TRIPS.find(x=>x.id===closeTripId); if(!t) return;
+  t.status='completed';
+  t.actual=+document.getElementById('cl-actual').value||0;
+  t.revenue=+document.getElementById('cl-revenue').value||0;
+  t.closeNote=document.getElementById('cl-note').value.trim();
+  t.closedAt=new Date().toISOString().slice(0,10);
+  saveTrips(); renderTrips(); renderOverview(); closeModal('modalClose');
+  toast('ปิดงานทริปเรียบร้อย');
+}
+
+function exportTrips(){
+  const def=TRIP_TABS.find(t=>t.key===tripTabKey);
+  const list=TRIPS.filter(def.match);
+  const headers=['ชื่อทริป','ผู้จัด','จังหวัด','วันเดินทาง','ที่นั่งทั้งหมด','จองแล้ว','ผู้ร่วมจริง','ราคา/คน','ยอดรวม','สถานะ'];
+  const rows=list.map(t=>[tripName(t),t.org,t.prov,t.date||'',t.cap,t.booked,t.actual??'',t.price,tripRevenue(t),TRIP_STATUS_LABELS[t.status]||t.status]);
+  downloadCSV([headers,...rows],'SafeSummit_trips_'+new Date().toISOString().slice(0,10)+'.csv');
+  toast('ดาวน์โหลดไฟล์แล้ว');
+}
+
+// ===== ORGANIZERS =====
+const ORG_TABS = [
+  {key:'all',label:'ทั้งหมด',match:()=>true},
+  {key:'pending',label:'รออนุมัติ',match:o=>o.status==='pending'},
+  {key:'approved',label:'อนุมัติแล้ว',match:o=>o.status==='approved'},
+  {key:'suspended',label:'ระงับ',match:o=>o.status==='suspended'},
+];
+
+function renderOrgs(){
+  const q=(document.getElementById('orgSearch')||{}).value||'';
+  document.getElementById('orgTabs').innerHTML = ORG_TABS.map(tab=>{
+    const n=ORGS.filter(tab.match).length;
+    return `<button class="tab-btn ${orgTabKey===tab.key?'active':''}" onclick="setOrgTab('${tab.key}')">${tab.label}<span class="cnt">${n}</span></button>`;
+  }).join('');
+  const def=ORG_TABS.find(t=>t.key===orgTabKey);
+  let list=ORGS.filter(def.match);
+  if(q) list=list.filter(o=>o.name.includes(q)||o.contact.includes(q)||o.email.includes(q));
+  const tbody=document.getElementById('orgRows');
+  const empty=document.getElementById('orgEmpty');
+  if(!list.length){ tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  tbody.innerHTML = list.map(o=>{
+    const orgTrips=TRIPS.filter(t=>t.org===o.name);
+    const revenue=orgTrips.filter(t=>t.status==='completed').reduce((s,t)=>s+tripRevenue(t),0);
+    let acts='';
+    if(o.status==='pending'){
+      acts+=`<button class="icon-btn approve" onclick="confirmAction('อนุมัติผู้จัด "${o.name}" ใช่ไหม?','approveOrg','${o.id}','btn-green')">อนุมัติ</button>`;
+      acts+=`<button class="icon-btn suspend" onclick="confirmAction('ปฏิเสธผู้จัด "${o.name}"?','suspendOrg','${o.id}','btn-red')">ปฏิเสธ</button>`;
+    } else if(o.status==='approved'){
+      acts+=`<button class="icon-btn suspend" onclick="confirmAction('ระงับบัญชี "${o.name}" ใช่ไหม?','suspendOrg','${o.id}','btn-red')">ระงับ</button>`;
+    } else if(o.status==='suspended'){
+      acts+=`<button class="icon-btn approve" onclick="confirmAction('คืนสถานะ "${o.name}" ใช่ไหม?','approveOrg','${o.id}','btn-green')">คืนสถานะ</button>`;
+    }
+    acts+=`<button class="icon-btn" onclick="openEditOrg('${o.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>แก้ไข</button>`;
+    return `<tr>
+      <td><div style="display:flex;align-items:center;gap:10px;">
+        <div class="org-avatar" style="background:${avatarColor(o.name)}">${o.name.charAt(0)}</div>
+        <div><div class="d-name">${o.name}</div><div class="d-sub">${o.contact} · ${o.email}</div></div>
+      </div></td>
+      <td><span style="font-size:12.5px;font-weight:600;font-family:'Bai Jamjuree',monospace">${o.tier}</span></td>
+      <td class="d-muted">${fmtDate(o.joinedAt)}</td>
+      <td class="d-muted" style="font-family:'Bai Jamjuree',monospace">${orgTrips.length}</td>
+      <td class="d-money">${fmtMoney(revenue)}</td>
+      <td><span class="pill ${o.status}">${ORG_STATUS_LABELS[o.status]||o.status}</span></td>
+      <td><div class="row-acts">${acts}</div></td>
+    </tr>`;
+  }).join('');
+  // sidebar pending count
+  const pending=ORGS.filter(o=>o.status==='pending').length;
+  document.getElementById('sideOrgs').textContent=pending||'';
+  document.getElementById('sideOrgs').style.display=pending?'':'none';
+}
+
+function setOrgTab(k){ orgTabKey=k; renderOrgs(); }
+
+function approveOrg(id){ const o=ORGS.find(x=>x.id===id); if(!o) return; o.status='approved'; saveOrgs(); renderOrgs(); renderOverview(); toast('อนุมัติผู้จัดแล้ว'); }
+function suspendOrg(id){ const o=ORGS.find(x=>x.id===id); if(!o) return; o.status='suspended'; saveOrgs(); renderOrgs(); renderOverview(); toast('ระงับบัญชีแล้ว'); }
+
+function openAddOrg(){
+  editOrgId=null;
+  document.getElementById('orgModalTitle').textContent='เพิ่มผู้จัด';
+  ['of-name','of-contact','of-email','of-phone','of-note'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('of-tier').value='Verified Pro';
+  document.getElementById('of-status').value='pending';
+  openModal('modalOrg');
+}
+function openEditOrg(id){
+  const o=ORGS.find(x=>x.id===id); if(!o) return; editOrgId=id;
+  document.getElementById('orgModalTitle').textContent='แก้ไขผู้จัด';
+  document.getElementById('of-name').value=o.name||'';
+  document.getElementById('of-contact').value=o.contact||'';
+  document.getElementById('of-email').value=o.email||'';
+  document.getElementById('of-phone').value=o.phone||'';
+  document.getElementById('of-tier').value=o.tier||'Verified Pro';
+  document.getElementById('of-status').value=o.status||'pending';
+  document.getElementById('of-note').value=o.note||'';
+  openModal('modalOrg');
+}
+function saveOrg(){
+  const name=document.getElementById('of-name').value.trim();
+  if(!name){ toast('กรุณากรอกชื่อผู้จัด'); return; }
+  const data={
+    name,contact:document.getElementById('of-contact').value.trim(),
+    email:document.getElementById('of-email').value.trim(),
+    phone:document.getElementById('of-phone').value.trim(),
+    tier:document.getElementById('of-tier').value,
+    status:document.getElementById('of-status').value,
+    note:document.getElementById('of-note').value.trim(),
+  };
+  if(editOrgId){
+    Object.assign(ORGS.find(x=>x.id===editOrgId),data); toast('บันทึกการแก้ไขแล้ว');
+  } else {
+    ORGS.push(Object.assign({id:'o'+Date.now(),joinedAt:new Date().toISOString().slice(0,10)},data));
+    toast('เพิ่มผู้จัดแล้ว');
+  }
+  saveOrgs(); renderOrgs(); renderOverview(); closeModal('modalOrg');
+}
+
+// confirm helper
+let pendingAction=null;
+function confirmAction(msg, fn, id, btnClass){
+  document.getElementById('confirmMsg').textContent=msg;
+  const btn=document.getElementById('confirmOkBtn');
+  btn.className='btn '+(btnClass||'btn-primary');
+  btn.textContent='ยืนยัน';
+  btn.onclick=()=>{ window[fn](id); closeModal('modalConfirm'); };
+  openModal('modalConfirm');
+}
+
+// ===== FINANCE =====
+function renderFinance(){
+  const completed=TRIPS.filter(t=>t.status==='completed');
+  const totalRev=completed.reduce((s,t)=>s+tripRevenue(t),0);
+  const escrow=TRIPS.filter(t=>['open','full','ongoing'].includes(t.status)).reduce((s,t)=>s+(t.booked||0)*(t.price||0),0);
+  const commission=Math.round(totalRev*COMMISSION);
+  document.getElementById('finCards').innerHTML=`
+    <div class="fin-card"><div class="fc-label">รายได้ปิดงานรวม</div><div class="fc-val">${fmtMoney(totalRev)}</div><div class="fc-sub">จาก ${completed.length} ทริปที่จบ</div></div>
+    <div class="fin-card"><div class="fc-label">ค่า Platform (8%)</div><div class="fc-val">${fmtMoney(commission)}</div><div class="fc-sub">หักจากยอดปิดงาน</div></div>
+    <div class="fin-card"><div class="fc-label">เงินใน Escrow</div><div class="fc-val">${fmtMoney(escrow)}</div><div class="fc-sub">รอทริปเดินทางเสร็จ</div><div class="escrow-bar"><i style="width:${Math.min(100,Math.round(escrow/(escrow+totalRev+1)*100))}%"></i></div></div>`;
+
+  const rows=completed.sort((a,b)=>(b.closedAt||'').localeCompare(a.closedAt||''));
+  const empty=document.getElementById('finEmpty');
+  if(!rows.length){ document.getElementById('finRows').innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  document.getElementById('finRows').innerHTML=rows.map(t=>{
+    const rev=tripRevenue(t);
+    const comm=Math.round(rev*COMMISSION);
+    const payout=rev-comm;
+    return `<tr>
+      <td><div class="d-name">${tripName(t)}</div><div class="d-sub">${t.badge}</div></td>
+      <td class="d-muted">${t.org}</td>
+      <td class="d-muted">${fmtDate(t.closedAt)}</td>
+      <td style="font-family:'Bai Jamjuree',monospace">${t.actual??t.booked} คน</td>
+      <td class="d-money">${fmtMoney(rev)}</td>
+      <td class="d-money" style="color:#C0552F">${fmtMoney(comm)}</td>
+      <td class="d-money" style="color:#5C8A5A">${fmtMoney(payout)}</td>
+      <td><span class="pill completed">โอนแล้ว</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function exportFinance(){
+  const completed=TRIPS.filter(t=>t.status==='completed');
+  const headers=['ทริป','ผู้จัด','วันปิดงาน','ผู้ร่วมจริง','รายได้รวม','ค่า Platform','โอนให้ผู้จัด'];
+  const rows=completed.map(t=>{
+    const rev=tripRevenue(t); const comm=Math.round(rev*COMMISSION);
+    return [tripName(t),t.org,t.closedAt||'',t.actual??t.booked,rev,comm,rev-comm];
+  });
+  downloadCSV([headers,...rows],'SafeSummit_finance_'+new Date().toISOString().slice(0,10)+'.csv');
+  toast('ดาวน์โหลดไฟล์แล้ว');
+}
+
+// ===== SETTINGS =====
+function saveSettings(){ toast('บันทึกการตั้งค่าแล้ว'); }
+
+// ===== UTILITIES =====
+function openModal(id){ document.getElementById(id).classList.add('show'); }
+function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+document.querySelectorAll('.modal-bg').forEach(bg=>bg.addEventListener('click',e=>{ if(e.target===bg) bg.classList.remove('show'); }));
+
+let toastTimer;
+function toast(msg){
+  const el=document.getElementById('toast'); el.textContent=msg;
+  el.style.opacity='1'; el.style.transform='translateX(-50%) translateY(0)';
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>{ el.style.opacity='0'; el.style.transform='translateX(-50%) translateY(20px)'; },2400);
+}
+
+function downloadCSV(data, filename){
+  let csv=data.map(r=>r.map(c=>{const s=String(c).replace(/"/g,'""');return /[",\n]/.test(s)?`"${s}"`:s;}).join(',')).join('\n');
+  csv='﻿'+csv;
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob); const a=document.createElement('a');
+  a.href=url; a.download=filename; a.click(); URL.revokeObjectURL(url);
+}
+
+// ===== INIT =====
+load();
+renderOverview();
+</script>
+</body>
+</html>
