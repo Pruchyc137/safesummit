@@ -634,17 +634,21 @@ const SCENES = {
   peak:`<svg class="scene" viewBox="0 0 300 160" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="s_b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3E5A6E"/><stop offset="0.5" stop-color="#7E8FA0"/><stop offset="1" stop-color="#C9A98A"/></linearGradient></defs><rect width="300" height="160" fill="url(#s_b)"/><circle cx="70" cy="48" r="20" fill="#F5E2C0" opacity="0.85"/><path d="M150,30 L210,120 L90,120 Z" fill="#2F3E4A"/><path d="M150,30 L172,63 L150,78 L132,58 Z" fill="#4A5A66" opacity="0.7"/><path d="M40,160 L40,118 L120,128 L300,112 L300,160 Z" fill="#24323C"/><rect x="0" y="120" width="300" height="20" fill="#E8E0D2" opacity="0.45"/></svg>`,
   forest:`<svg class="scene" viewBox="0 0 300 160" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="s_c" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#BFE0C8"/><stop offset="1" stop-color="#6FA37A"/></linearGradient></defs><rect width="300" height="160" fill="url(#s_c)"/><path d="M0,0 L300,0 L300,70 L210,60 L120,78 L0,64 Z" fill="#4E7E58" opacity="0.7"/><path d="M0,160 L0,72 L80,84 L160,70 L240,86 L300,74 L300,160 Z" fill="#2F5638"/><path d="M120,60 L132,60 L138,150 L114,150 Z" fill="#EAF4EC" opacity="0.9"/><path d="M150,160 L150,96 L230,108 L300,98 L300,160 Z" fill="#1F3B27" opacity="0.85"/></svg>`
 };
-function sceneFor(t){ if(t.scene) return SCENES[t.scene]||SCENES.peak; return ({north:SCENES.peak,northeast:SCENES.sunrise,south:SCENES.forest})[t.region]||SCENES.peak; }
+function sceneFor(t){
+  if(t.img) return `<img src="${t.img}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">`;
+  if(t.scene) return SCENES[t.scene]||SCENES.peak;
+  return ({north:SCENES.peak,northeast:SCENES.sunrise,south:SCENES.forest})[t.region]||SCENES.peak;
+}
 
 // ===== SHARED TRIP DATA =====
 let TRIPS = [];
 const SEED_TRIPS = [
-  {id:'t1', name:{th:'ภูกระดึง 3 วัน 2 คืน',en:'Phu Kradueng 3D2N'}, org:'เหนือสุดเทรค', region:'northeast', prov:'เลย', date:'2026-07-12', cap:15, booked:11, price:2900, status:'open', badge:'Verified Pro', rating:4.9, scene:'sunrise'},
-  {id:'t2', name:{th:'ดอยหลวงเชียงดาว 2 วัน 1 คืน',en:'Doi Luang Chiang Dao 2D1N'}, org:'ไกด์ล้านนา', region:'north', prov:'เชียงใหม่', date:'2026-07-05', cap:10, booked:10, price:3500, status:'full', badge:'Verified Pro', rating:4.8, scene:'peak'},
+  {id:'t1', name:{th:'ภูกระดึง 3 วัน 2 คืน',en:'Phu Kradueng 3D2N'}, org:'เหนือสุดเทรค', region:'northeast', prov:'เลย', date:'2026-07-12', cap:15, booked:11, price:2900, status:'open', badge:'Verified Pro', rating:4.9, scene:'sunrise', img:'images/phukradung.webp'},
+  {id:'t2', name:{th:'ดอยหลวงเชียงดาว 2 วัน 1 คืน',en:'Doi Luang Chiang Dao 2D1N'}, org:'ไกด์ล้านนา', region:'north', prov:'เชียงใหม่', date:'2026-07-05', cap:10, booked:10, price:3500, status:'full', badge:'Verified Pro', rating:4.8, scene:'peak', img:'images/doichiangdao.png'},
   {id:'t3', name:{th:'เขาช่อง น้ำตกกะเปาะ',en:'Khao Chong Waterfall'}, org:'ใต้สุดแทร็ก', region:'south', prov:'ตรัง', date:'2026-06-18', cap:20, booked:14, price:890, status:'ongoing', badge:'Verified Basic', rating:4.7, scene:'forest'},
-  {id:'t4', name:{th:'ภูชี้ฟ้า ทะเลหมอก',en:'Phu Chi Fa Sea of Mist'}, org:'เหนือสุดเทรค', region:'north', prov:'เชียงราย', date:'2026-05-30', cap:18, booked:18, price:1800, status:'completed', badge:'Verified Pro', rating:4.9, scene:'peak', actual:18, revenue:32400},
+  {id:'t4', name:{th:'ภูชี้ฟ้า ทะเลหมอก',en:'Phu Chi Fa Sea of Mist'}, org:'เหนือสุดเทรค', region:'north', prov:'เชียงราย', date:'2026-05-30', cap:18, booked:18, price:1800, status:'completed', badge:'Verified Pro', rating:4.9, scene:'peak', actual:18, revenue:32400, img:'images/phusoidao.webp'},
   {id:'t5', name:{th:'เขาใหญ่ ผากล้วยไม้',en:'Khao Yai Pha Kluai Mai'}, org:'กลางเทรล', region:'northeast', prov:'นครราชสีมา', date:'2026-06-02', cap:12, booked:4, price:1500, status:'cancelled', badge:'Verified Basic', rating:4.5, scene:'sunrise'},
-  {id:'t6', name:{th:'ดอยอินทนนท์ กิ่วแม่ปาน',en:'Doi Inthanon Kew Mae Pan'}, org:'ไกด์ล้านนา', region:'north', prov:'เชียงใหม่', date:'2026-08-09', cap:16, booked:6, price:2200, status:'open', badge:'Verified Pro', rating:4.8, scene:'peak'},
+  {id:'t6', name:{th:'ดอยอินทนนท์ กิ่วแม่ปาน',en:'Doi Inthanon Kew Mae Pan'}, org:'ไกด์ล้านนา', region:'north', prov:'เชียงใหม่', date:'2026-08-09', cap:16, booked:6, price:2200, status:'open', badge:'Verified Pro', rating:4.8, scene:'peak', img:'images/doiinthanon.webp'},
 ];
 
 const curLang = () => (document.documentElement.lang === 'en' ? 'en' : 'th');
