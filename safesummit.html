@@ -155,12 +155,12 @@ section.block{padding:88px 0;background:var(--bg-light);}
 /* region grid */
 .region-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:32px;}
 .region-card-btn{position:relative;height:130px;border-radius:12px;overflow:hidden;cursor:pointer;}
-.rc-bg{width:100%;height:100%;transition:transform .45s cubic-bezier(.25,.46,.45,.94);}
+.rc-bg{width:100%;height:100%;background-size:cover;background-position:center;transition:transform .45s cubic-bezier(.25,.46,.45,.94);}
 .region-card-btn:hover .rc-bg{transform:scale(1.07);}
-.rc-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.62) 35%,rgba(0,0,0,.05) 100%);transition:background .2s;}
-.region-card-btn.active .rc-overlay,.region-card-btn:hover .rc-overlay{background:linear-gradient(to top,rgba(226,103,43,.75) 30%,rgba(226,103,43,.15) 100%);}
-.rc-count{position:absolute;top:10px;right:10px;background:rgba(255,255,255,.88);font-family:'Bai Jamjuree',monospace;font-size:10px;font-weight:600;color:var(--text-dark);padding:3px 9px;border-radius:20px;}
-.rc-name{position:absolute;bottom:12px;left:14px;color:#fff;font-family:'Sarabun',sans-serif;font-size:15px;font-weight:500;text-shadow:0 1px 6px rgba(0,0,0,.5);}
+.rc-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.6) 0%,rgba(0,0,0,.05) 55%);transition:background .2s;}
+.region-card-btn.active .rc-overlay,.region-card-btn:hover .rc-overlay{background:linear-gradient(to bottom,rgba(226,103,43,.78) 0%,rgba(226,103,43,.1) 55%);}
+.rc-count{position:absolute;bottom:10px;right:10px;background:rgba(255,255,255,.88);font-family:'Bai Jamjuree',monospace;font-size:10px;font-weight:600;color:var(--text-dark);padding:3px 9px;border-radius:20px;}
+.rc-name{position:absolute;top:14px;left:0;right:0;text-align:center;color:#fff;font-family:'Sarabun',sans-serif;font-size:15px;font-weight:600;text-shadow:0 1px 6px rgba(0,0,0,.6);}
 @media(max-width:860px){.region-grid{grid-template-columns:repeat(2,1fr);}}
 
 /* search input field */
@@ -514,37 +514,37 @@ footer .foot-grid li a:hover{opacity:1;color:var(--accent-gold);}
 
     <div class="region-grid" id="regionGrid">
       <div class="region-card-btn" onclick="filterByRegion('north')" data-region="north">
-        <div class="rc-bg" style="background:linear-gradient(160deg,#1E4A2A 0%,#2E6A3A 40%,#5A9A60 70%,#8AC890 100%);"></div>
+        <div class="rc-bg" style="background-image:url('images/regions/north.jpg'),linear-gradient(160deg,#1E4A2A 0%,#2E6A3A 40%,#5A9A60 70%,#8AC890 100%);"></div>
         <div class="rc-overlay"></div>
         <div class="rc-count" id="rc-north"></div>
         <div class="rc-name" data-th="ภาคเหนือ" data-en="Northern">ภาคเหนือ</div>
       </div>
       <div class="region-card-btn" onclick="filterByRegion('northeast')" data-region="northeast">
-        <div class="rc-bg" style="background:linear-gradient(160deg,#4A2E0A 0%,#7A5020 40%,#C9A24B 70%,#E8C878 100%);"></div>
+        <div class="rc-bg" style="background-image:url('images/regions/northeast.jpg'),linear-gradient(160deg,#4A2E0A 0%,#7A5020 40%,#C9A24B 70%,#E8C878 100%);"></div>
         <div class="rc-overlay"></div>
         <div class="rc-count" id="rc-northeast"></div>
         <div class="rc-name" data-th="ภาคตะวันออกเฉียงเหนือ" data-en="Northeastern">ภาคตะวันออกเฉียงเหนือ</div>
       </div>
       <div class="region-card-btn" onclick="filterByRegion('central')" data-region="central">
-        <div class="rc-bg" style="background:linear-gradient(160deg,#0E2A4A 0%,#1A4A7A 40%,#3A7AAA 70%,#70AACC 100%);"></div>
+        <div class="rc-bg" style="background-image:url('images/regions/central.jpg'),linear-gradient(160deg,#0E2A4A 0%,#1A4A7A 40%,#3A7AAA 70%,#70AACC 100%);"></div>
         <div class="rc-overlay"></div>
         <div class="rc-count" id="rc-central"></div>
         <div class="rc-name" data-th="ภาคกลาง" data-en="Central">ภาคกลาง</div>
       </div>
       <div class="region-card-btn" onclick="filterByRegion('east')" data-region="east">
-        <div class="rc-bg" style="background:linear-gradient(160deg,#0A3A2A 0%,#1A6A4A 40%,#2AAA7A 70%,#60D4AA 100%);"></div>
+        <div class="rc-bg" style="background-image:url('images/regions/east.jpg'),linear-gradient(160deg,#0A3A2A 0%,#1A6A4A 40%,#2AAA7A 70%,#60D4AA 100%);"></div>
         <div class="rc-overlay"></div>
         <div class="rc-count" id="rc-east"></div>
         <div class="rc-name" data-th="ภาคตะวันออก" data-en="Eastern">ภาคตะวันออก</div>
       </div>
       <div class="region-card-btn" onclick="filterByRegion('west')" data-region="west">
-        <div class="rc-bg" style="background:linear-gradient(160deg,#1A2A0A 0%,#3A5A1A 40%,#6A8A3A 70%,#9ABA60 100%);"></div>
+        <div class="rc-bg" style="background-image:url('images/regions/west.jpg'),linear-gradient(160deg,#1A2A0A 0%,#3A5A1A 40%,#6A8A3A 70%,#9ABA60 100%);"></div>
         <div class="rc-overlay"></div>
         <div class="rc-count" id="rc-west"></div>
         <div class="rc-name" data-th="ภาคตะวันตก" data-en="Western">ภาคตะวันตก</div>
       </div>
       <div class="region-card-btn" onclick="filterByRegion('south')" data-region="south">
-        <div class="rc-bg" style="background:linear-gradient(160deg,#061A3A 0%,#0A3A6A 40%,#1A6AAA 70%,#40AACC 100%);"></div>
+        <div class="rc-bg" style="background-image:url('images/regions/south.jpg'),linear-gradient(160deg,#061A3A 0%,#0A3A6A 40%,#1A6AAA 70%,#40AACC 100%);"></div>
         <div class="rc-overlay"></div>
         <div class="rc-count" id="rc-south"></div>
         <div class="rc-name" data-th="ภาคใต้" data-en="Southern">ภาคใต้</div>
