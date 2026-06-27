@@ -273,6 +273,11 @@ h1,h2,h3{font-family:'Kanit',sans-serif;}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
       การเงิน
     </button>
+    <button class="nav-item" onclick="showPage('bookings',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      การจองลูกค้า
+      <span class="badge" id="sideBookings">0</span>
+    </button>
     <div class="sidebar-section" style="margin-top:10px;">ระบบ</div>
     <button class="nav-item" onclick="showPage('settings',this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -450,6 +455,37 @@ h1,h2,h3{font-family:'Kanit',sans-serif;}
       </div>
     </div>
 
+    <!-- ======== BOOKINGS ======== -->
+    <div class="page" id="page-bookings">
+      <div class="page-head">
+        <h1>การจองลูกค้า</h1>
+        <p>รายการจองทริปทั้งหมดที่ลูกค้ากรอกมา</p>
+      </div>
+      <div class="kpis" id="bkKpis"></div>
+      <div class="panel">
+        <div class="panel-head">
+          <h3>รายการจอง</h3>
+          <div class="ph-right">
+            <button class="btn btn-export" onclick="exportBookings()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Export CSV
+            </button>
+          </div>
+        </div>
+        <div class="tscroll">
+          <table>
+            <thead><tr><th>Ref</th><th>ชื่อลูกค้า</th><th>ทริป</th><th>วันเดินทาง</th><th>ที่นั่ง</th><th>ยอดรวม</th><th>สถานะ</th><th>จองเมื่อ</th></tr></thead>
+            <tbody id="bkTable"></tbody>
+          </table>
+        </div>
+        <div id="bkEmpty" style="display:none;text-align:center;padding:48px 24px;color:var(--text-muted);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:40px;height:40px;margin:0 auto 12px;opacity:.4;"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <p>ยังไม่มีการจองเข้ามา</p>
+          <p style="font-size:12.5px;margin-top:4px;">ลูกค้าต้องจองผ่านหน้าเว็บก่อน</p>
+        </div>
+      </div>
+    </div>
+
   </main>
 </div>
 
@@ -619,6 +655,7 @@ function showPage(key, el){
   if(key==='trips') renderTrips();
   if(key==='organizers') renderOrgs();
   if(key==='finance') renderFinance();
+  if(key==='bookings') renderBookings();
 }
 
 // ===== OVERVIEW =====
@@ -975,9 +1012,56 @@ function downloadCSV(data, filename){
   a.href=url; a.download=filename; a.click(); URL.revokeObjectURL(url);
 }
 
+// ===== BOOKINGS =====
+function loadBookings(){
+  try{ return JSON.parse(localStorage.getItem('safesummit:mybookings')||'[]'); }
+  catch(e){ return []; }
+}
+function renderBookings(){
+  const bookings=loadBookings();
+  const sb=document.getElementById('sideBookings');
+  if(sb) sb.textContent=bookings.length;
+  const kpis=document.getElementById('bkKpis');
+  const total=bookings.reduce((s,b)=>s+(b.total||0),0);
+  const confirmed=bookings.filter(b=>b.payStatus==='paid').length;
+  if(kpis) kpis.innerHTML=`
+    <div class="kpi k-user"><div class="label">จองทั้งหมด</div><div class="val">${bookings.length}</div><div class="sub">รายการสะสม</div></div>
+    <div class="kpi k-money"><div class="label">ยอดรวม</div><div class="val">${fmtMoney(total)}</div><div class="sub">จากทุกการจอง</div></div>
+    <div class="kpi k-trip"><div class="label">ชำระแล้ว</div><div class="val">${confirmed}</div><div class="sub">ยืนยันการโอน</div></div>
+    <div class="kpi k-org"><div class="label">รอการชำระ</div><div class="val">${bookings.length-confirmed}</div><div class="sub">รอยืนยัน</div></div>
+  `;
+  const tbody=document.getElementById('bkTable');
+  const empty=document.getElementById('bkEmpty');
+  if(!bookings.length){ if(tbody) tbody.innerHTML=''; if(empty) empty.style.display='block'; return; }
+  if(empty) empty.style.display='none';
+  const STATUS_TH={paid:'ชำระแล้ว',pending:'รอชำระ',cancelled:'ยกเลิก'};
+  const STATUS_CLASS={paid:'completed',pending:'pending',cancelled:'cancelled'};
+  if(tbody) tbody.innerHTML=[...bookings].reverse().map(b=>`
+    <tr>
+      <td><span class="d-name" style="font-family:'Bai Jamjuree',monospace;font-size:12px;">${b.ref||'–'}</span></td>
+      <td><div class="d-name">${b.name||'–'}</div><div class="d-sub">${b.phone||''}</div></td>
+      <td><div class="d-name">${b.tripName||'–'}</div><div class="d-sub">${b.org||''}</div></td>
+      <td class="d-muted">${fmtDate(b.tripDate)}</td>
+      <td class="d-muted">${b.seats||1} ท่าน</td>
+      <td><span class="d-money">${fmtMoney(b.total)}</span></td>
+      <td><span class="pill ${STATUS_CLASS[b.payStatus]||'pending'}">${STATUS_TH[b.payStatus]||'รอชำระ'}</span></td>
+      <td class="d-muted" style="font-size:12px;">${b.bookedAt?new Date(b.bookedAt).toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'2-digit',hour:'2-digit',minute:'2-digit'}):'–'}</td>
+    </tr>
+  `).join('');
+}
+function exportBookings(){
+  const bookings=loadBookings();
+  if(!bookings.length){ toast('ไม่มีข้อมูลการจอง'); return; }
+  const rows=[['Ref','ชื่อ','เบอร์','ทริป','ผู้จัด','วันเดินทาง','ที่นั่ง','ยอดรวม','สถานะ','วันที่จอง']];
+  bookings.forEach(b=>rows.push([b.ref||'',b.name||'',b.phone||'',b.tripName||'',b.org||'',b.tripDate||'',b.seats||1,b.total||0,b.payStatus||'pending',b.bookedAt||'']));
+  downloadCSV(rows,'safesummit_bookings.csv');
+}
+
 // ===== INIT =====
 load();
 renderOverview();
+// update booking badge on load
+const _bk=loadBookings(); const _sb=document.getElementById('sideBookings'); if(_sb) _sb.textContent=_bk.length;
 </script>
 </body>
 </html>

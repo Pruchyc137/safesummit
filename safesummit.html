@@ -784,7 +784,7 @@ function renderTripCards(region='all', price='all', query=''){
     const isFull = t.status === 'full';
     const bookBtn = isFull
       ? `<button class="book-btn book-btn-full" disabled data-th="เต็มแล้ว" data-en="Full">${lang==='en'?'Full':'เต็มแล้ว'}</button>`
-      : `<a class="book-btn" href="booking.html?id=${t.id}" data-th="จองทริป" data-en="Book now">${lang==='en'?'Book now':'จองทริป'}</a>`;
+      : `<a class="book-btn" href="trip.html?id=${t.id}" data-th="จองทริป" data-en="Book now">${lang==='en'?'Book now':'จองทริป'}</a>`;
     return `<div class="trip-card">
       <div class="trip-img">
         <div class="trip-img-inner">${sceneFor(t)}</div>

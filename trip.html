@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SafeSummit — รายละเอียดทริป</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Kanit:wght@600;700;800&family=Sarabun:wght@400;500;600;700&family=Bai+Jamjuree:wght@400;500;600&display=swap');
+:root{
+  --bg-deep:#2A2118;--bg-deep-2:#3A2C1C;--bg-light:#FAF6EA;
+  --card-light:#FFFFFF;--bg-card:#F3ECDA;
+  --accent-trail:#E2672B;--accent-gold:#C9A24B;
+  --text-light:#EDE7D6;--text-dark:#2B2118;
+  --text-muted:#6B5D4A;--line-muted:#B59A6E;
+  --shadow:0 4px 24px rgba(40,28,18,.11);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:'Sarabun',sans-serif;color:var(--text-dark);background:var(--bg-light);min-height:100vh;}
+a{text-decoration:none;color:inherit;}
+svg{display:block;}
+h1,h2,h3,h4{font-family:'Kanit',sans-serif;}
+
+/* TOPBAR */
+.topbar{background:var(--bg-deep);border-bottom:1px solid rgba(201,162,75,.2);position:sticky;top:0;z-index:50;}
+.topbar-inner{display:flex;align-items:center;justify-content:space-between;padding:12px 24px;max-width:1160px;margin:0 auto;}
+.brand{display:flex;align-items:center;gap:9px;font-family:'Kanit',sans-serif;font-weight:800;font-size:20px;color:var(--text-light);}
+.brand .mark{width:30px;height:30px;}
+.brand .istar{position:relative;display:inline-block;}
+.brand .istar .star{position:absolute;left:50%;top:-0.42em;transform:translateX(-50%);width:.46em;height:.46em;color:var(--accent-gold);}
+.back-btn{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--line-muted);border:1px solid rgba(181,154,110,.3);border-radius:8px;padding:7px 13px;transition:.15s;}
+.back-btn:hover{color:var(--text-light);}
+.back-btn svg{width:13px;height:13px;}
+
+/* HERO */
+.hero{position:relative;height:420px;overflow:hidden;background:var(--bg-deep);}
+.hero-img{width:100%;height:100%;object-fit:cover;display:block;}
+.hero-svg{position:absolute;inset:0;width:100%;height:100%;}
+.hero-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(42,33,24,.85) 0%,rgba(42,33,24,.1) 55%);}
+.hero-content{position:absolute;bottom:0;left:0;right:0;padding:32px 40px 36px;max-width:1160px;margin:0 auto;}
+.hero-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.9);font-family:'Bai Jamjuree',monospace;font-size:10px;font-weight:600;color:var(--text-dark);padding:4px 10px;border-radius:20px;margin-bottom:12px;}
+.hero-badge svg{width:10px;height:10px;color:var(--accent-trail);}
+.hero-title{font-size:34px;font-weight:800;color:#fff;line-height:1.2;margin-bottom:10px;text-shadow:0 2px 8px rgba(0,0,0,.3);}
+.hero-meta{display:flex;flex-wrap:wrap;gap:14px;}
+.hero-meta-item{display:flex;align-items:center;gap:6px;font-size:13.5px;color:rgba(237,231,214,.85);}
+.hero-meta-item svg{width:14px;height:14px;color:var(--accent-gold);}
+.hero-rating{display:inline-flex;align-items:center;gap:5px;background:rgba(226,103,43,.9);color:#fff;font-family:'Bai Jamjuree',monospace;font-size:12px;font-weight:700;padding:4px 10px;border-radius:20px;}
+@media(max-width:600px){.hero{height:300px;}.hero-title{font-size:22px;}.hero-content{padding:20px;}}
+
+/* LAYOUT */
+.page-wrap{max-width:1160px;margin:0 auto;padding:32px 24px 80px;display:grid;grid-template-columns:1fr 360px;gap:28px;align-items:start;}
+@media(max-width:860px){.page-wrap{grid-template-columns:1fr;}}
+
+/* PANELS */
+.panel{background:var(--card-light);border-radius:14px;box-shadow:var(--shadow);overflow:hidden;margin-bottom:20px;}
+.panel-head{padding:16px 22px;border-bottom:1px solid #E6DCC6;display:flex;align-items:center;gap:10px;}
+.panel-head svg{width:17px;height:17px;color:var(--accent-trail);}
+.panel-head h3{font-size:15px;font-weight:700;}
+.panel-body{padding:20px 22px;}
+
+/* INFO GRID */
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.info-item{display:flex;flex-direction:column;gap:3px;}
+.info-label{font-family:'Bai Jamjuree',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);}
+.info-val{font-size:14.5px;font-weight:600;color:var(--text-dark);}
+.info-val.orange{color:var(--accent-trail);}
+
+/* ITINERARY */
+.day-block{display:flex;gap:16px;padding:16px 0;border-bottom:1px solid #F0E8D5;}
+.day-block:last-child{border-bottom:none;}
+.day-dot{display:flex;flex-direction:column;align-items:center;gap:0;flex-shrink:0;}
+.day-circle{width:36px;height:36px;border-radius:50%;background:var(--accent-trail);color:#fff;font-family:'Bai Jamjuree',monospace;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.day-line{flex:1;width:2px;background:#E6DCC6;margin-top:6px;}
+.day-content{flex:1;padding-top:6px;}
+.day-title{font-size:14.5px;font-weight:700;margin-bottom:6px;}
+.day-desc{font-size:13.5px;color:var(--text-muted);line-height:1.7;}
+.day-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+.day-tag{font-size:11.5px;background:#F5EFE0;color:var(--text-muted);padding:3px 9px;border-radius:20px;border:1px solid #E6DCC6;}
+
+/* INCLUDES */
+.inc-list{list-style:none;}
+.inc-list li{display:flex;align-items:center;gap:9px;font-size:13.5px;color:var(--text-dark);padding:7px 0;border-bottom:1px solid #F5EFE0;}
+.inc-list li:last-child{border-bottom:none;}
+.inc-list li svg{width:14px;height:14px;flex-shrink:0;}
+.inc-list li.yes svg{color:#5C8A5A;}
+.inc-list li.no svg{color:#C0552F;}
+.inc-list li.no{color:var(--text-muted);}
+
+/* GUIDE */
+.guide-card{display:flex;align-items:center;gap:14px;padding:14px 0;}
+.guide-avatar{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Kanit',sans-serif;font-size:20px;font-weight:700;color:#fff;flex-shrink:0;}
+.guide-name{font-size:15px;font-weight:700;margin-bottom:2px;}
+.guide-sub{font-size:12.5px;color:var(--text-muted);}
+.guide-badge{display:inline-flex;align-items:center;gap:4px;font-family:'Bai Jamjuree',monospace;font-size:10px;background:rgba(92,138,90,.12);color:#5C8A5A;border:1px solid rgba(92,138,90,.3);padding:2px 8px;border-radius:20px;margin-top:4px;}
+.guide-badge svg{width:10px;height:10px;}
+.guide-contacts{display:flex;gap:8px;margin-top:10px;}
+.contact-btn{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;padding:7px 12px;border-radius:8px;border:1px solid #E6DCC6;background:var(--card-light);cursor:pointer;transition:.15s;}
+.contact-btn:hover{background:#F5EFE0;}
+.contact-btn svg{width:13px;height:13px;}
+.contact-btn.line{border-color:#00B900;color:#00B900;}
+.contact-btn.phone{border-color:var(--accent-trail);color:var(--accent-trail);}
+
+/* STICKY BOOKING CARD */
+.book-card{background:var(--card-light);border-radius:16px;box-shadow:0 8px 32px rgba(40,28,18,.14);padding:24px;position:sticky;top:80px;}
+.book-price{font-family:'Kanit',sans-serif;font-size:32px;font-weight:800;color:var(--accent-trail);line-height:1;}
+.book-price span{font-size:14px;font-weight:400;color:var(--text-muted);margin-left:3px;}
+.book-rating{display:flex;align-items:center;gap:5px;font-size:13px;color:var(--text-muted);margin:8px 0 18px;}
+.book-rating .stars{color:#F5A623;font-size:14px;}
+.book-divider{height:1px;background:#E6DCC6;margin:16px 0;}
+.book-row{display:flex;justify-content:space-between;font-size:13.5px;padding:5px 0;}
+.book-row .label{color:var(--text-muted);}
+.book-row .val{font-weight:600;}
+.book-row .val.orange{color:var(--accent-trail);}
+.seats-bar{background:#F5EFE0;border-radius:8px;padding:10px 13px;display:flex;align-items:center;gap:8px;margin:14px 0;font-size:13px;}
+.seats-bar svg{width:14px;height:14px;color:var(--accent-trail);flex-shrink:0;}
+.seats-bar b{color:var(--accent-trail);}
+.btn-book{display:block;width:100%;padding:16px;background:var(--accent-trail);color:#fff;border:none;border-radius:10px;font-family:'Sarabun',sans-serif;font-size:16px;font-weight:700;cursor:pointer;transition:.15s;margin-top:16px;text-align:center;}
+.btn-book:hover{filter:brightness(1.08);}
+.btn-book:disabled{background:#D5C8AE;color:#9B8E7A;cursor:not-allowed;}
+.btn-book-full{display:block;width:100%;padding:16px;background:#D5C8AE;color:#9B8E7A;border:none;border-radius:10px;font-family:'Sarabun',sans-serif;font-size:16px;font-weight:700;margin-top:16px;text-align:center;}
+.book-note{font-size:12px;color:var(--text-muted);text-align:center;margin-top:10px;}
+.book-share{display:flex;align-items:center;justify-content:center;gap:6px;font-size:12.5px;color:var(--text-muted);margin-top:12px;cursor:pointer;border:none;background:none;width:100%;padding:8px;}
+.book-share:hover{color:var(--accent-trail);}
+.book-share svg{width:13px;height:13px;}
+
+/* TAGS / PILLS */
+.tag-row{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px;}
+.tag{font-size:12.5px;background:#F5EFE0;border:1px solid #E6DCC6;color:var(--text-muted);padding:4px 11px;border-radius:20px;}
+
+/* NOT FOUND */
+.not-found{text-align:center;padding:80px 24px;}
+.not-found h2{font-size:22px;margin-bottom:8px;color:var(--text-dark);}
+.not-found p{color:var(--text-muted);margin-bottom:20px;}
+
+/* SKELETON */
+@keyframes shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}
+.skeleton{background:linear-gradient(90deg,#F0E8D5 25%,#F8F2E4 50%,#F0E8D5 75%);background-size:800px;animation:shimmer 1.4s infinite;}
+.sk-hero{height:420px;}
+.sk-text{height:16px;border-radius:6px;margin-bottom:10px;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <a href="safesummit.html" class="brand">
+      <svg class="mark" viewBox="0 0 50 50" fill="none">
+        <polygon points="25,4 46,40 4,40" fill="none" stroke="#C9A24B" stroke-width="2.5"/>
+        <polygon points="25,14 38,38 12,38" fill="rgba(226,103,43,.25)" stroke="#E2672B" stroke-width="1.5"/>
+        <line x1="25" y1="4" x2="25" y2="40" stroke="#C9A24B" stroke-width="1" opacity=".4"/>
+      </svg>
+      Safe<span class="istar">S<svg class="star" viewBox="0 0 12 12" fill="currentColor"><polygon points="6,0 7.5,4.5 12,4.5 8.5,7 9.8,12 6,9 2.2,12 3.5,7 0,4.5 4.5,4.5"/></svg></span>ummit
+    </a>
+    <a href="safesummit.html" class="back-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      กลับหน้าหลัก
+    </a>
+  </div>
+</div>
+
+<div id="heroWrap"><div class="hero skeleton sk-hero"></div></div>
+
+<div class="page-wrap" id="pageWrap" style="display:none;">
+  <!-- LEFT COLUMN -->
+  <div>
+    <!-- ABOUT -->
+    <div class="panel">
+      <div class="panel-head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+        <h3>ข้อมูลทริป</h3>
+      </div>
+      <div class="panel-body">
+        <div class="info-grid" id="infoGrid"></div>
+        <div class="tag-row" id="tagRow"></div>
+      </div>
+    </div>
+
+    <!-- ITINERARY -->
+    <div class="panel">
+      <div class="panel-head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        <h3>กำหนดการ</h3>
+      </div>
+      <div class="panel-body" id="itinerary"></div>
+    </div>
+
+    <!-- INCLUDES -->
+    <div class="panel">
+      <div class="panel-head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        <h3>รวม / ไม่รวม</h3>
+      </div>
+      <div class="panel-body">
+        <ul class="inc-list" id="incList"></ul>
+      </div>
+    </div>
+
+    <!-- GUIDE -->
+    <div class="panel">
+      <div class="panel-head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <h3>ผู้จัดทริป</h3>
+      </div>
+      <div class="panel-body" id="guideCard"></div>
+    </div>
+  </div>
+
+  <!-- RIGHT COLUMN — STICKY BOOKING CARD -->
+  <div>
+    <div class="book-card" id="bookCard"></div>
+  </div>
+</div>
+
+<div id="notFound" class="not-found" style="display:none;">
+  <h2>ไม่พบทริปนี้</h2>
+  <p>อาจถูกปิดหรือลิงค์ผิดพลาด</p>
+  <a href="safesummit.html" style="display:inline-flex;align-items:center;gap:6px;padding:10px 20px;background:var(--accent-trail);color:#fff;border-radius:8px;font-weight:600;">กลับหน้าหลัก</a>
+</div>
+
+<script>
+const SEED_TRIPS=[
+  {id:'t1',name:{th:'ภูกระดึง 3 วัน 2 คืน',en:'Phu Kradueng 3D2N'},org:'เหนือสุดเทรค',region:'northeast',prov:'เลย',date:'2026-07-12',cap:15,booked:11,price:2900,status:'open',badge:'Verified Pro',rating:4.9,scene:'sunrise',img:'images/phukradung.webp',orgPhone:'081-234-5678',orgLine:'@northtrek'},
+  {id:'t2',name:{th:'ดอยหลวงเชียงดาว 2 วัน 1 คืน',en:'Doi Luang Chiang Dao 2D1N'},org:'ไกด์ล้านนา',region:'north',prov:'เชียงใหม่',date:'2026-07-05',cap:10,booked:10,price:3500,status:'full',badge:'Verified Pro',rating:4.8,scene:'peak',img:'images/doichiangdao.png',orgPhone:'082-345-6789',orgLine:'@lannaguide'},
+  {id:'t3',name:{th:'เขาช่อง น้ำตกกะเปาะ',en:'Khao Chong Waterfall'},org:'ใต้สุดแทร็ก',region:'south',prov:'ตรัง',date:'2026-06-18',cap:20,booked:14,price:890,status:'ongoing',badge:'Verified Basic',rating:4.7,scene:'forest',orgPhone:'083-456-7890',orgLine:'@southtrack'},
+  {id:'t4',name:{th:'ภูชี้ฟ้า ทะเลหมอก',en:'Phu Chi Fa Sea of Mist'},org:'เหนือสุดเทรค',region:'north',prov:'เชียงราย',date:'2026-05-30',cap:18,booked:18,price:1800,status:'completed',badge:'Verified Pro',rating:4.9,scene:'peak',img:'images/phusoidao.webp',orgPhone:'081-234-5678',orgLine:'@northtrek'},
+  {id:'t5',name:{th:'เขาใหญ่ ผากล้วยไม้',en:'Khao Yai Pha Kluai Mai'},org:'กลางเทรล',region:'northeast',prov:'นครราชสีมา',date:'2026-06-02',cap:12,booked:4,price:1500,status:'cancelled',badge:'Verified Basic',rating:4.5,scene:'sunrise',orgPhone:'084-567-8901',orgLine:'@midtrail'},
+  {id:'t6',name:{th:'ดอยอินทนนท์ กิ่วแม่ปาน',en:'Doi Inthanon Kew Mae Pan'},org:'ไกด์ล้านนา',region:'north',prov:'เชียงใหม่',date:'2026-08-09',cap:16,booked:6,price:2200,status:'open',badge:'Verified Pro',rating:4.8,scene:'peak',img:'images/kiwmaepan.jpg',orgPhone:'082-345-6789',orgLine:'@lannaguide'},
+  {id:'t7',name:{th:'ภูสอยดาว 2 วัน 1 คืน',en:'Phu Soi Dao 2D1N'},org:'เหนือสุดเทรค',region:'north',prov:'อุตรดิตถ์',date:'2026-07-19',cap:14,booked:5,price:2600,status:'open',badge:'Verified Pro',rating:4.8,scene:'forest',img:'images/phusoidao.webp',orgPhone:'081-234-5678',orgLine:'@northtrek'},
+  {id:'t8',name:{th:'ดอยผ้าห่มปก ป่าสนสวรรค์',en:'Doi Pha Hom Pok Pine Forest'},org:'ไกด์ล้านนา',region:'north',prov:'เชียงใหม่',date:'2026-08-23',cap:12,booked:3,price:3200,status:'open',badge:'Verified Pro',rating:4.7,scene:'peak',img:'images/doiphaompok.jpg',orgPhone:'082-345-6789',orgLine:'@lannaguide'},
+  {id:'t9',name:{th:'ภูทับเบิก ทะเลหมอกยอดดอย',en:'Phu Thap Boek Misty Summit'},org:'กลางเทรล',region:'north',prov:'เพชรบูรณ์',date:'2026-07-26',cap:20,booked:12,price:1900,status:'open',badge:'Verified Basic',rating:4.6,scene:'sunrise',img:'images/phutabberk.jpg',orgPhone:'084-567-8901',orgLine:'@midtrail'},
+  {id:'t10',name:{th:'เขาช้างเผือก เส้นทางป่า',en:'Khao Chang Phueak Forest Trail'},org:'เวสต์เทรล',region:'west',prov:'กาญจนบุรี',date:'2026-08-02',cap:15,booked:7,price:1600,status:'open',badge:'Verified Basic',rating:4.5,scene:'forest',img:'images/khaochang.jpg',orgPhone:'085-678-9012',orgLine:'@westtrail'},
+  {id:'t11',name:{th:'เขาหลวง รามาวดี สุโขทัย',en:'Khao Luang Sukhothai'},org:'กลางเทรล',region:'north',prov:'สุโขทัย',date:'2026-09-06',cap:18,booked:4,price:2100,status:'open',badge:'Verified Basic',rating:4.4,scene:'peak',img:'images/khaoluang.jpg',orgPhone:'084-567-8901',orgLine:'@midtrail'},
+  {id:'t12',name:{th:'เขาสก ล่องแก่ง เซาเทิร์น',en:'Khao Sok Jungle Trek'},org:'ใต้สุดแทร็ก',region:'south',prov:'สุราษฎร์ธานี',date:'2026-08-16',cap:16,booked:8,price:2800,status:'open',badge:'Verified Pro',rating:4.7,scene:'forest',orgPhone:'083-456-7890',orgLine:'@southtrack'},
+  {id:'t13',name:{th:'ดอยแม่ยะ ป่าซากุระไทย',en:'Doi Mae Ya Sakura Forest'},org:'ไกด์ล้านนา',region:'north',prov:'เชียงใหม่',date:'2026-09-13',cap:14,booked:6,price:2700,status:'open',badge:'Verified Pro',rating:4.8,scene:'forest',orgPhone:'082-345-6789',orgLine:'@lannaguide'},
+  {id:'t14',name:{th:'ภูหินร่องกล้า ดงมะเขือ',en:'Phu Hin Rong Kla Tomato Fields'},org:'เหนือสุดเทรค',region:'north',prov:'เพชรบูรณ์',date:'2026-09-20',cap:18,booked:7,price:2400,status:'open',badge:'Verified Basic',rating:4.6,scene:'sunrise',orgPhone:'081-234-5678',orgLine:'@northtrek'},
+  {id:'t15',name:{th:'ดอยนางแอ่น พระอาทิตย์ขึ้น',en:'Doi Nang Aen Sunrise'},org:'ไกด์ล้านนา',region:'north',prov:'เชียงราย',date:'2026-10-04',cap:12,booked:4,price:1950,status:'open',badge:'Verified Basic',rating:4.5,scene:'sunrise',img:'images/doinangaen.jpg',orgPhone:'082-345-6789',orgLine:'@lannaguide'},
+  {id:'t16',name:{th:'ภูกามยาว น่านวิลเดอร์เนส',en:'Phu Kam Yao Nan Wilderness'},org:'เหนือสุดเทรค',region:'north',prov:'น่าน',date:'2026-10-11',cap:10,booked:3,price:3100,status:'open',badge:'Verified Pro',rating:4.7,scene:'peak',orgPhone:'081-234-5678',orgLine:'@northtrek'},
+  {id:'t17',name:{th:'ภูเรือ แคมป์ปิ้งดาว',en:'Phu Ruea Starcamp'},org:'อีสานเทรล',region:'northeast',prov:'เลย',date:'2026-08-30',cap:16,booked:9,price:2200,status:'open',badge:'Verified Basic',rating:4.6,scene:'sunrise',img:'images/phuruea.jpg',orgPhone:'086-789-0123',orgLine:'@isantrek'},
+  {id:'t18',name:{th:'ลังกาหลวง-ลังกาน้อย น่าน',en:'Langka Luang Nan'},org:'เหนือสุดเทรค',region:'north',prov:'น่าน',date:'2026-09-27',cap:15,booked:5,price:3000,status:'open',badge:'Verified Pro',rating:4.8,scene:'peak',img:'images/langkaluang.jpg',orgPhone:'081-234-5678',orgLine:'@northtrek'},
+  {id:'t19',name:{th:'ภูลมโล ทุ่งดอกไม้ป่า',en:'Phu Lom Lo Wildflower'},org:'อีสานเทรล',region:'northeast',prov:'เลย',date:'2026-10-18',cap:20,booked:11,price:1800,status:'open',badge:'Verified Basic',rating:4.5,scene:'forest',img:'images/phulomloh.jpg',orgPhone:'086-789-0123',orgLine:'@isantrek'},
+  {id:'t20',name:{th:'สันหนอกวัว เขาใหญ่',en:'San Nok Wua Khao Yai'},org:'กลางเทรล',region:'northeast',prov:'นครราชสีมา',date:'2026-11-01',cap:18,booked:6,price:1600,status:'open',badge:'Verified Basic',rating:4.4,scene:'forest',img:'images/sannokvua.jpg',orgPhone:'084-567-8901',orgLine:'@midtrail'},
+  {id:'t21',name:{th:'ทีลอซู น้ำตกขั้นบันได',en:'Ti Lo Su Tiered Waterfall'},org:'เวสต์เทรล',region:'west',prov:'ตาก',date:'2026-09-05',cap:12,booked:5,price:2500,status:'open',badge:'Verified Pro',rating:4.7,scene:'forest',img:'images/thilosu.jpg',orgPhone:'085-678-9012',orgLine:'@westtrail'},
+  {id:'t22',name:{th:'เขาสามร้อยยอด ชายฝั่ง',en:'Khao Sam Roi Yot Coastal'},org:'เวสต์เทรล',region:'west',prov:'ประจวบคีรีขันธ์',date:'2026-09-19',cap:20,booked:8,price:1400,status:'open',badge:'Verified Basic',rating:4.5,scene:'peak',img:'images/khaosamroiyod.jpg',orgPhone:'085-678-9012',orgLine:'@westtrail'},
+  {id:'t23',name:{th:'เขาหลวงประจวบ ยอดสูงใต้',en:'Khao Luang Prachuap Summit'},org:'เวสต์เทรล',region:'west',prov:'ประจวบคีรีขันธ์',date:'2026-10-03',cap:16,booked:10,price:2000,status:'open',badge:'Verified Basic',rating:4.6,scene:'peak',img:'images/khaoluangprachuap.jpg',orgPhone:'085-678-9012',orgLine:'@westtrail'},
+  {id:'t24',name:{th:'เขาชะเมา ระยอง',en:'Khao Chamao Rayong'},org:'อีสเทิร์นเทรล',region:'east',prov:'ระยอง',date:'2026-09-12',cap:20,booked:7,price:1200,status:'open',badge:'Verified Basic',rating:4.4,scene:'forest',img:'images/khaochamao.jpg',orgPhone:'087-890-1234',orgLine:'@easttrek'},
+  {id:'t25',name:{th:'เขาคิชฌกูฏ เพชรพระอุมา',en:'Khao Kitchakut Forest'},org:'อีสเทิร์นเทรล',region:'east',prov:'จันทบุรี',date:'2026-09-26',cap:15,booked:6,price:1700,status:'open',badge:'Verified Basic',rating:4.5,scene:'forest',img:'images/khaokitchakut.jpg',orgPhone:'087-890-1234',orgLine:'@easttrek'},
+  {id:'t26',name:{th:'เขาสอยดาว ป่าลึก',en:'Khao Soi Dao Deep Forest'},org:'อีสเทิร์นเทรล',region:'east',prov:'จันทบุรี',date:'2026-10-10',cap:12,booked:4,price:2300,status:'open',badge:'Verified Pro',rating:4.7,scene:'peak',img:'images/khaosoidao.jpg',orgPhone:'087-890-1234',orgLine:'@easttrek'},
+  {id:'t27',name:{th:'เขาหลวง นครศรีฯ ยอดดอย',en:'Khao Luang Nakhon Summit'},org:'ใต้สุดแทร็ก',region:'south',prov:'นครศรีธรรมราช',date:'2026-09-06',cap:14,booked:5,price:2600,status:'open',badge:'Verified Pro',rating:4.7,scene:'forest',orgPhone:'083-456-7890',orgLine:'@southtrack'},
+  {id:'t28',name:{th:'เขาพนมเบญจา กระบี่',en:'Khao Phanom Bencha Krabi'},org:'ใต้สุดแทร็ก',region:'south',prov:'กระบี่',date:'2026-10-17',cap:16,booked:7,price:2100,status:'open',badge:'Verified Basic',rating:4.5,scene:'forest',orgPhone:'083-456-7890',orgLine:'@southtrack'},
+  {id:'t29',name:{th:'ผาแต้ม อุบลราชธานี',en:'Pha Taem Ubon Ratchathani'},org:'อีสานเทรล',region:'northeast',prov:'อุบลราชธานี',date:'2026-11-08',cap:18,booked:6,price:1900,status:'open',badge:'Verified Basic',rating:4.5,scene:'peak',img:'images/phataem.jpg',orgPhone:'086-789-0123',orgLine:'@isantrek'},
+  {id:'t30',name:{th:'ดอยสุเทพ เส้นทางธรรมชาติ',en:'Doi Suthep Nature Trail'},org:'ไกด์ล้านนา',region:'north',prov:'เชียงใหม่',date:'2026-08-01',cap:20,booked:9,price:1500,status:'open',badge:'Verified Basic',rating:4.6,scene:'peak',img:'images/doisuthep.jpg',orgPhone:'082-345-6789',orgLine:'@lannaguide'},
+];
+
+const REGION_LABEL={north:'ภาคเหนือ',northeast:'ภาคตะวันออกเฉียงเหนือ',central:'ภาคกลาง',east:'ภาคตะวันออก',west:'ภาคตะวันตก',south:'ภาคใต้'};
+const DIFFICULTY=['ง่าย','ปานกลาง','ท้าทาย','ยาก'];
+const SCENES={
+  sunrise:`<svg viewBox="0 0 800 420" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="sg1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1A0A2E"/><stop offset="45%" stop-color="#7B2D8B"/><stop offset="75%" stop-color="#E2672B"/><stop offset="100%" stop-color="#FAB440"/></linearGradient></defs><rect width="800" height="420" fill="url(#sg1)"/><circle cx="400" cy="290" r="70" fill="#FFD700" opacity=".9"/><polygon points="0,420 120,240 200,300 320,180 400,260 520,160 640,220 800,130 800,420" fill="#1E3A1E" opacity=".95"/></svg>`,
+  peak:`<svg viewBox="0 0 800 420" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="pg1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1B2B4A"/><stop offset="60%" stop-color="#3E6E8E"/><stop offset="100%" stop-color="#7AB3CC"/></linearGradient></defs><rect width="800" height="420" fill="url(#pg1)"/><polygon points="0,420 150,200 280,310 400,120 520,280 660,190 800,300 800,420" fill="#F5F5F5" opacity=".9"/><polygon points="300,250 400,120 500,250" fill="#FFFFFF" opacity=".7"/></svg>`,
+  forest:`<svg viewBox="0 0 800 420" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="fg1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0D3320"/><stop offset="100%" stop-color="#1A5C34"/></linearGradient></defs><rect width="800" height="420" fill="url(#fg1)"/><circle cx="400" cy="100" r="90" fill="#1A5C34" opacity=".4"/><polygon points="0,420 60,280 120,350 200,200 280,300 360,160 440,280 520,180 600,300 680,200 800,280 800,420" fill="#0D3320"/><polygon points="100,420 160,280 220,420" fill="#155228"/><polygon points="300,420 380,240 460,420" fill="#155228"/><polygon points="550,420 620,260 690,420" fill="#155228"/></svg>`
+};
+
+let TRIPS=[], trip=null;
+
+function loadTrips(){
+  try{const r=localStorage.getItem('safesummit:trips'); TRIPS=r?JSON.parse(r):JSON.parse(JSON.stringify(SEED_TRIPS));}
+  catch(e){TRIPS=JSON.parse(JSON.stringify(SEED_TRIPS));}
+}
+
+function getTripId(){
+  return new URLSearchParams(window.location.search).get('id');
+}
+
+function fmtDate(d){
+  if(!d) return '–';
+  return new Date(d+'T00:00:00').toLocaleDateString('th-TH',{day:'numeric',month:'long',year:'numeric'});
+}
+
+function fmtMoney(n){ return '฿'+(n||0).toLocaleString('th-TH'); }
+
+function getDays(name){
+  const m3=name.match(/(\d+)\s*วัน/);
+  if(m3) return parseInt(m3[1]);
+  if(name.includes('1 คืน')) return 2;
+  if(name.includes('2 คืน')) return 3;
+  if(name.includes('3 คืน')) return 4;
+  return 1;
+}
+
+function genItinerary(t){
+  const days=getDays(t.name.th);
+  const templates=[
+    {title:'วันที่ 1 — เดินทางสู่จุดเริ่มต้น',desc:'รวมตัวที่จุดนัดพบ ลงทะเบียนและรับอุปกรณ์ เดินทางสู่พื้นที่ต้นทาง เริ่มเดินเส้นทางช่วงบ่าย ตั้งแคมป์และทานอาหารเย็นรอบกองไฟ',tags:['รถรับส่ง','ลงทะเบียน','เดินเท้า','แคมป์คืนแรก']},
+    {title:'วันที่ 2 — ขึ้นสู่ยอดดอย',desc:'ตื่นชมพระอาทิตย์ขึ้น อาหารเช้าพร้อมออกเดิน เส้นทางผ่านป่าหนาแน่นและจุดชมวิวสำคัญ ถึงยอดสูงสุดช่วงเที่ยง พักผ่อนและถ่ายรูป กลับแคมป์ตอนเย็น',tags:['ยอดดอย','จุดชมวิว','ถ่ายรูป','อาหารกลางวัน']},
+    {title:'วันที่ 3 — เดินลงและเดินทางกลับ',desc:'อาหารเช้า เก็บเต็นท์และอุปกรณ์ เดินลงเส้นทาง แวะจุดสุดท้ายก่อนถึงทางออก เดินทางกลับพร้อมความทรงจำดีๆ',tags:['เดินลง','เก็บของ','เดินทางกลับ']},
+    {title:'วันที่ 4 — กิจกรรมเสริม',desc:'กิจกรรมพิเศษเพิ่มเติมตามฤดูกาล ถ่ายรูปจุดสวยงามรอบข้าง อาหารกลางวันพร้อมกัน เดินทางกลับบ้านพร้อมรอยยิ้ม',tags:['กิจกรรมพิเศษ','ถ่ายรูป','อาหารมื้อสุดท้าย']},
+  ];
+  const result=[];
+  for(let i=0;i<Math.min(days,4);i++) result.push(templates[i]||templates[2]);
+  if(days===1) return [{title:'กำหนดการ 1 วัน',desc:'รวมตัวตอนเช้า เดินเส้นทางป่า แวะจุดสำคัญ ถ่ายรูปจุดชมวิว อาหารกลางวัน เดินทางกลับช่วงบ่าย',tags:['1 วัน','เดินเท้า','อาหารกลางวัน','กลับบ้านเย็น']}];
+  return result;
+}
+
+function genIncludes(t){
+  return [
+    {yes:true,text:'ไกด์ผู้เชี่ยวชาญตลอดทริป'},
+    {yes:true,text:'อาหารทุกมื้อตามกำหนดการ'},
+    {yes:getDays(t.name.th)>=2,text:'เต็นท์และอุปกรณ์ตั้งแคมป์'},
+    {yes:true,text:'ประกันภัยอุบัติเหตุระหว่างทริป'},
+    {yes:t.badge==='Verified Pro',text:'ชุดปฐมพยาบาลและวิทยุสื่อสาร'},
+    {yes:false,text:'ค่าเดินทางจากจังหวัดบ้านเกิด'},
+    {yes:false,text:'ค่าใช้จ่ายส่วนตัว'},
+    {yes:false,text:'ทิปไกด์ (ตามความพอใจ)'},
+  ];
+}
+
+function avatarColor(name){
+  const colors=['#E2672B','#3E6E8E','#5C8A5A','#C99A3B','#7A5C8A'];
+  let h=0; for(const c of name) h=(h*31+c.charCodeAt(0))&0xffff;
+  return colors[h%colors.length];
+}
+
+function renderHero(t){
+  const hw=document.getElementById('heroWrap');
+  let imgHtml='';
+  if(t.img){
+    imgHtml=`<img class="hero-img" src="${t.img}" alt="${t.name.th}" onerror="this.style.display='none';document.getElementById('heroSvg').style.display='block';">`;
+  }
+  const svgHtml=`<div class="hero-svg" id="heroSvg" style="${t.img?'display:none':'display:block'}">${SCENES[t.scene]||SCENES.forest}</div>`;
+  const avail=t.cap-t.booked;
+  const isFull=t.status==='full'||t.booked>=t.cap;
+  hw.innerHTML=`<div class="hero">
+    ${imgHtml}
+    ${svgHtml}
+    <div class="hero-overlay"></div>
+    <div style="position:absolute;bottom:0;left:0;right:0;">
+      <div class="hero-content">
+        <div class="hero-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>${t.badge}</div>
+        <h1 class="hero-title">${t.name.th}</h1>
+        <div class="hero-meta">
+          <div class="hero-meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>${fmtDate(t.date)}</div>
+          <div class="hero-meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>${t.prov} · ${REGION_LABEL[t.region]||''}</div>
+          ${!isFull?`<div class="hero-meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>${avail} ที่ว่างจาก ${t.cap} คน</div>`:'<div class="hero-meta-item" style="color:#F5A623;">⚠ ทริปนี้เต็มแล้ว</div>'}
+          <div class="hero-rating">★ ${t.rating||'–'}</div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderInfo(t){
+  const avail=t.cap-t.booked;
+  const diff=DIFFICULTY[Math.floor(Math.random()*3)];
+  document.getElementById('infoGrid').innerHTML=`
+    <div class="info-item"><span class="info-label">วันที่เดินทาง</span><span class="info-val">${fmtDate(t.date)}</span></div>
+    <div class="info-item"><span class="info-label">ราคาต่อท่าน</span><span class="info-val orange">${fmtMoney(t.price)}</span></div>
+    <div class="info-item"><span class="info-label">จำนวนผู้เข้าร่วม</span><span class="info-val">${t.cap} คน (ว่าง ${avail} ที่)</span></div>
+    <div class="info-item"><span class="info-label">ระดับความยาก</span><span class="info-val">${diff}</span></div>
+    <div class="info-item"><span class="info-label">ภูมิภาค</span><span class="info-val">${REGION_LABEL[t.region]||t.region}</span></div>
+    <div class="info-item"><span class="info-label">จังหวัด</span><span class="info-val">${t.prov}</span></div>
+  `;
+  document.getElementById('tagRow').innerHTML=['เดินป่า','ธรรมชาติ','วิวสวย','อากาศเย็น','ถ่ายรูป','แคมป์ปิ้ง','ไกด์มืออาชีพ'].slice(0,5).map(tag=>`<span class="tag">${tag}</span>`).join('');
+}
+
+function renderItinerary(t){
+  const days=genItinerary(t);
+  document.getElementById('itinerary').innerHTML=days.map((d,i)=>`
+    <div class="day-block">
+      <div class="day-dot">
+        <div class="day-circle">${i+1}</div>
+        ${i<days.length-1?'<div class="day-line"></div>':''}
+      </div>
+      <div class="day-content">
+        <div class="day-title">${d.title}</div>
+        <div class="day-desc">${d.desc}</div>
+        <div class="day-tags">${d.tags.map(tag=>`<span class="day-tag">${tag}</span>`).join('')}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderIncludes(t){
+  document.getElementById('incList').innerHTML=genIncludes(t).map(item=>`
+    <li class="${item.yes?'yes':'no'}">
+      ${item.yes
+        ?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>'
+        :'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>'}
+      ${item.text}
+    </li>
+  `).join('');
+}
+
+function renderGuide(t){
+  const initial=(t.org||'?').charAt(0);
+  const color=avatarColor(t.org||'');
+  document.getElementById('guideCard').innerHTML=`
+    <div class="guide-card">
+      <div class="guide-avatar" style="background:${color};">${initial}</div>
+      <div>
+        <div class="guide-name">${t.org}</div>
+        <div class="guide-sub">ผู้จัดทริปมืออาชีพ · ${t.prov}</div>
+        <div class="guide-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>${t.badge}</div>
+      </div>
+    </div>
+    <div class="guide-contacts">
+      ${t.orgPhone?`<a href="tel:${t.orgPhone}" class="contact-btn phone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.67A2 2 0 012 0h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 14h-.08z"/></svg>${t.orgPhone}</a>`:''}
+      ${t.orgLine?`<a href="https://line.me/ti/p/${t.orgLine}" target="_blank" class="contact-btn line"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8A8.5 8.5 0 016.2 18.9L3 21l3.2-3.3A8.5 8.5 0 012.5 11.5a8.5 8.5 0 0119 0z"/></svg>${t.orgLine}</a>`:''}
+    </div>
+  `;
+}
+
+function renderBookCard(t){
+  const isFull=t.status==='full'||t.booked>=t.cap;
+  const avail=t.cap-t.booked;
+  const days=getDays(t.name.th);
+  document.getElementById('bookCard').innerHTML=`
+    <div class="book-price">${fmtMoney(t.price)}<span>/ท่าน</span></div>
+    <div class="book-rating"><span class="stars">★★★★★</span>${t.rating} · ${t.booked} คนเข้าร่วมแล้ว</div>
+    <div class="book-divider"></div>
+    <div class="book-row"><span class="label">วันที่</span><span class="val">${fmtDate(t.date)}</span></div>
+    <div class="book-row"><span class="label">ระยะเวลา</span><span class="val">${days} วัน ${days>1?days-1+' คืน':''}</span></div>
+    <div class="book-row"><span class="label">จังหวัด</span><span class="val">${t.prov}</span></div>
+    <div class="book-row"><span class="label">ผู้จัด</span><span class="val">${t.org}</span></div>
+    ${!isFull?`<div class="seats-bar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>เหลือเพียง <b>${avail} ที่นั่ง</b> จาก ${t.cap} ที่</div>`:''}
+    <div class="book-divider"></div>
+    ${isFull
+      ?'<div class="btn-book-full">ทริปนี้เต็มแล้ว</div>'
+      :`<a href="booking.html?id=${t.id}" class="btn-book">จองทริปนี้</a>`
+    }
+    <div class="book-note">จ่ายเมื่อได้รับการยืนยัน · ยกเลิกฟรีภายใน 48 ชม.</div>
+    <button class="book-share" onclick="shareTrip()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+      แชร์ทริปนี้
+    </button>
+  `;
+}
+
+function shareTrip(){
+  if(navigator.share){
+    navigator.share({title:trip?.name?.th,url:window.location.href});
+  } else {
+    navigator.clipboard.writeText(window.location.href).then(()=>toast('คัดลอกลิงค์แล้ว'));
+  }
+}
+
+function toast(msg){
+  let t=document.getElementById('toast');
+  if(!t){ t=document.createElement('div'); t.id='toast'; t.style.cssText='position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#2A2118;color:#EDE7D6;padding:10px 20px;border-radius:8px;font-size:13.5px;font-weight:600;z-index:999;opacity:0;transition:.3s;pointer-events:none;'; document.body.appendChild(t); }
+  t.textContent=msg; t.style.opacity='1';
+  clearTimeout(t._t); t._t=setTimeout(()=>{t.style.opacity='0';},2200);
+}
+
+function init(){
+  loadTrips();
+  const id=getTripId();
+  if(!id){ document.getElementById('notFound').style.display='block'; return; }
+  trip=TRIPS.find(x=>x.id===id)||SEED_TRIPS.find(x=>x.id===id);
+  if(!trip){ document.getElementById('notFound').style.display='block'; return; }
+  document.title='SafeSummit — '+trip.name.th;
+  renderHero(trip);
+  renderInfo(trip);
+  renderItinerary(trip);
+  renderIncludes(trip);
+  renderGuide(trip);
+  renderBookCard(trip);
+  document.getElementById('pageWrap').style.display='grid';
+}
+init();
+</script>
+</body>
+</html>

@@ -564,21 +564,26 @@ function saveBooking(){
   try{ const r=localStorage.getItem('safesummit:mybookings'); bookings=r?JSON.parse(r):[]; } catch(e){}
   const total=trip.price*seats;
   const vat=Math.round(total*0.07);
+  const fname=document.getElementById('f-fname')?.value||'';
+  const lname=document.getElementById('f-lname')?.value||'';
+  const phone=document.getElementById('f-phone')?.value||'';
   bookings.unshift({
     id:'b'+Date.now(),
+    ref:bookingRef,
     tripId:trip.id,
-    tripName:{th:trip.name.th||trip.name},
+    tripName:trip.name.th||trip.name,
     org:trip.org,
     prov:trip.prov,
-    date:trip.date,
+    tripDate:trip.date,
     price:trip.price,
     seats:seats,
     total:total+vat,
-    status:'confirmed',
-    bookedAt:new Date().toISOString().slice(0,10),
+    payStatus:'paid',
+    bookedAt:new Date().toISOString(),
+    name:(fname+' '+lname).trim(),
+    phone:phone,
     badge:trip.badge,
     scene:trip.scene||'peak',
-    bookingRef:bookingRef,
     orgPhone:trip.orgPhone||'',
     orgLine:trip.orgLine||'',
   });
