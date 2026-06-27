@@ -147,6 +147,11 @@ section.block{padding:88px 0;background:var(--bg-light);}
 }
 .search-mock .go:hover{filter:brightness(1.05);}
 
+/* section divider */
+.section-divider{display:flex;align-items:center;gap:14px;margin:28px 0 20px;}
+.section-divider::before,.section-divider::after{content:'';flex:1;height:1px;background:rgba(43,33,24,.15);}
+.section-divider span{font-family:'Sarabun',sans-serif;font-size:13px;font-weight:600;color:var(--text-muted);white-space:nowrap;letter-spacing:.04em;}
+
 /* region grid */
 .region-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:32px;}
 .region-card-btn{position:relative;height:130px;border-radius:12px;overflow:hidden;cursor:pointer;}
@@ -545,6 +550,8 @@ footer .foot-grid li a:hover{opacity:1;color:var(--accent-gold);}
         <div class="rc-name" data-th="ภาคใต้" data-en="Southern">ภาคใต้</div>
       </div>
     </div>
+
+    <div class="section-divider"><span data-th="ทริปแนะนำ" data-en="Featured Trips">ทริปแนะนำ</span></div>
 
     <div class="trip-grid" id="tripGrid"></div>
     <p id="noResults" style="display:none;text-align:center;color:var(--text-muted);font-size:15px;padding:20px 0;" data-th="ไม่พบทริปที่ตรงกับเงื่อนไข ลองปรับตัวกรองดูอีกครั้ง" data-en="No trips match your filters. Try adjusting them.">ไม่พบทริปที่ตรงกับเงื่อนไข ลองปรับตัวกรองดูอีกครั้ง</p>
