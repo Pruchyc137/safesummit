@@ -603,6 +603,8 @@ h1,h2,h3,h4{font-family:'Kanit',sans-serif;}
 </div>
 
 <div id="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/db.js"></script>
 
 <script>
 const SEED_TRIPS=[
@@ -620,117 +622,135 @@ const STATUS_CLASS={open:'open',full:'full',completed:'completed',cancelled:'can
 
 let TRIPS=[], MY_ORG='', selectedBadge='Verified Basic';
 
-// ===== AUTH STATE =====
-function getProfile(){ try{ return JSON.parse(localStorage.getItem('safesummit:org-profile')||'{}'); }catch(e){ return {}; } }
-function getOrgs(){ try{ return JSON.parse(localStorage.getItem('safesummit:orgs')||'[]'); }catch(e){ return []; } }
-function saveOrgs(orgs){ localStorage.setItem('safesummit:orgs',JSON.stringify(orgs)); }
+// ===== AUTH STATE (Supabase) =====
+let _orgProfile = null; // cache organizer row
 
-function getOrgStatus(orgName){
-  if(!orgName) return null;
-  const orgs=getOrgs();
-  const found=orgs.find(o=>o.name===orgName);
-  return found?found.status:null;
-}
-
-function checkAuthState(){
-  const profile=getProfile();
-  if(!profile.org){
+async function checkAuthState(){
+  const user = await Auth.getUser();
+  if(!user){
     document.getElementById('gateRegister').classList.add('show');
     return false;
   }
-  const status=getOrgStatus(profile.org);
-  if(status==='approved'){
+  // ดึง organizer profile จาก Supabase
+  _orgProfile = await Organizers.getMyProfile();
+  if(!_orgProfile){
+    document.getElementById('gateRegister').classList.add('show');
+    return false;
+  }
+  if(_orgProfile.status === 'approved'){
     document.getElementById('mainLayout').style.display='flex';
     return true;
   }
-  // pending or not found in orgs yet
+  // pending / suspended
   document.getElementById('gatePending').classList.add('show');
-  const ref=profile.regRef||profile.org;
-  document.getElementById('pendingRef').textContent=ref;
+  document.getElementById('pendingRef').textContent = _orgProfile.reg_ref || _orgProfile.org_name;
   return false;
 }
 
-function submitRegister(){
-  const org=document.getElementById('r-org').value.trim();
-  const fname=document.getElementById('r-fname').value.trim();
-  const lname=document.getElementById('r-lname').value.trim();
-  const email=document.getElementById('r-email').value.trim();
-  const phone=document.getElementById('r-phone').value.trim();
-  const prov=document.getElementById('r-prov').value.trim();
-  if(!org){ toast('กรุณากรอกชื่อองค์กร'); return; }
+async function submitRegister(){
+  const org   = document.getElementById('r-org').value.trim();
+  const fname = document.getElementById('r-fname').value.trim();
+  const lname = document.getElementById('r-lname').value.trim();
+  const email = document.getElementById('r-email').value.trim();
+  const phone = document.getElementById('r-phone').value.trim();
+  const prov  = document.getElementById('r-prov').value.trim();
+  const exp   = parseInt(document.getElementById('r-exp').value)||0;
+  const bio   = document.getElementById('r-bio').value.trim();
+
+  if(!org)  { toast('กรุณากรอกชื่อองค์กร'); return; }
   if(!fname||!lname){ toast('กรุณากรอกชื่อ-นามสกุล'); return; }
   if(!email||!email.includes('@')){ toast('กรุณากรอกอีเมลให้ถูกต้อง'); return; }
   if(!phone||phone.length<9){ toast('กรุณากรอกเบอร์โทรศัพท์'); return; }
-  if(!prov){ toast('กรุณากรอกจังหวัด'); return; }
+  if(!prov) { toast('กรุณากรอกจังหวัด'); return; }
 
-  const regRef='ORG-'+Date.now().toString(36).toUpperCase();
-  // save profile locally
-  const profile={org,fname,lname,email,phone,prov,
-    exp:document.getElementById('r-exp').value,
-    bio:document.getElementById('r-bio').value,
-    regRef, registeredAt:new Date().toISOString()};
-  localStorage.setItem('safesummit:org-profile',JSON.stringify(profile));
+  const btn = document.querySelector('#gateRegister .btn-primary');
+  if(btn){ btn.disabled=true; btn.textContent='กำลังสมัคร...'; }
 
-  // push to orgs list for admin to see
-  const orgs=getOrgs();
-  if(!orgs.find(o=>o.name===org)){
-    orgs.push({
-      id:'o_'+Date.now(), name:org,
-      contact:fname+' '+lname, email, phone, prov,
-      tier:'Unverified', status:'pending',
-      joinedAt:new Date().toISOString().slice(0,10),
-      note:'สมัครผ่านเว็บ ref:'+regRef,
-      regRef
-    });
-    saveOrgs(orgs);
+  try {
+    // 1. สร้าง Supabase Auth account
+    const authData = await Auth.signUp(email, 'SS_temp_'+Date.now(), fname+' '+lname, phone);
+    const userId = authData.user?.id;
+    if(!userId) throw new Error('ไม่สามารถสร้างบัญชีได้');
+
+    // 2. อัปเดต role เป็น organizer
+    await db.from('users').update({ role:'organizer' }).eq('id', userId);
+
+    // 3. สร้าง organizer record (status: pending)
+    const orgData = await Organizers.register({ orgName:org, province:prov, expYears:exp, bio, userId });
+
+    // 4. แสดงหน้า pending
+    document.getElementById('gateRegister').classList.remove('show');
+    document.getElementById('gatePending').classList.add('show');
+    document.getElementById('pendingRef').textContent = orgData.reg_ref || org;
+  } catch(e){
+    console.error(e);
+    toast('เกิดข้อผิดพลาด: ' + (e.message||'ลองใหม่อีกครั้ง'));
+    if(btn){ btn.disabled=false; btn.textContent='ส่งใบสมัคร'; }
   }
-
-  // show pending screen
-  document.getElementById('gateRegister').classList.remove('show');
-  document.getElementById('gatePending').classList.add('show');
-  document.getElementById('pendingRef').textContent=regRef;
 }
 
-function resetRegistration(){
-  if(!confirm('ล้างข้อมูลการลงทะเบียนทั้งหมด?')) return;
-  localStorage.removeItem('safesummit:org-profile');
+async function resetRegistration(){
+  if(!confirm('ออกจากระบบ?')) return;
+  await Auth.signOut();
   document.getElementById('gatePending').classList.remove('show');
+  document.getElementById('mainLayout').style.display='none';
   document.getElementById('gateRegister').classList.add('show');
 }
 
-function load(){
-  try{ const r=localStorage.getItem('safesummit:trips'); TRIPS=r?JSON.parse(r):JSON.parse(JSON.stringify(SEED_TRIPS)); }catch(e){ TRIPS=JSON.parse(JSON.stringify(SEED_TRIPS)); }
-  if(!checkAuthState()) return false;
-  const profile=getProfile();
-  MY_ORG=profile.org||'ไกด์ล้านนา';
-  document.getElementById('orgChip').textContent=MY_ORG;
-  document.getElementById('ovTitle').textContent='สวัสดี '+MY_ORG+'!';
-  const sb=document.getElementById('sideBookings');
-  const bk=loadBookings().filter(b=>getMyTripIds().includes(b.tripId));
-  if(sb) sb.textContent=bk.length;
-  const st=document.getElementById('sideMyTrips');
-  if(st) st.textContent=getMyTrips().length;
+async function load(){
+  const ok = await checkAuthState();
+  if(!ok) return false;
+  // โหลดทริปของ org นี้จาก Supabase
+  if(_orgProfile){
+    MY_ORG = _orgProfile.org_name;
+    try {
+      const { data } = await db.from('trips')
+        .select('*')
+        .eq('organizer_id', _orgProfile.id)
+        .order('created_at', { ascending: false });
+      TRIPS = data || [];
+    } catch(e){ TRIPS = []; }
+  }
+  document.getElementById('orgChip').textContent = MY_ORG;
+  document.getElementById('ovTitle').textContent  = 'สวัสดี '+MY_ORG+'!';
+  const st = document.getElementById('sideMyTrips');
+  if(st) st.textContent = TRIPS.length;
 }
 
-function saveTrips(){ localStorage.setItem('safesummit:trips',JSON.stringify(TRIPS)); }
-function saveProfile(){
-  const prev=getProfile();
-  const data={...prev,org:v('p-org'),fname:v('p-fname'),lname:v('p-lname'),phone:v('p-phone'),prov:v('p-prov'),exp:v('p-exp'),bio:v('p-bio')};
-  localStorage.setItem('safesummit:org-profile',JSON.stringify(data));
-  MY_ORG=data.org||MY_ORG;
-  document.getElementById('orgChip').textContent=MY_ORG;
-  document.getElementById('ovTitle').textContent='สวัสดี '+MY_ORG+'!';
+async function saveProfile(){
+  if(!_orgProfile) return;
+  const data = { org_name:v('p-org'), province:v('p-prov'), exp_years:parseInt(v('p-exp'))||0, bio:v('p-bio') };
+  const { error } = await db.from('organizers').update(data).eq('id', _orgProfile.id);
+  if(error){ toast('บันทึกไม่สำเร็จ'); return; }
+  await db.from('users').update({ full_name:v('p-fname')+' '+v('p-lname'), phone:v('p-phone') })
+    .eq('id', (await Auth.getUser()).id);
+  MY_ORG = data.org_name || MY_ORG;
+  document.getElementById('orgChip').textContent = MY_ORG;
+  document.getElementById('ovTitle').textContent  = 'สวัสดี '+MY_ORG+'!';
   toast('บันทึกข้อมูลแล้ว');
 }
-function loadProfile(){
-  const p=getProfile();
-  setVal('p-org',p.org||''); setVal('p-fname',p.fname||''); setVal('p-lname',p.lname||'');
-  setVal('p-phone',p.phone||''); setVal('p-line',p.line||''); setVal('p-prov',p.prov||'');
-  setVal('p-exp',p.exp||''); setVal('p-bio',p.bio||'');
+async function loadProfile(){
+  if(!_orgProfile) return;
+  const user = await Auth.getUser();
+  const nameParts = (user?.user_metadata?.full_name||'').split(' ');
+  setVal('p-org',   _orgProfile.org_name||'');
+  setVal('p-fname', nameParts[0]||'');
+  setVal('p-lname', nameParts.slice(1).join(' ')||'');
+  setVal('p-phone', user?.user_metadata?.phone||'');
+  setVal('p-prov',  _orgProfile.province||'');
+  setVal('p-exp',   _orgProfile.exp_years||'');
+  setVal('p-bio',   _orgProfile.bio||'');
 }
-function getMyTrips(){ return TRIPS.filter(t=>t.org===MY_ORG||t._myTrip); }
-function getMyTripIds(){ return getMyTrips().map(t=>t.id); }
-function loadBookings(){ try{ return JSON.parse(localStorage.getItem('safesummit:mybookings')||'[]'); }catch(e){ return []; } }
+function getMyTrips(){ return TRIPS; }
+function getMyTripIds(){ return TRIPS.map(t=>t.id); }
+async function loadBookings(){
+  try {
+    const ids = getMyTripIds();
+    if(!ids.length) return [];
+    const { data } = await db.from('bookings').select('*,trips(name_th)').in('trip_id', ids);
+    return data||[];
+  } catch(e){ return []; }
+}
 function v(id){ return document.getElementById(id)?.value||''; }
 function setVal(id,val){ const el=document.getElementById(id); if(el) el.value=val; }
 function fmtMoney(n){ return '฿'+(n||0).toLocaleString('th-TH'); }
@@ -883,63 +903,72 @@ function clearForm(){
 
 function getChecked(id){ return document.getElementById(id)?.checked||false; }
 
-function submitTrip(){
-  const name=v('f-name').trim();
-  const region=v('f-region');
-  const prov=v('f-prov').trim();
-  const date=v('f-date');
-  const price=parseInt(v('f-price'));
-  const cap=parseInt(v('f-cap'));
-  if(!name){ toast('กรุณากรอกชื่อทริป'); return; }
-  if(!region){ toast('กรุณาเลือกภาค'); return; }
-  if(!prov){ toast('กรุณากรอกจังหวัด'); return; }
-  if(!date){ toast('กรุณาเลือกวันเดินทาง'); return; }
+async function submitTrip(){
+  const name   = v('f-name').trim();
+  const region = v('f-region');
+  const prov   = v('f-prov').trim();
+  const date   = v('f-date');
+  const price  = parseInt(v('f-price'));
+  const cap    = parseInt(v('f-cap'));
+  if(!name)            { toast('กรุณากรอกชื่อทริป'); return; }
+  if(!region)          { toast('กรุณาเลือกภาค'); return; }
+  if(!prov)            { toast('กรุณากรอกจังหวัด'); return; }
+  if(!date)            { toast('กรุณาเลือกวันเดินทาง'); return; }
   if(!price||price<100){ toast('กรุณากรอกราคา (ขั้นต่ำ 100 บาท)'); return; }
-  if(!cap||cap<2){ toast('กรุณากรอกจำนวนผู้ร่วมเดินทาง (ขั้นต่ำ 2 คน)'); return; }
+  if(!cap||cap<2)      { toast('กรุณากรอกจำนวนผู้ร่วมเดินทาง (ขั้นต่ำ 2 คน)'); return; }
+  if(!_orgProfile)     { toast('ไม่พบข้อมูลผู้จัด'); return; }
 
-  const days=parseInt(v('f-days'))||3;
-  const daysStr= days===1?'1 วัน':days+'วัน '+(days-1)+'คืน';
-  const fullName=name.includes('วัน')?name:name+' '+daysStr;
+  const days    = parseInt(v('f-days'))||3;
+  const daysStr = days===1?'1 วัน':days+' วัน '+(days-1)+' คืน';
+  const fullName = name.includes('วัน') ? name : name+' '+daysStr;
 
   const includes=[];
-  if(getChecked('inc-guide')) includes.push('ไกด์นำทาง');
-  if(getChecked('inc-food')) includes.push('อาหารทุกมื้อ');
-  if(getChecked('inc-tent')) includes.push('เต็นท์และอุปกรณ์');
+  if(getChecked('inc-guide'))     includes.push('ไกด์นำทาง');
+  if(getChecked('inc-food'))      includes.push('อาหารทุกมื้อ');
+  if(getChecked('inc-tent'))      includes.push('เต็นท์และอุปกรณ์');
   if(getChecked('inc-insurance')) includes.push('ประกันภัย');
   if(getChecked('inc-transport')) includes.push('รถรับส่ง');
-  if(getChecked('inc-firstaid')) includes.push('ชุดปฐมพยาบาล');
-  if(getChecked('inc-park')) includes.push('ค่าเข้าอุทยาน');
-  if(getChecked('inc-photo')) includes.push('บริการถ่ายภาพ');
+  if(getChecked('inc-firstaid'))  includes.push('ชุดปฐมพยาบาล');
+  if(getChecked('inc-park'))      includes.push('ค่าเข้าอุทยาน');
+  if(getChecked('inc-photo'))     includes.push('บริการถ่ายภาพ');
 
-  const newId='t_'+Date.now();
-  const newTrip={
-    id:newId,
-    name:{th:fullName,en:name},
-    org:MY_ORG,
-    region,prov,date,
-    cap,booked:0,price,
-    status:'open',
-    badge:selectedBadgeVal,
-    rating:null,
-    scene:'peak',
-    img:v('f-img')||null,
-    desc:v('f-desc'),
-    diff:v('f-diff'),
-    includes,
-    _myTrip:true,
-  };
+  const btn = document.querySelector('#addTripForm .btn-primary');
+  if(btn){ btn.disabled=true; btn.textContent='กำลังบันทึก...'; }
 
-  TRIPS.unshift(newTrip);
-  saveTrips();
+  try {
+    const { data, error } = await db.from('trips').insert({
+      organizer_id:     _orgProfile.id,
+      name_th:          fullName,
+      name_en:          name,
+      region:           region,
+      province:         prov,
+      start_date:       date,
+      duration_days:    days,
+      price_per_person: price,
+      capacity:         cap,
+      status:           'draft',   // รอ admin อนุมัติก่อน open
+      badge_tier:       _orgProfile.badge_tier||'basic',
+      difficulty:       v('f-diff')||'medium',
+      description:      v('f-desc')||null,
+      image_url:        v('f-img')||null,
+      includes:         includes,
+    }).select().single();
+    if(error) throw error;
 
-  document.getElementById('addSuccessTitle').textContent='ลงทะเบียน "'+fullName+'" สำเร็จ!';
-  document.getElementById('addSuccess').style.display='flex';
-  document.getElementById('addTripForm').scrollIntoView({behavior:'smooth'});
-
-  const st=document.getElementById('sideMyTrips');
-  if(st) st.textContent=getMyTrips().length;
-  toast('เพิ่มทริปสำเร็จ ✓');
-  clearForm();
+    TRIPS.unshift(data);
+    document.getElementById('addSuccessTitle').textContent='ลงทะเบียน "'+fullName+'" สำเร็จ!';
+    document.getElementById('addSuccess').style.display='flex';
+    document.getElementById('addTripForm').scrollIntoView({behavior:'smooth'});
+    const st=document.getElementById('sideMyTrips');
+    if(st) st.textContent=TRIPS.length;
+    toast('เพิ่มทริปสำเร็จ ✓');
+    clearForm();
+  } catch(e){
+    console.error(e);
+    toast('บันทึกไม่สำเร็จ: '+(e.message||'ลองใหม่'));
+  } finally {
+    if(btn){ btn.disabled=false; btn.textContent='ลงทะเบียนทริป'; }
+  }
 }
 
 function toast(msg){
@@ -948,8 +977,7 @@ function toast(msg){
   clearTimeout(t._t); t._t=setTimeout(()=>{ t.style.opacity='0'; t.style.transform='translateX(-50%) translateY(10px)'; },2500);
 }
 
-const _ready = load();
-if(_ready !== false) renderOverview();
+load().then(ok => { if(ok !== false) renderOverview(); });
 </script>
 </body>
 </html>
