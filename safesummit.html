@@ -147,6 +147,21 @@ section.block{padding:88px 0;background:var(--bg-light);}
 }
 .search-mock .go:hover{filter:brightness(1.05);}
 
+/* region grid */
+.region-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:32px;}
+.region-card-btn{position:relative;height:130px;border-radius:12px;overflow:hidden;cursor:pointer;}
+.rc-bg{width:100%;height:100%;transition:transform .45s cubic-bezier(.25,.46,.45,.94);}
+.region-card-btn:hover .rc-bg{transform:scale(1.07);}
+.rc-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.62) 35%,rgba(0,0,0,.05) 100%);transition:background .2s;}
+.region-card-btn.active .rc-overlay,.region-card-btn:hover .rc-overlay{background:linear-gradient(to top,rgba(226,103,43,.75) 30%,rgba(226,103,43,.15) 100%);}
+.rc-count{position:absolute;top:10px;right:10px;background:rgba(255,255,255,.88);font-family:'Bai Jamjuree',monospace;font-size:10px;font-weight:600;color:var(--text-dark);padding:3px 9px;border-radius:20px;}
+.rc-name{position:absolute;bottom:12px;left:14px;color:#fff;font-family:'Sarabun',sans-serif;font-size:15px;font-weight:500;text-shadow:0 1px 6px rgba(0,0,0,.5);}
+@media(max-width:860px){.region-grid{grid-template-columns:repeat(2,1fr);}}
+
+/* search input field */
+.field-search input{appearance:none;border:none;background:transparent;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:600;color:var(--text-dark);width:100%;padding:0;outline:none;}
+.field-search input::placeholder{color:var(--text-muted);font-weight:400;}
+
 /* trip cards */
 .trip-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
 .trip-card{background:var(--card-light);border-radius:12px;overflow:hidden;box-shadow:var(--shadow);transition:box-shadow .25s ease;}
@@ -448,21 +463,9 @@ footer .foot-grid li a:hover{opacity:1;color:var(--accent-gold);}
     <p class="lede" data-th="รวมผู้จัดทริปเดินป่าที่ผ่านการยืนยันตัวจริงไว้ที่เดียว ทั่วไทย เงินของคุณปลอดภัยจนกว่าทริปจะจบ" data-en="Every verified trekking organizer in Thailand, in one place. Your money stays safe until the trip is over.">รวมผู้จัดทริปเดินป่าที่ผ่านการยืนยันตัวจริงไว้ที่เดียว ทั่วไทย เงินของคุณปลอดภัยจนกว่าทริปจะจบ</p>
 
     <div class="search-mock">
-      <div class="field">
-        <label data-th="ภาค" data-en="Region">ภาค</label>
-        <select id="regionSel">
-          <option value="all" data-th="ทั้งหมด" data-en="All regions">ทั้งหมด</option>
-          <option value="north" data-th="ภาคเหนือ" data-en="Northern">ภาคเหนือ</option>
-          <option value="northeast" data-th="ภาคตะวันออกเฉียงเหนือ" data-en="Northeastern">ภาคตะวันออกเฉียงเหนือ</option>
-          <option value="central" data-th="ภาคกลาง" data-en="Central">ภาคกลาง</option>
-          <option value="east" data-th="ภาคตะวันออก" data-en="Eastern">ภาคตะวันออก</option>
-          <option value="west" data-th="ภาคตะวันตก" data-en="Western">ภาคตะวันตก</option>
-          <option value="south" data-th="ภาคใต้" data-en="Southern">ภาคใต้</option>
-        </select>
-      </div>
-      <div class="field">
-        <label data-th="จังหวัด" data-en="Province">จังหวัด</label>
-        <select id="provinceSel"></select>
+      <div class="field field-search">
+        <label data-th="ค้นหาทริป" data-en="Search trips">ค้นหาทริป</label>
+        <input type="text" id="searchQ" placeholder="ชื่อทริป หรือจังหวัด…" style="appearance:none;border:none;background:transparent;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:600;color:var(--text-dark);width:100%;padding:0;outline:none;" data-ph-th="ชื่อทริป หรือจังหวัด…" data-ph-en="Trip name or province…">
       </div>
       <div class="field">
         <label data-th="ช่วงราคา" data-en="Price range">ช่วงราคา</label>
@@ -503,6 +506,45 @@ footer .foot-grid li a:hover{opacity:1;color:var(--accent-gold);}
     <div class="eyebrow" style="color:var(--accent-trail);" data-th="สำหรับนักเดินป่า" data-en="For Hikers">สำหรับนักเดินป่า</div>
     <h2 data-th="ทริปแนะนำที่ผ่านการยืนยันแล้ว" data-en="Recommended verified trips">ทริปแนะนำที่ผ่านการยืนยันแล้ว</h2>
     <p class="sub" data-th="ทุกทริปมาจากผู้จัดที่ตรวจสอบแล้ว เทียบราคาและรีวิวได้ก่อนตัดสินใจ" data-en="Every trip comes from a verified organizer. Compare prices and reviews before you decide.">ทุกทริปมาจากผู้จัดที่ตรวจสอบแล้ว เทียบราคาและรีวิวได้ก่อนตัดสินใจ</p>
+
+    <div class="region-grid" id="regionGrid">
+      <div class="region-card-btn" onclick="filterByRegion('north')" data-region="north">
+        <div class="rc-bg" style="background:linear-gradient(160deg,#1E4A2A 0%,#2E6A3A 40%,#5A9A60 70%,#8AC890 100%);"></div>
+        <div class="rc-overlay"></div>
+        <div class="rc-count" id="rc-north"></div>
+        <div class="rc-name" data-th="ภาคเหนือ" data-en="Northern">ภาคเหนือ</div>
+      </div>
+      <div class="region-card-btn" onclick="filterByRegion('northeast')" data-region="northeast">
+        <div class="rc-bg" style="background:linear-gradient(160deg,#4A2E0A 0%,#7A5020 40%,#C9A24B 70%,#E8C878 100%);"></div>
+        <div class="rc-overlay"></div>
+        <div class="rc-count" id="rc-northeast"></div>
+        <div class="rc-name" data-th="ภาคตะวันออกเฉียงเหนือ" data-en="Northeastern">ภาคตะวันออกเฉียงเหนือ</div>
+      </div>
+      <div class="region-card-btn" onclick="filterByRegion('central')" data-region="central">
+        <div class="rc-bg" style="background:linear-gradient(160deg,#0E2A4A 0%,#1A4A7A 40%,#3A7AAA 70%,#70AACC 100%);"></div>
+        <div class="rc-overlay"></div>
+        <div class="rc-count" id="rc-central"></div>
+        <div class="rc-name" data-th="ภาคกลาง" data-en="Central">ภาคกลาง</div>
+      </div>
+      <div class="region-card-btn" onclick="filterByRegion('east')" data-region="east">
+        <div class="rc-bg" style="background:linear-gradient(160deg,#0A3A2A 0%,#1A6A4A 40%,#2AAA7A 70%,#60D4AA 100%);"></div>
+        <div class="rc-overlay"></div>
+        <div class="rc-count" id="rc-east"></div>
+        <div class="rc-name" data-th="ภาคตะวันออก" data-en="Eastern">ภาคตะวันออก</div>
+      </div>
+      <div class="region-card-btn" onclick="filterByRegion('west')" data-region="west">
+        <div class="rc-bg" style="background:linear-gradient(160deg,#1A2A0A 0%,#3A5A1A 40%,#6A8A3A 70%,#9ABA60 100%);"></div>
+        <div class="rc-overlay"></div>
+        <div class="rc-count" id="rc-west"></div>
+        <div class="rc-name" data-th="ภาคตะวันตก" data-en="Western">ภาคตะวันตก</div>
+      </div>
+      <div class="region-card-btn" onclick="filterByRegion('south')" data-region="south">
+        <div class="rc-bg" style="background:linear-gradient(160deg,#061A3A 0%,#0A3A6A 40%,#1A6AAA 70%,#40AACC 100%);"></div>
+        <div class="rc-overlay"></div>
+        <div class="rc-count" id="rc-south"></div>
+        <div class="rc-name" data-th="ภาคใต้" data-en="Southern">ภาคใต้</div>
+      </div>
+    </div>
 
     <div class="trip-grid" id="tripGrid"></div>
     <p id="noResults" style="display:none;text-align:center;color:var(--text-muted);font-size:15px;padding:20px 0;" data-th="ไม่พบทริปที่ตรงกับเงื่อนไข ลองปรับตัวกรองดูอีกครั้ง" data-en="No trips match your filters. Try adjusting them.">ไม่พบทริปที่ตรงกับเงื่อนไข ลองปรับตัวกรองดูอีกครั้ง</p>
@@ -681,14 +723,35 @@ function priceMatch(p, range){
   if(range==='gt5000') return p>5000;
   return true;
 }
-function renderTripCards(region='all', price='all'){
+let _activeRegion = 'all';
+
+function updateRegionCounts(){
+  const regions = ['north','northeast','central','east','west','south'];
+  const lang = curLang();
+  regions.forEach(r => {
+    const count = TRIPS.filter(t => ['open','full'].includes(t.status) && t.region===r).length;
+    const el = document.getElementById('rc-'+r);
+    if(el) el.textContent = count + (lang==='en' ? ' trips' : ' ทริป');
+  });
+}
+
+function filterByRegion(region){
+  _activeRegion = _activeRegion === region ? 'all' : region;
+  document.querySelectorAll('.region-card-btn').forEach(el => {
+    el.classList.toggle('active', el.dataset.region === _activeRegion);
+  });
+  applyTripFilter();
+}
+
+function renderTripCards(region='all', price='all', query=''){
   const lang = curLang();
   const grid = document.getElementById('tripGrid');
   if(!grid) return;
-  // public list = only open + full, then apply filters
+  const q = query.trim().toLowerCase();
   const list = TRIPS.filter(t => ['open','full'].includes(t.status))
     .filter(t => region==='all' || t.region===region)
-    .filter(t => priceMatch(t.price, price));
+    .filter(t => priceMatch(t.price, price))
+    .filter(t => !q || (t.name.th+t.name.en+t.prov).toLowerCase().includes(q));
   grid.innerHTML = list.map(t => {
     const regLabel = (REGION_LABEL[t.region]||{})[lang]||'';
     const meta = `${t.prov} · ${regLabel}`;
@@ -721,17 +784,9 @@ function renderTripCards(region='all', price='all'){
   if(none) none.style.display = list.length===0 ? 'block' : 'none';
 }
 
-function populateProvinces(){
-  const region = document.getElementById('regionSel').value;
-  const provSel = document.getElementById('provinceSel');
-  const lang = curLang();
-  const allLabel = lang === 'en' ? 'All provinces' : 'ทั้งหมด';
-  let opts = '<option data-th="ทั้งหมด" data-en="All provinces">'+allLabel+'</option>';
-  if(region !== 'all'){ opts += (PROVINCES[region]||[]).map(p => `<option>${p}</option>`).join(''); }
-  provSel.innerHTML = opts;
-}
-const regionSelEl = document.getElementById('regionSel');
-if(regionSelEl){ regionSelEl.addEventListener('change', populateProvinces); populateProvinces(); }
+// searchQ enter key
+const searchQEl = document.getElementById('searchQ');
+if(searchQEl) searchQEl.addEventListener('keydown', e => { if(e.key==='Enter') applyTripFilter(); });
 
 function populateDates(){
   const sel = document.getElementById('dateSel');
@@ -755,9 +810,9 @@ function populateDates(){
 populateDates();
 
 function applyTripFilter(){
-  const region = document.getElementById('regionSel').value;
-  const price = document.getElementById('priceSel').value;
-  renderTripCards(region, price);
+  const price = document.getElementById('priceSel')?.value || 'all';
+  const query = document.getElementById('searchQ')?.value || '';
+  renderTripCards(_activeRegion, price, query);
   document.getElementById('travelers').scrollIntoView({behavior:'smooth'});
 }
 
@@ -772,8 +827,10 @@ function switchLang(lang, btn){
   // re-render JS-generated content so it follows the language too
   if(typeof refreshLanding==='function') refreshLanding();
   if(typeof renderDash==='function' && document.getElementById('dashOverlay') && document.getElementById('dashOverlay').classList.contains('show')) renderDash();
-  if(typeof populateProvinces==='function') populateProvinces();
   if(typeof populateDates==='function') populateDates();
+  if(typeof updateRegionCounts==='function') updateRegionCounts();
+  const sq = document.getElementById('searchQ');
+  if(sq) sq.placeholder = lang==='en' ? 'Trip name or province…' : 'ชื่อทริป หรือจังหวัด…';
 }
 
 function toggleLogin(e){
@@ -1020,7 +1077,7 @@ function dToast(msg){
 }
 
 // ===== INIT =====
-(async function(){ await loadTrips(); renderTripCards('all','all'); })();
+(async function(){ await loadTrips(); updateRegionCounts(); renderTripCards('all','all',''); })();
 
 </script>
 
