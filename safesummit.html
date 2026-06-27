@@ -149,28 +149,34 @@ section.block{padding:88px 0;background:var(--bg-light);}
 
 /* trip cards */
 .trip-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
-.trip-card{background:var(--card-light);border-radius:10px;overflow:hidden;box-shadow:var(--shadow);}
+.trip-card{background:var(--card-light);border-radius:12px;overflow:hidden;box-shadow:var(--shadow);transition:box-shadow .25s ease;}
+.trip-card:hover{box-shadow:0 8px 28px rgba(40,28,18,.18);}
 .trip-img{height:160px;position:relative;overflow:hidden;}
-.trip-img svg.scene{position:absolute;inset:0;width:100%;height:100%;}
+.trip-img-inner{width:100%;height:100%;transition:transform .45s cubic-bezier(.25,.46,.45,.94);}
+.trip-card:hover .trip-img-inner{transform:scale(1.07);}
+.trip-img-inner img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+.trip-img-inner svg.scene{position:absolute;inset:0;width:100%;height:100%;}
 .trip-badge{
   position:absolute;top:12px;left:12px;background:rgba(255,255,255,.92);
   font-family:'Bai Jamjuree',monospace;font-size:10.5px;font-weight:600;color:var(--text-dark);
-  padding:5px 10px;border-radius:20px;display:flex;align-items:center;gap:5px;
+  padding:5px 10px;border-radius:20px;display:flex;align-items:center;gap:5px;z-index:1;
 }
 .trip-badge svg{width:11px;height:11px;color:var(--accent-trail);}
-.trip-body{padding:18px 20px 20px;}
-.trip-body h4{font-family:'Sarabun',sans-serif;font-size:16.5px;font-weight:700;margin-bottom:6px;}
-.trip-meta{font-size:12.5px;color:var(--text-muted);margin-bottom:12px;}
-.trip-foot{display:flex;justify-content:space-between;align-items:center;}
-.trip-price{font-family:'Bai Jamjuree',monospace;font-weight:600;color:var(--accent-trail);}
-.trip-price span{font-size:11px;color:var(--text-muted);}
-.trip-rating{font-size:13px;color:var(--accent-gold);font-weight:600;}
+.trip-body{padding:14px 16px 16px;}
+.trip-title-row{display:flex;align-items:flex-start;justify-content:space-between;gap:6px;margin-bottom:4px;}
+.trip-title-row h4{font-family:'Sarabun',sans-serif;font-size:15.5px;font-weight:700;margin:0;line-height:1.3;flex:1;}
+.trip-rating{font-size:12px;color:var(--accent-gold);font-weight:600;white-space:nowrap;padding-top:2px;}
+.trip-meta{font-size:12.5px;color:var(--text-muted);margin-bottom:0;}
+.trip-divider{height:1px;background:rgba(43,33,24,.09);margin:12px 0;}
+.trip-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.trip-price{font-family:'Bai Jamjuree',monospace;font-size:18px;font-weight:600;color:var(--accent-trail);line-height:1;}
+.trip-price span{font-size:11px;color:var(--text-muted);font-weight:400;margin-left:2px;}
 @media (max-width:860px){.trip-grid{grid-template-columns:1fr;}}
 .book-btn{
-  display:block;width:100%;margin-top:12px;padding:10px;border-radius:8px;
+  padding:8px 16px;border-radius:8px;
   background:var(--accent-trail);color:#fff;font-family:'Sarabun',sans-serif;
-  font-weight:700;font-size:14px;text-align:center;border:none;cursor:pointer;
-  transition:filter .15s;text-decoration:none;
+  font-weight:700;font-size:13px;text-align:center;border:none;cursor:pointer;
+  transition:filter .15s;text-decoration:none;white-space:nowrap;flex-shrink:0;
 }
 .book-btn:hover{filter:brightness(1.08);}
 .book-btn-full{background:#D5C8AE;color:#9B8E7A;cursor:not-allowed;}
@@ -690,17 +696,24 @@ function renderTripCards(region='all', price='all'){
     const isFull = t.status === 'full';
     const bookBtn = isFull
       ? `<button class="book-btn book-btn-full" disabled data-th="เต็มแล้ว" data-en="Full">${lang==='en'?'Full':'เต็มแล้ว'}</button>`
-      : `<a class="book-btn" href="booking.html?id=${t.id}" data-th="จองทริป" data-en="Book now">${lang==='en'?'Book now →':'จองทริป →'}</a>`;
+      : `<a class="book-btn" href="booking.html?id=${t.id}" data-th="จองทริป" data-en="Book now">${lang==='en'?'Book now':'จองทริป'}</a>`;
     return `<div class="trip-card">
-      <div class="trip-img">${sceneFor(t)}
+      <div class="trip-img">
+        <div class="trip-img-inner">${sceneFor(t)}</div>
         <div class="trip-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>${t.badge}</div>
         ${!isFull ? `<div class="trip-seats-left">${avail} ${lang==='en'?'seats left':'ที่นั่งว่าง'}</div>` : ''}
       </div>
       <div class="trip-body">
-        <h4>${t.name[lang]||t.name.th}</h4>
+        <div class="trip-title-row">
+          <h4>${t.name[lang]||t.name.th}</h4>
+          <span class="trip-rating">★ ${t.rating||'–'}</span>
+        </div>
         <div class="trip-meta">${meta}</div>
-        <div class="trip-foot"><div class="trip-price">฿${t.price.toLocaleString('th-TH')} <span>${lang==='en'?'/person':'/คน'}</span></div><div class="trip-rating">★ ${t.rating||'–'}</div></div>
-        ${bookBtn}
+        <div class="trip-divider"></div>
+        <div class="trip-foot">
+          <div class="trip-price">฿${t.price.toLocaleString('th-TH')}<span>${lang==='en'?'/person':'/ท่าน'}</span></div>
+          ${bookBtn}
+        </div>
       </div>
     </div>`;
   }).join('');
