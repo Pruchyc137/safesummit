@@ -401,10 +401,7 @@ function renderGuide(t){
         <div class="guide-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>${t.badge}</div>
       </div>
     </div>
-    <div class="guide-contacts">
-      ${t.orgPhone?`<a href="tel:${t.orgPhone}" class="contact-btn phone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.67A2 2 0 012 0h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 14h-.08z"/></svg>${t.orgPhone}</a>`:''}
-      ${t.orgLine?`<a href="https://line.me/ti/p/${t.orgLine}" target="_blank" class="contact-btn line"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8A8.5 8.5 0 016.2 18.9L3 21l3.2-3.3A8.5 8.5 0 012.5 11.5a8.5 8.5 0 0119 0z"/></svg>${t.orgLine}</a>`:''}
-    </div>
+    <p style="font-size:13px;color:var(--text-muted);margin-top:8px;line-height:1.6;">การติดต่อและการดีลทั้งหมดจัดการผ่านแพลตฟอร์ม SafeSummit เพื่อความปลอดภัยของทั้งสองฝ่าย</p>
   `;
 }
 
