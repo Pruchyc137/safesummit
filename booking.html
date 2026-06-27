@@ -401,6 +401,8 @@ canvas#qrCanvas{display:block;}
 <!-- TOAST -->
 <div id="toast" style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:#2A2118;color:#EDE7D6;padding:12px 22px;border-radius:10px;font-size:14px;font-weight:600;box-shadow:0 14px 34px rgba(0,0,0,.3);opacity:0;transition:.25s;z-index:300;pointer-events:none;"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/db.js"></script>
 <script>
 // ===== SCENES =====
 const SCENES={
@@ -426,6 +428,40 @@ function loadTrips(){
   catch(e){ TRIPS=JSON.parse(JSON.stringify(SEED_TRIPS)); }
 }
 function saveTrips(){ localStorage.setItem('safesummit:trips',JSON.stringify(TRIPS)); }
+
+async function loadTripFromDB(id){
+  try {
+    const data = await Trips.getById(id);
+    // map Supabase fields → format ที่ booking.html ใช้
+    trip = {
+      id: data.id,
+      name: { th: data.name_th, en: data.name_en },
+      org: data.organizers?.org_name || '–',
+      prov: data.province,
+      date: data.start_date,
+      price: parseFloat(data.price_per_person),
+      cap: data.capacity,
+      booked: data.booked_count,
+      status: data.status,
+      badge: data.badge_tier,
+      rating: data.rating_avg || 0,
+      scene: 'peak',
+      days: data.duration_days
+    };
+  } catch(e) {
+    console.warn('Supabase trip load failed, using local seed', e);
+    loadTrips();
+    const tripId = getTripId();
+    trip = TRIPS.find(t => t.id === tripId) || null;
+  }
+  renderSummary();
+  changeSeat(0);
+  if(!trip){
+    document.getElementById('tripSummaryBody').innerHTML='<p style="color:#C0552F;font-size:14px;padding:8px 0;">ไม่พบทริปที่ระบุ — <a href="safesummit.html" style="color:var(--accent-trail)">กลับหน้าแรก</a></p>';
+  } else if(!['open'].includes(trip.status)){
+    document.getElementById('tripSummaryBody').innerHTML=`<p style="color:#C0552F;font-size:14px;padding:8px 0;">ทริปนี้ไม่สามารถจองได้ (สถานะ: ${trip.status}) — <a href="safesummit.html" style="color:var(--accent-trail)">กลับหน้าแรก</a></p>`;
+  }
+}
 
 function getTripId(){
   const p=new URLSearchParams(window.location.search);
@@ -543,51 +579,27 @@ function goStep3(){
   goStep(3);
 }
 
-function mockPaymentDone(){
+async function mockPaymentDone(){
   clearInterval(timerInterval);
-  saveBooking();
+  await saveBooking();
   goStep(4);
   fillSuccess();
 }
 
-// ===== SAVE BOOKING =====
-function saveBooking(){
-  // update trip booked count
-  const t=TRIPS.find(x=>x.id===trip.id);
-  if(t){
-    t.booked=Math.min(t.cap, (t.booked||0)+seats);
-    if(t.booked>=t.cap) t.status='full';
-    saveTrips();
+// ===== SAVE BOOKING (Supabase) =====
+async function saveBooking(){
+  try {
+    const note = document.getElementById('f-note').value.trim();
+    const result = await Bookings.create({
+      tripId: trip.id,
+      seats: seats,
+      note: note
+    });
+    bookingRef = result.booking_ref;
+  } catch(e) {
+    console.error('saveBooking error', e);
+    // fallback: ใช้ ref ที่ gen ไว้แล้ว
   }
-  // save to mybookings
-  let bookings=[];
-  try{ const r=localStorage.getItem('safesummit:mybookings'); bookings=r?JSON.parse(r):[]; } catch(e){}
-  const total=trip.price*seats;
-  const vat=Math.round(total*0.07);
-  const fname=document.getElementById('f-fname')?.value||'';
-  const lname=document.getElementById('f-lname')?.value||'';
-  const phone=document.getElementById('f-phone')?.value||'';
-  bookings.unshift({
-    id:'b'+Date.now(),
-    ref:bookingRef,
-    tripId:trip.id,
-    tripName:trip.name.th||trip.name,
-    org:trip.org,
-    prov:trip.prov,
-    tripDate:trip.date,
-    price:trip.price,
-    seats:seats,
-    total:total+vat,
-    payStatus:'paid',
-    bookedAt:new Date().toISOString(),
-    name:(fname+' '+lname).trim(),
-    phone:phone,
-    badge:trip.badge,
-    scene:trip.scene||'peak',
-    orgPhone:trip.orgPhone||'',
-    orgLine:trip.orgLine||'',
-  });
-  localStorage.setItem('safesummit:mybookings',JSON.stringify(bookings));
 }
 
 function fillSuccess(){
@@ -722,18 +734,12 @@ function toast(msg){
 }
 
 // ===== INIT =====
-loadTrips();
-const tripId=getTripId();
-trip=TRIPS.find(t=>t.id===tripId)||null;
-
-if(!trip){
-  document.getElementById('tripSummaryBody').innerHTML='<p style="color:#C0552F;font-size:14px;padding:8px 0;">ไม่พบทริปที่ระบุ — <a href="safesummit.html" style="color:var(--accent-trail)">กลับหน้าแรก</a></p>';
-} else if(!['open'].includes(trip.status)){
-  document.getElementById('tripSummaryBody').innerHTML=`<p style="color:#C0552F;font-size:14px;padding:8px 0;">ทริปนี้ไม่สามารถจองได้ (สถานะ: ${trip.status}) — <a href="safesummit.html" style="color:var(--accent-trail)">กลับหน้าแรก</a></p>`;
+const _tripId = getTripId();
+if(_tripId) {
+  loadTripFromDB(_tripId);
+} else {
+  document.getElementById('tripSummaryBody').innerHTML='<p style="color:#C0552F;font-size:14px;padding:8px 0;">ไม่พบ ID ทริป — <a href="safesummit.html" style="color:var(--accent-trail)">กลับหน้าแรก</a></p>';
 }
-
-renderSummary();
-changeSeat(0); // init label
 </script>
 </body>
 </html>
