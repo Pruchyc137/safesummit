@@ -545,7 +545,7 @@ async function init(){
   if(isUUID && typeof db!=='undefined'){
     try{
       const {data,error}=await db.from('trips')
-        .select('id,name_th,price_per_person,capacity,booked_count,start_date,region,province,status,image_url,avg_rating')
+        .select('id,name_th,price_per_person,capacity,booked_count,start_date,region,province,status,image_url')
         .eq('id',id).single();
       if(!error && data) trip=mapSupabaseTrip(data);
     }catch(e){ console.warn('Supabase fetch failed',e); }

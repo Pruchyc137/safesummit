@@ -768,7 +768,7 @@ async function loadTrips(){
   if(typeof db !== 'undefined'){
     try{
       const { data, error } = await db.from('trips')
-        .select('id,name_th,price_per_person,capacity,booked_count,start_date,region,province,status,image_url,avg_rating')
+        .select('id,name_th,price_per_person,capacity,booked_count,start_date,region,province,status,image_url')
         .in('status',['open','full','ongoing','completed'])
         .order('start_date');
       if(!error && data && data.length>0){
