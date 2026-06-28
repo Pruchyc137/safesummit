@@ -719,9 +719,14 @@ async function submitRegister(){
     toast(insErr.message || 'บันทึกข้อมูลไม่สำเร็จ'); if(btn){ btn.disabled=false; btn.textContent='ส่งใบสมัคร'; } return;
   }
 
-  // 3. บันทึก localStorage + reload → checkAuthState จะแสดงหน้า pending เอง
+  // 3. บันทึก localStorage + แสดงหน้า pending
   localStorage.setItem('ss_org_pending', JSON.stringify({ ref, org, email }));
-  window.location.reload();
+  // ซ่อนทุก gate แล้วแสดง pending
+  document.querySelectorAll('.gate').forEach(g => g.classList.remove('show'));
+  const gp = document.getElementById('gatePending');
+  const pr = document.getElementById('pendingRef');
+  if(gp) gp.classList.add('show');
+  if(pr) pr.textContent = ref;
 }
 
 async function resetRegistration(){
