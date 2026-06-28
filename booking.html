@@ -645,8 +645,8 @@ function drawQR(canvas, amount, ref){
     }
     // separator
     for(let i=0;i<8;i++){
-      if(startR+7<M) data[startR+7][startC+i]=0;
-      if(startC+7<M) data[startR+i][startC+7]=0;
+      if(startR+7<M && startC+i<M) data[startR+7][startC+i]=0;
+      if(startC+7<M && startR+i<M) data[startR+i][startC+7]=0;
     }
   }
   finder(0,0); finder(0,M-7); finder(M-7,0);
