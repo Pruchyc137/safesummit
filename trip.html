@@ -354,7 +354,7 @@ function genIncludes(t){
     {yes:getDays(t.name.th)>=2,text:'เต็นท์และอุปกรณ์ตั้งแคมป์'},
     {yes:true,text:'ประกันภัยอุบัติเหตุระหว่างทริป'},
     {yes:t.badge==='Verified Pro',text:'ชุดปฐมพยาบาลและวิทยุสื่อสาร'},
-    {yes:false,text:'ค่าเดินทางจากจังหวัดบ้านเกิด'},
+    {yes:false,text:'ค่าเดินทางมาจุดนัดพบ'},
     {yes:false,text:'ค่าใช้จ่ายส่วนตัว'},
     {yes:false,text:'ทิปไกด์ (ตามความพอใจ)'},
   ];
@@ -432,15 +432,22 @@ function renderItinerary(t){
 
 function renderIncludes(t){
   const all=genIncludes(t);
+  const yes=all.filter(i=>i.yes);
+  const no=all.filter(i=>!i.yes);
+  const mkList=(items,stroke,icon)=>items.map(item=>`
+    <li style="display:flex;align-items:center;gap:9px;font-size:13.5px;padding:7px 0;border-bottom:1px solid #F0E8D5;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="${stroke}" stroke-width="2.5" width="16" height="16" style="flex-shrink:0;">${icon}</svg>
+      <span>${item.text}</span>
+    </li>`).join('');
+  const head=(label,color)=>`<div style="font-size:11.5px;font-weight:700;color:${color};letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px;">${label}</div>`;
   document.getElementById('incList').innerHTML=`
+    ${head('รวมในราคา','#0f6e56')}
+    <ul style="list-style:none;padding:0;margin:0 0 16px;">
+      ${mkList(yes,'#1D9E75','<path d="M20 6L9 17l-5-5"/>')}
+    </ul>
+    ${head('ไม่รวม','#a32d2d')}
     <ul style="list-style:none;padding:0;margin:0;">
-      ${all.map(item=>`
-        <li style="display:flex;align-items:center;gap:9px;font-size:13.5px;padding:7px 0;border-bottom:1px solid #E6DCC6;color:var(--text-dark);">
-          <svg viewBox="0 0 24 24" fill="none" stroke="${item.yes?'#1D9E75':'#E24B4A'}" stroke-width="2.5" width="16" height="16" style="flex-shrink:0;">
-            ${item.yes?'<path d="M20 6L9 17l-5-5"/>':'<path d="M18 6L6 18M6 6l12 12"/>'}
-          </svg>
-          <span style="color:${item.yes?'var(--text-dark)':'var(--text-muted)'}">${item.text}</span>
-        </li>`).join('')}
+      ${mkList(no,'#E24B4A','<path d="M18 6L6 18M6 6l12 12"/>')}
     </ul>`;
 }
 
