@@ -1170,6 +1170,55 @@ function dToast(msg){
   clearTimeout(dToastTimer); dToastTimer=setTimeout(()=>{ dToastEl.style.opacity='0'; dToastEl.style.transform='translateX(-50%) translateY(20px)'; },2400);
 }
 
+// ===== AUTH REGISTER =====
+let _regRole = 'customer';
+function setRole(role){
+  _regRole = role;
+  setAuthRole('register', role);
+}
+
+async function handleRegister(){
+  const fname    = (document.getElementById('reg-fname')||{}).value?.trim()||'';
+  const lname    = (document.getElementById('reg-lname')||{}).value?.trim()||'';
+  const email    = (document.getElementById('reg-email')||{}).value?.trim()||'';
+  const phone    = (document.getElementById('reg-phone')||{}).value?.trim()||'';
+  const password = (document.getElementById('reg-password')||{}).value||'';
+  const org      = (document.getElementById('reg-org')||{}).value?.trim()||'';
+  const terms    = document.getElementById('reg-terms')?.checked;
+
+  if(!fname||!lname){ dToast('กรุณากรอกชื่อ-นามสกุล'); return; }
+  if(!email||!email.includes('@')){ dToast('กรุณากรอกอีเมลให้ถูกต้อง'); return; }
+  if(!phone||phone.length<9){ dToast('กรุณากรอกเบอร์โทรศัพท์'); return; }
+  if(password.length < 6){ dToast('รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร'); return; }
+  if(!terms){ dToast('กรุณายอมรับข้อกำหนดการใช้งาน'); return; }
+
+  const btn = document.getElementById('submitBtn');
+  if(btn){ btn.disabled=true; btn.textContent='กำลังสมัคร...'; }
+
+  try {
+    await Auth.signUp(email, password, fname+' '+lname, phone);
+
+    if(_regRole === 'organizer' && org){
+      const ref = 'ORG-'+Math.random().toString(36).slice(2,8).toUpperCase();
+      localStorage.setItem('ss_org_pending', JSON.stringify({ ref, org, email }));
+      try {
+        await db.from('organizers').insert({
+          org_name: org, province: '', exp_years: 0,
+          reg_ref: ref, status: 'pending', badge_tier: 'unverified'
+        });
+      } catch(e){ console.warn('org insert skipped', e.message); }
+    }
+
+    closeAuth();
+    dToast(_regRole==='organizer' ? 'สมัครแล้ว! รอทีมงานอนุมัติ' : 'สมัครสำเร็จ! ยินดีต้อนรับ');
+  } catch(e){
+    console.error(e);
+    dToast(e.message || 'เกิดข้อผิดพลาด กรุณาลองใหม่');
+  } finally {
+    if(btn){ btn.disabled=false; btn.textContent='สร้างบัญชี'; }
+  }
+}
+
 // ===== INIT =====
 (async function(){ await loadTrips(); updateRegionCounts(); renderTripCards('all','all',''); })();
 
@@ -1228,26 +1277,26 @@ function dToast(msg){
   <p class="sub" id="roleSub" data-th="สมัครในฐานะลูกค้า / นักเดินป่า" data-en="Sign up as a customer / hiker">สมัครในฐานะลูกค้า / นักเดินป่า</p>
 
   <div class="two-col">
-    <div class="field"><label data-th="ชื่อ" data-en="First name">ชื่อ</label><input type="text"></div>
-    <div class="field"><label data-th="นามสกุล" data-en="Last name">นามสกุล</label><input type="text"></div>
+    <div class="field"><label data-th="ชื่อ" data-en="First name">ชื่อ</label><input id="reg-fname" type="text"></div>
+    <div class="field"><label data-th="นามสกุล" data-en="Last name">นามสกุล</label><input id="reg-lname" type="text"></div>
   </div>
-  <div class="field"><label data-th="อีเมล" data-en="Email">อีเมล</label><input type="email" placeholder="you@example.com"></div>
-  <div class="field"><label data-th="เบอร์โทรศัพท์" data-en="Phone number">เบอร์โทรศัพท์</label><input type="tel" placeholder="08x-xxx-xxxx"></div>
-  <div class="field"><label data-th="รหัสผ่าน" data-en="Password">รหัสผ่าน</label><input type="password" placeholder="••••••••"></div>
+  <div class="field"><label data-th="อีเมล" data-en="Email">อีเมล</label><input id="reg-email" type="email" placeholder="you@example.com"></div>
+  <div class="field"><label data-th="เบอร์โทรศัพท์" data-en="Phone number">เบอร์โทรศัพท์</label><input id="reg-phone" type="tel" placeholder="08x-xxx-xxxx"></div>
+  <div class="field"><label data-th="รหัสผ่าน" data-en="Password">รหัสผ่าน</label><input id="reg-password" type="password" placeholder="••••••••"></div>
 
   <!-- organizer-only verification block -->
-  <div class="org-only" id="orgBlock">
-    <div class="field"><label data-th="ชื่อเพจ / ชื่อธุรกิจ" data-en="Page / business name">ชื่อเพจ / ชื่อธุรกิจ</label><input type="text"></div>
+  <div class="org-only" id="orgBlock" style="display:none">
+    <div class="field"><label data-th="ชื่อเพจ / ชื่อธุรกิจ" data-en="Page / business name">ชื่อเพจ / ชื่อธุรกิจ</label><input id="reg-org" type="text"></div>
     <div class="org-box">
       <div class="ob-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg><span data-th="เอกสารยืนยันตัวตน" data-en="Verification documents">เอกสารยืนยันตัวตน</span></div>
       <p data-th="อัปโหลดใบอนุญาตมัคคุเทศก์ หรือใบอนุญาตธุรกิจนำเที่ยว เพื่อรับตรา Verified (ข้ามได้ สมัครเป็น Basic ก่อน)" data-en="Upload your guide license or tour business license to earn a Verified badge (optional — start as Basic).">อัปโหลดใบอนุญาตมัคคุเทศก์ หรือใบอนุญาตธุรกิจนำเที่ยว เพื่อรับตรา Verified (ข้ามได้ สมัครเป็น Basic ก่อน)</p>
-      <label class="upload"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg><span data-th="เลือกไฟล์เอกสาร" data-en="Choose document file">เลือกไฟล์เอกสาร</span><input type="file" hidden></label>
+      <label class="upload"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg><span id="reg-file-label" data-th="เลือกไฟล์เอกสาร" data-en="Choose document file">เลือกไฟล์เอกสาร</span><input id="reg-file" type="file" hidden onchange="document.getElementById('reg-file-label').textContent=this.files[0]?this.files[0].name:'เลือกไฟล์เอกสาร'"></label>
     </div>
   </div>
 
-  <label class="terms"><input type="checkbox"> <span data-th="ฉันยอมรับข้อกำหนดการใช้งานและนโยบายความเป็นส่วนตัว" data-en="I accept the terms of use and privacy policy">ฉันยอมรับ<a href="#" onclick="return false" data-th="ข้อกำหนดการใช้งาน" data-en="terms of use">ข้อกำหนดการใช้งาน</a>และนโยบายความเป็นส่วนตัว</span></label>
+  <label class="terms"><input id="reg-terms" type="checkbox"> <span data-th="ฉันยอมรับข้อกำหนดการใช้งานและนโยบายความเป็นส่วนตัว" data-en="I accept the terms of use and privacy policy">ฉันยอมรับ<a href="#" onclick="return false" data-th="ข้อกำหนดการใช้งาน" data-en="terms of use">ข้อกำหนดการใช้งาน</a>และนโยบายความเป็นส่วนตัว</span></label>
 
-  <button class="btn-primary" id="submitBtn" data-th="สร้างบัญชี" data-en="Create account">สร้างบัญชี</button>
+  <button class="btn-primary" id="submitBtn" onclick="handleRegister()" data-th="สร้างบัญชี" data-en="Create account">สร้างบัญชี</button>
 
   <p class="foot-link" data-th="มีบัญชีอยู่แล้ว?" data-en="Already have an account?">มีบัญชีอยู่แล้ว? <a id="toLogin" href="#" onclick="showAuth('login','customer',event)" data-th="เข้าสู่ระบบ" data-en="Log in">เข้าสู่ระบบ</a></p>
 </div></div>
