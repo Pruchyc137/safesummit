@@ -410,31 +410,16 @@ function renderItinerary(t){
 
 function renderIncludes(t){
   const all=genIncludes(t);
-  const yes=all.filter(i=>i.yes);
-  const no=all.filter(i=>!i.yes);
-  const row=(items,cls,stroke)=>items.map(item=>`
-    <li style="display:flex;align-items:center;gap:7px;font-size:13px;padding:4px 0;color:var(--text-dark);">
-      <svg viewBox="0 0 24 24" fill="none" stroke="${stroke}" stroke-width="2.2" width="15" height="15" style="flex-shrink:0;">${cls==='yes'?'<path d="M20 6L9 17l-5-5"/>':'<path d="M18 6L6 18M6 6l12 12"/>'}</svg>
-      ${item.text}
-    </li>`).join('');
   document.getElementById('incList').innerHTML=`
-    <div style="display:grid;grid-template-columns:1fr 1px 1fr;gap:0 16px;">
-      <div>
-        <div style="font-size:12px;font-weight:700;color:#0f6e56;display:flex;align-items:center;gap:5px;margin-bottom:8px;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#1D9E75" stroke-width="2" width="14" height="14"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>
-          รวมในราคา
-        </div>
-        <ul style="list-style:none;padding:0;margin:0;">${row(yes,'yes','#1D9E75')}</ul>
-      </div>
-      <div style="background:#E6DCC6;width:1px;"></div>
-      <div>
-        <div style="font-size:12px;font-weight:700;color:#a32d2d;display:flex;align-items:center;gap:5px;margin-bottom:8px;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#E24B4A" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg>
-          ไม่รวม
-        </div>
-        <ul style="list-style:none;padding:0;margin:0;">${row(no,'no','#E24B4A')}</ul>
-      </div>
-    </div>`;
+    <ul style="list-style:none;padding:0;margin:0;">
+      ${all.map(item=>`
+        <li style="display:flex;align-items:center;gap:9px;font-size:13.5px;padding:7px 0;border-bottom:1px solid #E6DCC6;color:var(--text-dark);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="${item.yes?'#1D9E75':'#E24B4A'}" stroke-width="2.5" width="16" height="16" style="flex-shrink:0;">
+            ${item.yes?'<path d="M20 6L9 17l-5-5"/>':'<path d="M18 6L6 18M6 6l12 12"/>'}
+          </svg>
+          <span style="color:${item.yes?'var(--text-dark)':'var(--text-muted)'}">${item.text}</span>
+        </li>`).join('')}
+    </ul>`;
 }
 
 function renderGuide(t){
