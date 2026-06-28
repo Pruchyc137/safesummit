@@ -316,7 +316,7 @@ canvas#qrCanvas{display:block;}
               </div>
             </div>
             <div class="qr-amount" id="qrAmount"></div>
-            <div class="qr-amount-sub">ยอดชำระทั้งหมด (รวม VAT)</div>
+            <div class="qr-amount-sub">ยอดชำระทั้งหมด</div>
           </div>
 
           <div class="bank-info">
@@ -556,12 +556,10 @@ function goStep2(){
       <div class="order-row"><span class="muted">จำนวนที่นั่ง</span><span>${seats} คน</span></div>
     </div>`;
   const total=trip.price*seats;
-  const vat=Math.round(total*0.07);
   document.getElementById('confirm-total').innerHTML=`
     <div class="order-box" style="margin-bottom:0;">
       <div class="order-row"><span class="muted">ราคา ${fmtMoney(trip.price)} × ${seats}</span><span style="font-family:'Bai Jamjuree',monospace">${fmtMoney(total)}</span></div>
-      <div class="order-row"><span class="muted">VAT 7%</span><span style="font-family:'Bai Jamjuree',monospace">${fmtMoney(vat)}</span></div>
-      <div class="order-row total"><span>ยอดสุทธิ</span><span class="val">${fmtMoney(total+vat)}</span></div>
+      <div class="order-row total"><span>ยอดสุทธิ</span><span class="val">${fmtMoney(total)}</span></div>
     </div>`;
   goStep(2);
 }
@@ -569,12 +567,10 @@ function goStep2(){
 function goStep3(){
   bookingRef=genRef();
   const total=trip.price*seats;
-  const vat=Math.round(total*0.07);
-  const grandTotal=total+vat;
 
-  document.getElementById('qrAmount').textContent=fmtMoney(grandTotal);
+  document.getElementById('qrAmount').textContent=fmtMoney(total);
   document.getElementById('payRef').textContent=bookingRef;
-  drawQR(document.getElementById('qrCanvas'), grandTotal, bookingRef);
+  drawQR(document.getElementById('qrCanvas'), total, bookingRef);
   startTimer(10*60);
   goStep(3);
 }
@@ -605,14 +601,13 @@ async function saveBooking(){
 function fillSuccess(){
   document.getElementById('successRef').textContent=bookingRef;
   const total=trip.price*seats;
-  const vat=Math.round(total*0.07);
   document.getElementById('successDetail').innerHTML=`
     <div class="srow"><span class="label">ทริป</span><span class="val">${trip.name.th||trip.name}</span></div>
     <div class="srow"><span class="label">ผู้จัด</span><span class="val">${trip.org}</span></div>
     <div class="srow"><span class="label">วันเดินทาง</span><span class="val">${fmtDate(trip.date)} · ${trip.prov}</span></div>
     <div class="srow"><span class="label">จำนวนที่นั่ง</span><span class="val">${seats} คน</span></div>
     <div class="srow"><span class="label">ผู้จอง</span><span class="val">${document.getElementById('f-fname').value} ${document.getElementById('f-lname').value}</span></div>
-    <div class="srow"><span class="label">ยอดชำระ</span><span class="val" style="color:var(--accent-trail)">${fmtMoney(total+vat)}</span></div>`;
+    <div class="srow"><span class="label">ยอดชำระ</span><span class="val" style="color:var(--accent-trail)">${fmtMoney(total)}</span></div>`;
 }
 
 // ===== QR CODE GENERATOR =====
