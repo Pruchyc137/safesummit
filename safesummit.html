@@ -733,12 +733,17 @@ const SEED_TRIPS = [
 
 const curLang = () => (document.documentElement.lang === 'en' ? 'en' : 'th');
 
+const SEED_VERSION = 'v3';
 async function loadTrips(){
-  try{ const saved = localStorage.getItem('safesummit:trips'); if(saved){ TRIPS = JSON.parse(saved); return; } }catch(e){}
+  try{
+    const ver = localStorage.getItem('safesummit:ver');
+    const saved = localStorage.getItem('safesummit:trips');
+    if(saved && ver === SEED_VERSION){ TRIPS = JSON.parse(saved); return; }
+  }catch(e){}
   TRIPS = JSON.parse(JSON.stringify(SEED_TRIPS));
   persistTrips();
 }
-function persistTrips(){ try{ localStorage.setItem('safesummit:trips', JSON.stringify(TRIPS)); }catch(e){} }
+function persistTrips(){ try{ localStorage.setItem('safesummit:trips', JSON.stringify(TRIPS)); localStorage.setItem('safesummit:ver', SEED_VERSION); }catch(e){} }
 
 // ===== LANDING: render public trip cards from data =====
 function priceMatch(p, range){
