@@ -219,6 +219,8 @@ h1,h2,h3,h4{font-family:'Kanit',sans-serif;}
   <a href="safesummit.html" style="display:inline-flex;align-items:center;gap:6px;padding:10px 20px;background:var(--accent-trail);color:#fff;border-radius:8px;font-weight:600;">กลับหน้าหลัก</a>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/db.js"></script>
 <script>
 const SEED_TRIPS=[
   {id:'t1',name:{th:'ภูกระดึง 2 วัน 1 คืน',en:'Phu Kradueng 2D1N'},org:'เหนือสุดเทรค',region:'northeast',prov:'เลย',date:'2026-07-12',cap:15,booked:11,price:2900,status:'open',badge:'Verified Pro',rating:4.9,scene:'sunrise',img:'images/phukradung.webp',orgPhone:'081-234-5678',orgLine:'@northtrek'},
@@ -508,11 +510,52 @@ function toast(msg){
   clearTimeout(t._t); t._t=setTimeout(()=>{t.style.opacity='0';},2200);
 }
 
-function init(){
-  loadTrips();
+function seedIdxFromUUID(uuid){
+  const last=uuid.split('-').pop();
+  return parseInt(last,16)||0;
+}
+function mapSupabaseTrip(r){
+  const idx=seedIdxFromUUID(r.id);
+  const seed=SEED_TRIPS.find(s=>s.id===`t${idx}`)||{};
+  return {
+    id:r.id,
+    name:seed.name||{th:r.name_th||'',en:r.name_th||''},
+    org:seed.org||'',
+    region:r.region||seed.region||'',
+    prov:r.province||seed.prov||'',
+    date:r.start_date||seed.date||'',
+    cap:r.capacity||seed.cap||0,
+    booked:r.booked_count||seed.booked||0,
+    price:parseFloat(r.price_per_person)||seed.price||0,
+    status:r.status||seed.status||'open',
+    badge:seed.badge||'Verified Basic',
+    rating:r.avg_rating||seed.rating||null,
+    img:r.image_url||seed.img||null,
+    scene:seed.scene||'peak',
+    orgPhone:seed.orgPhone||'',
+    orgLine:seed.orgLine||'',
+  };
+}
+
+async function init(){
   const id=getTripId();
   if(!id){ document.getElementById('notFound').style.display='block'; return; }
-  trip=TRIPS.find(x=>x.id===id)||SEED_TRIPS.find(x=>x.id===id);
+
+  const isUUID=/^[0-9a-f-]{36}$/.test(id);
+  if(isUUID && typeof db!=='undefined'){
+    try{
+      const {data,error}=await db.from('trips')
+        .select('id,name_th,price_per_person,capacity,booked_count,start_date,region,province,status,image_url,avg_rating')
+        .eq('id',id).single();
+      if(!error && data) trip=mapSupabaseTrip(data);
+    }catch(e){ console.warn('Supabase fetch failed',e); }
+  }
+
+  if(!trip){
+    loadTrips();
+    trip=TRIPS.find(x=>x.id===id)||SEED_TRIPS.find(x=>x.id===id);
+  }
+
   if(!trip){ document.getElementById('notFound').style.display='block'; return; }
   document.title='SafeSummit — '+trip.name.th;
   renderHero(trip);

@@ -673,6 +673,8 @@ footer .foot-grid li a:hover{opacity:1;color:var(--accent-gold);}
   </div>
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/db.js"></script>
 <script>
 const PROVINCES = {
   north: ["เชียงใหม่","เชียงราย","แม่ฮ่องสอน","ลำปาง","ลำพูน","น่าน","พะเยา","แพร่","อุตรดิตถ์","ตาก","สุโขทัย","กำแพงเพชร","พิษณุโลก","พิจิตร","เพชรบูรณ์","นครสวรรค์","อุทัยธานี"],
@@ -734,8 +736,48 @@ const SEED_TRIPS = [
 
 const curLang = () => (document.documentElement.lang === 'en' ? 'en' : 'th');
 
+function seedIdxFromUUID(uuid){
+  // "00000003-0000-0000-0000-000000000001" → 1
+  const last = uuid.split('-').pop();
+  return parseInt(last,16)||0;
+}
+function mapSupabaseTrip(r){
+  const idx = seedIdxFromUUID(r.id);
+  const seed = SEED_TRIPS.find(s=>s.id===`t${idx}`) || {};
+  return {
+    id: r.id,
+    name: seed.name || {th:r.name_th||'',en:r.name_th||''},
+    org: seed.org||'',
+    region: r.region||seed.region||'',
+    prov: r.province||seed.prov||'',
+    date: r.start_date||seed.date||'',
+    cap: r.capacity||seed.cap||0,
+    booked: r.booked_count||seed.booked||0,
+    price: parseFloat(r.price_per_person)||seed.price||0,
+    status: r.status||seed.status||'open',
+    badge: seed.badge||'Verified Basic',
+    rating: r.avg_rating||seed.rating||null,
+    img: r.image_url||seed.img||null,
+    scene: seed.scene||'peak',
+  };
+}
+
 const SEED_VERSION = 'v3';
 async function loadTrips(){
+  // Try Supabase first
+  if(typeof db !== 'undefined'){
+    try{
+      const { data, error } = await db.from('trips')
+        .select('id,name_th,price_per_person,capacity,booked_count,start_date,region,province,status,image_url,avg_rating')
+        .in('status',['open','full','ongoing','completed'])
+        .order('start_date');
+      if(!error && data && data.length>0){
+        TRIPS = data.map(mapSupabaseTrip);
+        return;
+      }
+    }catch(e){ console.warn('Supabase unavailable, falling back to seed data',e); }
+  }
+  // Fallback: localStorage cache or SEED_TRIPS
   try{
     const ver = localStorage.getItem('safesummit:ver');
     const saved = localStorage.getItem('safesummit:trips');
