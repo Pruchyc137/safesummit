@@ -191,7 +191,7 @@ h1,h2,h3,h4{font-family:'Kanit',sans-serif;}
         <h3>รวม / ไม่รวม</h3>
       </div>
       <div class="panel-body">
-        <ul class="inc-list" id="incList"></ul>
+        <div id="incList"></div>
       </div>
     </div>
 
@@ -289,14 +289,39 @@ function getDays(name){
 function genItinerary(t){
   const days=getDays(t.name.th);
   const templates=[
-    {title:'วันที่ 1 — เดินทางสู่จุดเริ่มต้น',desc:'รวมตัวที่จุดนัดพบ ลงทะเบียนและรับอุปกรณ์ เดินทางสู่พื้นที่ต้นทาง เริ่มเดินเส้นทางช่วงบ่าย ตั้งแคมป์และทานอาหารเย็นรอบกองไฟ',tags:['รถรับส่ง','ลงทะเบียน','เดินเท้า','แคมป์คืนแรก']},
-    {title:'วันที่ 2 — ขึ้นสู่ยอดดอย',desc:'ตื่นชมพระอาทิตย์ขึ้น อาหารเช้าพร้อมออกเดิน เส้นทางผ่านป่าหนาแน่นและจุดชมวิวสำคัญ ถึงยอดสูงสุดช่วงเที่ยง พักผ่อนและถ่ายรูป กลับแคมป์ตอนเย็น',tags:['ยอดดอย','จุดชมวิว','ถ่ายรูป','อาหารกลางวัน']},
-    {title:'วันที่ 3 — เดินลงและเดินทางกลับ',desc:'อาหารเช้า เก็บเต็นท์และอุปกรณ์ เดินลงเส้นทาง แวะจุดสุดท้ายก่อนถึงทางออก เดินทางกลับพร้อมความทรงจำดีๆ',tags:['เดินลง','เก็บของ','เดินทางกลับ']},
-    {title:'วันที่ 4 — กิจกรรมเสริม',desc:'กิจกรรมพิเศษเพิ่มเติมตามฤดูกาล ถ่ายรูปจุดสวยงามรอบข้าง อาหารกลางวันพร้อมกัน เดินทางกลับบ้านพร้อมรอยยิ้ม',tags:['กิจกรรมพิเศษ','ถ่ายรูป','อาหารมื้อสุดท้าย']},
+    {title:'วันที่ 1 — เดินทางสู่จุดเริ่มต้น',slots:[
+      {time:'05:00',desc:'รวมกันที่จุดนัดพบ ขึ้นรถออกเดินทาง',tags:['รถรับส่ง','ลงทะเบียน']},
+      {time:'13:00',desc:'ถึงพื้นที่ รับอุปกรณ์ รับประทานอาหารกลางวัน'},
+      {time:'14:30',desc:'เริ่มเดินเส้นทางช่วงบ่าย ตั้งแคมป์คืนแรก',tags:['เดินเท้า','แคมป์คืนแรก']},
+      {time:'19:00',desc:'รับประทานอาหารเย็น พักผ่อนรอบกองไฟ'},
+    ]},
+    {title:'วันที่ 2 — ขึ้นสู่ยอดดอย',slots:[
+      {time:'05:30',desc:'ตื่นชมพระอาทิตย์ขึ้น รับประทานอาหารเช้าพร้อมออกเดิน'},
+      {time:'10:00',desc:'ถึงยอดสูงสุด ชมวิว ถ่ายรูป พักกลางวัน',tags:['ยอดดอย','จุดชมวิว']},
+      {time:'13:00',desc:'เดินเส้นทางผ่านป่าหนาแน่นและจุดชมวิวสำคัญ'},
+      {time:'17:30',desc:'พักแคมป์คืนที่สอง รับประทานอาหารเย็น'},
+    ]},
+    {title:'วันที่ 3 — เดินลงและเดินทางกลับ',slots:[
+      {time:'06:00',desc:'รับประทานอาหารเช้า เก็บเต็นท์และอุปกรณ์'},
+      {time:'07:00',desc:'เริ่มเดินลงเส้นทาง แวะจุดสุดท้าย',tags:['เดินลง','เก็บของ']},
+      {time:'12:00',desc:'ออกจากพื้นที่ รับประทานอาหารกลางวัน ขึ้นรถกลับ'},
+      {time:'20:00',desc:'ถึงจุดนัดพบ เดินทางกลับบ้านพร้อมความทรงจำดีๆ',tags:['เดินทางกลับ']},
+    ]},
+    {title:'วันที่ 4 — กิจกรรมเสริม',slots:[
+      {time:'07:00',desc:'อาหารเช้า กิจกรรมพิเศษตามฤดูกาล',tags:['กิจกรรมพิเศษ']},
+      {time:'11:00',desc:'ถ่ายรูปจุดสวยงามรอบข้าง',tags:['ถ่ายรูป']},
+      {time:'13:00',desc:'รับประทานอาหารกลางวัน พร้อมเดินทางกลับ'},
+      {time:'19:00',desc:'ถึงจุดหมาย แยกย้ายกลับบ้านพร้อมรอยยิ้ม',tags:['อาหารมื้อสุดท้าย']},
+    ]},
   ];
   const result=[];
   for(let i=0;i<Math.min(days,4);i++) result.push(templates[i]||templates[2]);
-  if(days===1) return [{title:'กำหนดการ 1 วัน',desc:'รวมตัวตอนเช้า เดินเส้นทางป่า แวะจุดสำคัญ ถ่ายรูปจุดชมวิว อาหารกลางวัน เดินทางกลับช่วงบ่าย',tags:['1 วัน','เดินเท้า','อาหารกลางวัน','กลับบ้านเย็น']}];
+  if(days===1) return [{title:'กำหนดการ 1 วัน',slots:[
+    {time:'06:00',desc:'รวมตัว ออกเดินทางจากจุดนัดพบ',tags:['1 วัน']},
+    {time:'09:00',desc:'เริ่มเดินเส้นทางป่า แวะจุดสำคัญ',tags:['เดินเท้า']},
+    {time:'12:00',desc:'รับประทานอาหารกลางวัน ถ่ายรูปจุดชมวิว',tags:['อาหารกลางวัน']},
+    {time:'16:00',desc:'เดินทางกลับ ถึงบ้านช่วงเย็น',tags:['กลับบ้านเย็น']},
+  ]}];
   return result;
 }
 
@@ -364,29 +389,52 @@ function renderInfo(t){
 function renderItinerary(t){
   const days=genItinerary(t);
   document.getElementById('itinerary').innerHTML=days.map((d,i)=>`
-    <div class="day-block">
-      <div class="day-dot">
-        <div class="day-circle">${i+1}</div>
-        ${i<days.length-1?'<div class="day-line"></div>':''}
-      </div>
-      <div class="day-content">
-        <div class="day-title">${d.title}</div>
-        <div class="day-desc">${d.desc}</div>
-        <div class="day-tags">${d.tags.map(tag=>`<span class="day-tag">${tag}</span>`).join('')}</div>
-      </div>
+    <div class="day-block" style="${i<days.length-1?'margin-bottom:1.25rem;padding-bottom:1.25rem;border-bottom:1px solid #E6DCC6;':''}">
+      <div class="day-title" style="font-size:14px;font-weight:700;color:var(--text-dark);margin-bottom:10px;">${d.title}</div>
+      ${d.slots.map((s,si)=>`
+        <div style="display:flex;gap:0;align-items:stretch;${si<d.slots.length-1?'margin-bottom:0;':''}">
+          <div style="font-size:11.5px;color:var(--text-muted);width:48px;padding:5px 8px 8px 0;text-align:right;flex-shrink:0;line-height:1.4;padding-top:7px;font-family:'Bai Jamjuree',monospace;">${s.time}</div>
+          <div style="display:flex;flex-direction:column;align-items:center;width:18px;flex-shrink:0;">
+            <div style="width:7px;height:7px;border-radius:50%;background:#D5C8AE;flex-shrink:0;margin-top:9px;"></div>
+            ${si<d.slots.length-1?'<div style="width:1px;background:#E6DCC6;flex:1;"></div>':''}
+          </div>
+          <div style="font-size:13px;color:var(--text-dark);padding:5px 0 8px 8px;line-height:1.5;">
+            ${s.desc}
+            ${s.tags?`<div style="margin-top:4px;">${s.tags.map(tag=>`<span class="day-tag">${tag}</span>`).join('')}</div>`:''}
+          </div>
+        </div>
+      `).join('')}
     </div>
   `).join('');
 }
 
 function renderIncludes(t){
-  document.getElementById('incList').innerHTML=genIncludes(t).map(item=>`
-    <li class="${item.yes?'yes':'no'}">
-      ${item.yes
-        ?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>'
-        :'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>'}
+  const all=genIncludes(t);
+  const yes=all.filter(i=>i.yes);
+  const no=all.filter(i=>!i.yes);
+  const row=(items,cls,stroke)=>items.map(item=>`
+    <li style="display:flex;align-items:center;gap:7px;font-size:13px;padding:4px 0;color:var(--text-dark);">
+      <svg viewBox="0 0 24 24" fill="none" stroke="${stroke}" stroke-width="2.2" width="15" height="15" style="flex-shrink:0;">${cls==='yes'?'<path d="M20 6L9 17l-5-5"/>':'<path d="M18 6L6 18M6 6l12 12"/>'}</svg>
       ${item.text}
-    </li>
-  `).join('');
+    </li>`).join('');
+  document.getElementById('incList').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1px 1fr;gap:0 16px;">
+      <div>
+        <div style="font-size:12px;font-weight:700;color:#0f6e56;display:flex;align-items:center;gap:5px;margin-bottom:8px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#1D9E75" stroke-width="2" width="14" height="14"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>
+          รวมในราคา
+        </div>
+        <ul style="list-style:none;padding:0;margin:0;">${row(yes,'yes','#1D9E75')}</ul>
+      </div>
+      <div style="background:#E6DCC6;width:1px;"></div>
+      <div>
+        <div style="font-size:12px;font-weight:700;color:#a32d2d;display:flex;align-items:center;gap:5px;margin-bottom:8px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#E24B4A" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg>
+          ไม่รวม
+        </div>
+        <ul style="list-style:none;padding:0;margin:0;">${row(no,'no','#E24B4A')}</ul>
+      </div>
+    </div>`;
 }
 
 function renderGuide(t){
