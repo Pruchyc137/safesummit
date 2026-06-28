@@ -714,10 +714,8 @@ async function submitRegister(){
     badge_tier: 'unverified',
   });
 
-  if(insErr && insErr.code !== '23505') {
-    // 23505 = unique violation (สมัครซ้ำ) ถือว่า ok
-    toast(insErr.message || 'บันทึกข้อมูลไม่สำเร็จ'); if(btn){ btn.disabled=false; btn.textContent='ส่งใบสมัคร'; } return;
-  }
+  // ถ้า insert fail ด้วยสาเหตุอื่น (ไม่ใช่ duplicate) แจ้งเตือนแต่ยังแสดง pending
+  if(insErr) console.warn('organizers insert:', insErr.code, insErr.message);
 
   // 3. บันทึก localStorage + แสดงหน้า pending
   localStorage.setItem('ss_org_pending', JSON.stringify({ ref, org, email }));
