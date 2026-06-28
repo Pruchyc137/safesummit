@@ -552,6 +552,19 @@ h1,h2,h3{font-family:'Kanit',sans-serif;}
   <div class="modal">
     <div class="modal-h"><div><h3 id="orgModalTitle">เพิ่มผู้จัด</h3><p>ข้อมูลผู้จัดทริป</p></div><button class="modal-x" onclick="closeModal('modalOrg')">×</button></div>
     <div class="modal-b">
+      <!-- ข้อมูลจากใบสมัคร (read-only) -->
+      <div id="of-info-block" style="background:var(--bg-card,#F3ECDA);border-radius:10px;padding:14px 16px;margin-bottom:16px;display:none;">
+        <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted,#6B5D4A);margin-bottom:10px;">ข้อมูลจากใบสมัคร</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 20px;font-size:13px;">
+          <div><span style="color:var(--text-muted,#6B5D4A)">เลขที่ใบสมัคร</span><br><b id="of-ref">–</b></div>
+          <div><span style="color:var(--text-muted,#6B5D4A)">จังหวัด</span><br><b id="of-prov">–</b></div>
+          <div><span style="color:var(--text-muted,#6B5D4A)">ประสบการณ์</span><br><b id="of-exp">–</b></div>
+          <div><span style="color:var(--text-muted,#6B5D4A)">อีเมล</span><br><b id="of-email-disp">–</b></div>
+          <div><span style="color:var(--text-muted,#6B5D4A)">เบอร์โทร</span><br><b id="of-phone-disp">–</b></div>
+          <div><span style="color:var(--text-muted,#6B5D4A)">สมัครเมื่อ</span><br><b id="of-joined">–</b></div>
+        </div>
+        <div id="of-bio-block" style="margin-top:10px;display:none;"><span style="color:var(--text-muted,#6B5D4A);font-size:13px;">แนะนำตัว</span><br><p id="of-bio" style="font-size:13px;margin-top:4px;line-height:1.5;"></p></div>
+      </div>
       <div class="fld-row">
         <div class="fld"><label>ชื่อผู้จัด / เพจ</label><input id="of-name" placeholder="เช่น เหนือสุดเทรค"></div>
         <div class="fld"><label>ชื่อผู้ติดต่อ</label><input id="of-contact" placeholder="ชื่อ-นามสกุล"></div>
@@ -569,7 +582,12 @@ h1,h2,h3{font-family:'Kanit',sans-serif;}
         </div>
       </div>
       <div class="fld"><label>หมายเหตุ</label><input id="of-note" placeholder="หมายเหตุเพิ่มเติม (ถ้ามี)"></div>
-      <div class="modal-foot">
+      <div class="modal-foot" id="of-foot-pending" style="display:none;">
+        <button class="btn btn-ghost" onclick="closeModal('modalOrg')">ยกเลิก</button>
+        <button class="btn" style="background:#DC2626;color:#fff;" onclick="quickReject()">ปฏิเสธ</button>
+        <button class="btn btn-primary" onclick="quickApprove()">อนุมัติ</button>
+      </div>
+      <div class="modal-foot" id="of-foot-edit">
         <button class="btn btn-ghost" onclick="closeModal('modalOrg')">ยกเลิก</button>
         <button class="btn btn-primary" onclick="saveOrg()">บันทึก</button>
       </div>
@@ -904,8 +922,7 @@ function renderOrgs(){
     const revenue=orgTrips.filter(t=>t.status==='completed').reduce((s,t)=>s+tripRevenue(t),0);
     let acts='';
     if(o.status==='pending'){
-      acts+=`<button class="icon-btn approve" onclick="confirmAction('อนุมัติผู้จัด "${o.name}" ใช่ไหม?','approveOrg','${o.id}','btn-green')">อนุมัติ</button>`;
-      acts+=`<button class="icon-btn suspend" onclick="confirmAction('ปฏิเสธผู้จัด "${o.name}"?','suspendOrg','${o.id}','btn-red')">ปฏิเสธ</button>`;
+      acts+=`<button class="icon-btn approve" onclick="openEditOrg('${o.id}')">ดู / อนุมัติ</button>`;
     } else if(o.status==='approved'){
       acts+=`<button class="icon-btn suspend" onclick="confirmAction('ระงับบัญชี "${o.name}" ใช่ไหม?','suspendOrg','${o.id}','btn-red')">ระงับ</button>`;
     } else if(o.status==='suspended'){
@@ -950,19 +967,50 @@ function openAddOrg(){
   ['of-name','of-contact','of-email','of-phone','of-note'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('of-tier').value='Verified Pro';
   document.getElementById('of-status').value='pending';
+  document.getElementById('of-info-block').style.display='none';
+  document.getElementById('of-foot-pending').style.display='none';
+  document.getElementById('of-foot-edit').style.display='flex';
   openModal('modalOrg');
 }
 function openEditOrg(id){
   const o=ORGS.find(x=>x.id===id); if(!o) return; editOrgId=id;
-  document.getElementById('orgModalTitle').textContent='แก้ไขผู้จัด';
+  const isPending = o.status==='pending';
+  document.getElementById('orgModalTitle').textContent = isPending ? 'ตรวจสอบใบสมัคร' : 'แก้ไขผู้จัด';
   document.getElementById('of-name').value=o.name||'';
   document.getElementById('of-contact').value=o.contact||'';
   document.getElementById('of-email').value=o.email||'';
   document.getElementById('of-phone').value=o.phone||'';
-  document.getElementById('of-tier').value=o.tier||'Verified Pro';
+  document.getElementById('of-tier').value=o.tier||'Verified Basic';
   document.getElementById('of-status').value=o.status||'pending';
   document.getElementById('of-note').value=o.note||'';
+  // แสดง info block สำหรับ pending
+  const infoBlock=document.getElementById('of-info-block');
+  infoBlock.style.display='block';
+  document.getElementById('of-ref').textContent=o.reg_ref||'–';
+  document.getElementById('of-prov').textContent=o.prov||o.province||'–';
+  document.getElementById('of-exp').textContent=o.exp_years!=null?`${o.exp_years} ปี`:'–';
+  document.getElementById('of-email-disp').textContent=o.email||'–';
+  document.getElementById('of-phone-disp').textContent=o.phone||'–';
+  document.getElementById('of-joined').textContent=fmtDate(o.joinedAt)||'–';
+  const bioBlock=document.getElementById('of-bio-block');
+  if(o.bio){ bioBlock.style.display='block'; document.getElementById('of-bio').textContent=o.bio; }
+  else { bioBlock.style.display='none'; }
+  // footer
+  document.getElementById('of-foot-pending').style.display=isPending?'flex':'none';
+  document.getElementById('of-foot-edit').style.display=isPending?'none':'flex';
   openModal('modalOrg');
+}
+async function quickApprove(){
+  if(!editOrgId) return;
+  await db.from('organizers').update({ status:'approved', badge_tier:'unverified', approved_at:new Date().toISOString() }).eq('id',editOrgId);
+  const o=ORGS.find(x=>x.id===editOrgId); if(o) o.status='approved';
+  closeModal('modalOrg'); renderOrgs(); renderOverview(); toast('อนุมัติผู้จัดแล้ว ✓');
+}
+async function quickReject(){
+  if(!editOrgId) return;
+  await db.from('organizers').update({ status:'suspended' }).eq('id',editOrgId);
+  const o=ORGS.find(x=>x.id===editOrgId); if(o) o.status='suspended';
+  closeModal('modalOrg'); renderOrgs(); renderOverview(); toast('ปฏิเสธใบสมัครแล้ว');
 }
 function saveOrg(){
   const name=document.getElementById('of-name').value.trim();
