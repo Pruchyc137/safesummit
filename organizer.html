@@ -129,6 +129,7 @@ h1,h2,h3,h4{font-family:'Kanit',sans-serif;}
 .fld-row .fld{flex:1;}
 .fld .hint{font-size:11.5px;color:var(--text-muted);margin-top:4px;}
 .fld-req{color:#C0552F;margin-left:2px;}
+.form-section-label{font-family:'Bai Jamjuree',monospace;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent-trail);border-bottom:1px solid rgba(226,103,43,.2);padding-bottom:6px;margin:20px 0 12px;}
 .badge-toggle{display:flex;gap:8px;flex-wrap:wrap;}
 .badge-opt{border:2px solid #E0D5BD;border-radius:10px;padding:10px 16px;cursor:pointer;transition:.15s;display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;}
 .badge-opt:hover{border-color:var(--accent-gold);}
@@ -241,18 +242,65 @@ h1,h2,h3,h4{font-family:'Kanit',sans-serif;}
       <div class="gate-step"><div class="gate-step-num">2</div>Admin ตรวจสอบและอนุมัติบัญชี</div>
       <div class="gate-step"><div class="gate-step-num">3</div>เริ่มลงทะเบียนทริปได้ทันที</div>
     </div>
-    <div class="fld"><label>ชื่อองค์กร / ชื่อทีม<span class="fld-req">*</span></label><input id="r-org" placeholder="เช่น ไกด์ล้านนา"></div>
+
+    <div class="form-section-label">ข้อมูลส่วนตัว</div>
     <div class="fld-row">
       <div class="fld"><label>ชื่อ<span class="fld-req">*</span></label><input id="r-fname" placeholder="ชื่อ"></div>
       <div class="fld"><label>นามสกุล<span class="fld-req">*</span></label><input id="r-lname" placeholder="นามสกุล"></div>
     </div>
+    <div class="fld"><label>เลขบัตรประชาชน<span class="fld-req">*</span></label><input id="r-idcard" placeholder="1-XXXX-XXXXX-XX-X" maxlength="17"></div>
     <div class="fld"><label>อีเมล<span class="fld-req">*</span></label><input id="r-email" type="email" placeholder="email@example.com"></div>
     <div class="fld"><label>เบอร์โทรศัพท์<span class="fld-req">*</span></label><input id="r-phone" placeholder="08x-xxx-xxxx"></div>
     <div class="fld"><label>รหัสผ่าน<span class="fld-req">*</span></label><input id="r-password" type="password" placeholder="อย่างน้อย 6 ตัวอักษร"></div>
-    <div class="fld"><label>จังหวัดที่ตั้ง<span class="fld-req">*</span></label><input id="r-prov" placeholder="เชียงใหม่"></div>
-    <div class="fld"><label>ประสบการณ์ (ปี)</label><input id="r-exp" type="number" placeholder="3" min="0"></div>
-    <div class="fld"><label>แนะนำตัวสั้นๆ</label><textarea id="r-bio" placeholder="ประสบการณ์ เส้นทางที่ถนัด ใบรับรองที่มี..."></textarea></div>
-    <button class="btn btn-primary" style="width:100%;padding:14px;font-size:15px;margin-top:8px;" onclick="submitRegister()">
+
+    <div class="form-section-label">ข้อมูลองค์กร / ทีม</div>
+    <div class="fld"><label>ชื่อองค์กร / ชื่อทีม<span class="fld-req">*</span></label><input id="r-org" placeholder="เช่น ไกด์ล้านนา"></div>
+    <div class="fld-row">
+      <div class="fld"><label>จังหวัดที่ตั้ง<span class="fld-req">*</span></label><input id="r-prov" placeholder="เชียงใหม่"></div>
+      <div class="fld"><label>ประสบการณ์ (ปี)</label><input id="r-exp" type="number" placeholder="3" min="0"></div>
+    </div>
+    <div class="fld-row">
+      <div class="fld"><label>Line ID</label><input id="r-line" placeholder="@safeguide"></div>
+      <div class="fld"><label>Facebook / เพจ</label><input id="r-fb" placeholder="facebook.com/..."></div>
+    </div>
+    <div class="fld"><label>แนะนำตัว / ความเชี่ยวชาญ</label><textarea id="r-bio" rows="3" placeholder="เส้นทางที่ถนัด ทริปที่เคยจัด ประสบการณ์พิเศษ..."></textarea></div>
+
+    <div class="form-section-label">ใบอนุญาต <span style="color:var(--text-muted);font-weight:400;font-size:12px;">(จำเป็นสำหรับ Verified)</span></div>
+    <div class="fld"><label>ประเภทใบอนุญาต<span class="fld-req">*</span></label>
+      <select id="r-license-type">
+        <option value="">-- เลือกประเภท --</option>
+        <option value="มัคคุเทศก์ทั่วไป">ใบอนุญาตมัคคุเทศก์ทั่วไป (กรมการท่องเที่ยว)</option>
+        <option value="มัคคุเทศก์เฉพาะพื้นที่">ใบอนุญาตมัคคุเทศก์เฉพาะพื้นที่</option>
+        <option value="นำเที่ยว TAT">ใบอนุญาตประกอบธุรกิจนำเที่ยว (TAT)</option>
+        <option value="อื่นๆ">อื่นๆ / ยังไม่มี (สมัครเป็น Basic)</option>
+      </select>
+    </div>
+    <div class="fld-row">
+      <div class="fld"><label>เลขที่ใบอนุญาต</label><input id="r-license-no" placeholder="เช่น 11/01234"></div>
+      <div class="fld"><label>วันหมดอายุ</label><input id="r-license-exp" type="date"></div>
+    </div>
+
+    <div class="form-section-label">บัญชีธนาคาร <span style="color:var(--text-muted);font-weight:400;font-size:12px;">(สำหรับรับเงิน)</span></div>
+    <div class="fld"><label>ธนาคาร<span class="fld-req">*</span></label>
+      <select id="r-bank">
+        <option value="">-- เลือกธนาคาร --</option>
+        <option>กสิกรไทย (KBANK)</option>
+        <option>ไทยพาณิชย์ (SCB)</option>
+        <option>กรุงเทพ (BBL)</option>
+        <option>กรุงไทย (KTB)</option>
+        <option>ทหารไทยธนชาต (TTB)</option>
+        <option>กรุงศรีอยุธยา (BAY)</option>
+        <option>ออมสิน (GSB)</option>
+        <option>ธ.ก.ส. (BAAC)</option>
+        <option>พร้อมเพย์</option>
+      </select>
+    </div>
+    <div class="fld-row">
+      <div class="fld"><label>เลขบัญชี<span class="fld-req">*</span></label><input id="r-bank-acc" placeholder="XXX-X-XXXXX-X"></div>
+      <div class="fld"><label>ชื่อบัญชี<span class="fld-req">*</span></label><input id="r-bank-name" placeholder="ชื่อ-นามสกุล ตามสมุดบัญชี"></div>
+    </div>
+
+    <button class="btn btn-primary" style="width:100%;padding:14px;font-size:15px;margin-top:16px;" onclick="submitRegister()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
       ส่งใบสมัคร
     </button>
@@ -661,22 +709,36 @@ async function checkAuthState(){
 }
 
 async function submitRegister(){
-  const org      = document.getElementById('r-org').value.trim();
-  const fname    = document.getElementById('r-fname').value.trim();
-  const lname    = document.getElementById('r-lname').value.trim();
-  const email    = document.getElementById('r-email').value.trim();
-  const phone    = document.getElementById('r-phone').value.trim();
-  const password = document.getElementById('r-password').value;
-  const prov     = document.getElementById('r-prov').value.trim();
-  const exp      = parseInt(document.getElementById('r-exp').value)||0;
-  const bio      = document.getElementById('r-bio').value.trim();
+  const fname        = document.getElementById('r-fname').value.trim();
+  const lname        = document.getElementById('r-lname').value.trim();
+  const idcard       = document.getElementById('r-idcard').value.trim();
+  const email        = document.getElementById('r-email').value.trim();
+  const phone        = document.getElementById('r-phone').value.trim();
+  const password     = document.getElementById('r-password').value;
+  const org          = document.getElementById('r-org').value.trim();
+  const prov         = document.getElementById('r-prov').value.trim();
+  const exp          = parseInt(document.getElementById('r-exp').value)||0;
+  const lineId       = document.getElementById('r-line').value.trim();
+  const fbUrl        = document.getElementById('r-fb').value.trim();
+  const bio          = document.getElementById('r-bio').value.trim();
+  const licenseType  = document.getElementById('r-license-type').value;
+  const licenseNo    = document.getElementById('r-license-no').value.trim();
+  const licenseExp   = document.getElementById('r-license-exp').value;
+  const bankName     = document.getElementById('r-bank').value;
+  const bankAcc      = document.getElementById('r-bank-acc').value.trim();
+  const bankAccName  = document.getElementById('r-bank-name').value.trim();
 
-  if(!org)  { toast('กรุณากรอกชื่อองค์กร'); return; }
   if(!fname||!lname){ toast('กรุณากรอกชื่อ-นามสกุล'); return; }
+  if(!idcard||idcard.replace(/-/g,'').length!==13){ toast('กรุณากรอกเลขบัตรประชาชน 13 หลัก'); return; }
   if(!email||!email.includes('@')){ toast('กรุณากรอกอีเมลให้ถูกต้อง'); return; }
   if(!phone||phone.length<9){ toast('กรุณากรอกเบอร์โทรศัพท์'); return; }
   if(password.length < 6){ toast('รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร'); return; }
-  if(!prov) { toast('กรุณากรอกจังหวัด'); return; }
+  if(!org)  { toast('กรุณากรอกชื่อองค์กร'); return; }
+  if(!prov) { toast('กรุณากรอกจังหวัดที่ตั้ง'); return; }
+  if(!licenseType){ toast('กรุณาเลือกประเภทใบอนุญาต'); return; }
+  if(!bankName){ toast('กรุณาเลือกธนาคาร'); return; }
+  if(!bankAcc){ toast('กรุณากรอกเลขบัญชีธนาคาร'); return; }
+  if(!bankAccName){ toast('กรุณากรอกชื่อบัญชีธนาคาร'); return; }
 
   const btn = document.querySelector('#gateRegister .btn-primary');
   if(btn){ btn.disabled=true; btn.textContent='กำลังสมัคร...'; }
@@ -704,14 +766,23 @@ async function submitRegister(){
 
   // 2. insert ลง organizers table
   const { error: insErr } = await db.from('organizers').insert({
-    user_id:    userId,
-    org_name:   org,
-    province:   prov,
-    exp_years:  exp,
-    bio:        bio || null,
-    reg_ref:    ref,
-    status:     'pending',
-    badge_tier: 'unverified',
+    user_id:           userId,
+    org_name:          org,
+    province:          prov,
+    exp_years:         exp,
+    bio:               bio || null,
+    reg_ref:           ref,
+    status:            'pending',
+    badge_tier:        'unverified',
+    id_card:           idcard || null,
+    license_type:      licenseType || null,
+    license_number:    licenseNo || null,
+    license_expiry:    licenseExp || null,
+    line_id:           lineId || null,
+    facebook_url:      fbUrl || null,
+    bank_name:         bankName || null,
+    bank_account:      bankAcc || null,
+    bank_account_name: bankAccName || null,
   });
 
   // ถ้า insert fail ด้วยสาเหตุอื่น (ไม่ใช่ duplicate) แจ้งเตือนแต่ยังแสดง pending
