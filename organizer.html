@@ -130,6 +130,9 @@ h1,h2,h3,h4{font-family:'Kanit',sans-serif;}
 .fld .hint{font-size:11.5px;color:var(--text-muted);margin-top:4px;}
 .fld-req{color:#C0552F;margin-left:2px;}
 .form-section-label{font-family:'Bai Jamjuree',monospace;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent-trail);border-bottom:1px solid rgba(226,103,43,.2);padding-bottom:6px;margin:20px 0 12px;}
+.upload-box{display:flex;flex-direction:column;align-items:center;gap:8px;border:1.5px dashed var(--line-muted);border-radius:10px;padding:20px;cursor:pointer;transition:.15s;text-align:center;font-size:13px;color:var(--text-muted);}
+.upload-box:hover{border-color:var(--accent-trail);color:var(--accent-trail);background:rgba(226,103,43,.04);}
+.upload-box.has-file{border-color:var(--accent-trail);background:rgba(226,103,43,.06);color:var(--text-dark);font-weight:600;}
 .badge-toggle{display:flex;gap:8px;flex-wrap:wrap;}
 .badge-opt{border:2px solid #E0D5BD;border-radius:10px;padding:10px 16px;cursor:pointer;transition:.15s;display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;}
 .badge-opt:hover{border-color:var(--accent-gold);}
@@ -278,6 +281,14 @@ h1,h2,h3,h4{font-family:'Kanit',sans-serif;}
     <div class="fld-row">
       <div class="fld"><label>เลขที่ใบอนุญาต</label><input id="r-license-no" placeholder="เช่น 11/01234"></div>
       <div class="fld"><label>วันหมดอายุ</label><input id="r-license-exp" type="date"></div>
+    </div>
+    <div class="fld">
+      <label>แนบไฟล์ใบอนุญาต <span style="color:var(--text-muted);font-weight:400;font-size:12px;">(PDF / JPG / PNG ไม่เกิน 5MB)</span></label>
+      <label class="upload-box" id="license-upload-label">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="28" height="28"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+        <span id="license-file-name">คลิกเพื่อเลือกไฟล์ หรือลากมาวาง</span>
+        <input id="r-license-file" type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" hidden onchange="handleFileSelect(this,'license-file-name','license-upload-label')">
+      </label>
     </div>
 
     <div class="form-section-label">บัญชีธนาคาร <span style="color:var(--text-muted);font-weight:400;font-size:12px;">(สำหรับรับเงิน)</span></div>
@@ -674,6 +685,26 @@ let TRIPS=[], MY_ORG='', selectedBadge='Verified Basic';
 // ===== AUTH STATE (Supabase) =====
 let _orgProfile = null; // cache organizer row
 
+function handleFileSelect(input, labelId, boxId){
+  const file = input.files[0];
+  const label = document.getElementById(labelId);
+  const box = document.getElementById(boxId);
+  if(file){
+    label.textContent = `✓ ${file.name} (${(file.size/1024/1024).toFixed(2)} MB)`;
+    if(box) box.classList.add('has-file');
+  }
+}
+
+async function uploadToStorage(file, folder){
+  if(!file) return null;
+  const ext = file.name.split('.').pop();
+  const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+  const { data, error } = await db.storage.from('organizer-docs').upload(path, file, { upsert: false });
+  if(error) throw error;
+  const { data: { publicUrl } } = db.storage.from('organizer-docs').getPublicUrl(path);
+  return publicUrl;
+}
+
 async function checkAuthState(){
   // ถ้ามี pending registration ใน localStorage → แสดง pending screen
   const pending = (() => { try { return JSON.parse(localStorage.getItem('ss_org_pending')); } catch(e){ return null; } })();
@@ -744,6 +775,7 @@ async function submitRegister(){
   if(btn){ btn.disabled=true; btn.textContent='กำลังสมัคร...'; }
 
   const ref = 'ORG-'+Math.random().toString(36).slice(2,8).toUpperCase();
+  const licenseFile = document.getElementById('r-license-file')?.files[0] || null;
 
   // 1. ได้ userId (สร้างใหม่ หรือ login ถ้ามีแล้ว)
   let userId = null;
@@ -764,7 +796,16 @@ async function submitRegister(){
     userId = signUpData?.user?.id || null;
   }
 
-  // 2. insert ลง organizers table
+  // 2. upload ไฟล์ใบอนุญาต
+  if(btn) btn.textContent = 'กำลังอัปโหลดไฟล์...';
+  let licenseFileUrl = null;
+  if(licenseFile){
+    try { licenseFileUrl = await uploadToStorage(licenseFile, `licenses/${userId||'guest'}`); }
+    catch(e){ console.warn('upload failed:', e.message); }
+  }
+
+  // 3. insert ลง organizers table
+  if(btn) btn.textContent = 'กำลังบันทึกข้อมูล...';
   const { error: insErr } = await db.from('organizers').insert({
     user_id:           userId,
     org_name:          org,
@@ -783,6 +824,7 @@ async function submitRegister(){
     bank_name:         bankName || null,
     bank_account:      bankAcc || null,
     bank_account_name: bankAccName || null,
+    license_file_url:  licenseFileUrl,
   });
 
   // ถ้า insert fail ด้วยสาเหตุอื่น (ไม่ใช่ duplicate) แจ้งเตือนแต่ยังแสดง pending
