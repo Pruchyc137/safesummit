@@ -733,11 +733,11 @@ const SEED_TRIPS = [
 const curLang = () => (document.documentElement.lang === 'en' ? 'en' : 'th');
 
 async function loadTrips(){
-  try{ const res = await window.storage.get('safesummit:trips'); if(res && res.value){ TRIPS = JSON.parse(res.value); return; } }catch(e){}
+  try{ const saved = localStorage.getItem('safesummit:trips'); if(saved){ TRIPS = JSON.parse(saved); return; } }catch(e){}
   TRIPS = JSON.parse(JSON.stringify(SEED_TRIPS));
-  await persistTrips();
+  persistTrips();
 }
-async function persistTrips(){ try{ await window.storage.set('safesummit:trips', JSON.stringify(TRIPS)); }catch(e){ console.error('save failed',e); } }
+function persistTrips(){ try{ localStorage.setItem('safesummit:trips', JSON.stringify(TRIPS)); }catch(e){} }
 
 // ===== LANDING: render public trip cards from data =====
 function priceMatch(p, range){
