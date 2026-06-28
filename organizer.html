@@ -684,11 +684,31 @@ async function submitRegister(){
   const ref = 'ORG-'+Math.random().toString(36).slice(2,8).toUpperCase();
 
   try {
-    // 1. สร้าง auth account
-    const authData = await Auth.signUp(email, password, fname+' '+lname, phone);
-    const userId = authData?.user?.id || null;
+    // 1. สร้าง auth account (ถ้ามีแล้วให้ login แทน)
+    let userId = null;
+    try {
+      const authData = await Auth.signUp(email, password, fname+' '+lname, phone);
+      userId = authData?.user?.id || null;
+    } catch(authErr) {
+      if(authErr.message && authErr.message.includes('already registered')) {
+        const loginData = await Auth.signIn(email, password);
+        userId = loginData?.user?.id || null;
+      } else {
+        throw authErr;
+      }
+    }
 
-    // 2. insert ลง organizers table พร้อม user_id
+    // 2. ตรวจว่ามี organizer row แล้วหรือยัง
+    if(userId) {
+      const { data: existing } = await db.from('organizers').select('id').eq('user_id', userId).maybeSingle();
+      if(existing) {
+        toast('อีเมลนี้สมัครเป็นผู้จัดไว้แล้ว');
+        if(btn){ btn.disabled=false; btn.textContent='ส่งใบสมัคร'; }
+        return;
+      }
+    }
+
+    // 3. insert ลง organizers table พร้อม user_id
     const { error } = await db.from('organizers').insert({
       user_id:    userId,
       org_name:   org,
@@ -701,7 +721,7 @@ async function submitRegister(){
     });
     if(error) throw error;
 
-    // 3. บันทึก localStorage
+    // 4. บันทึก localStorage
     localStorage.setItem('ss_org_pending', JSON.stringify({ ref, org, email }));
 
     document.getElementById('gateRegister').classList.remove('show');
