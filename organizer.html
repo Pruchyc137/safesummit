@@ -634,25 +634,29 @@ async function checkAuthState(){
     return false;
   }
 
-  const user = await Auth.getUser();
-  if(!user){
+  try {
+    const user = await Auth.getUser();
+    if(!user){
+      document.getElementById('gateRegister').classList.add('show');
+      return false;
+    }
+    _orgProfile = await Organizers.getMyProfile();
+    if(!_orgProfile){
+      document.getElementById('gateRegister').classList.add('show');
+      return false;
+    }
+    if(_orgProfile.status === 'approved'){
+      document.getElementById('mainLayout').style.display='flex';
+      return true;
+    }
+    document.getElementById('gatePending').classList.add('show');
+    document.getElementById('pendingRef').textContent = _orgProfile.reg_ref || _orgProfile.org_name;
+    return false;
+  } catch(e){
+    console.warn('checkAuthState error:', e);
     document.getElementById('gateRegister').classList.add('show');
     return false;
   }
-  // ดึง organizer profile จาก Supabase
-  _orgProfile = await Organizers.getMyProfile();
-  if(!_orgProfile){
-    document.getElementById('gateRegister').classList.add('show');
-    return false;
-  }
-  if(_orgProfile.status === 'approved'){
-    document.getElementById('mainLayout').style.display='flex';
-    return true;
-  }
-  // pending / suspended
-  document.getElementById('gatePending').classList.add('show');
-  document.getElementById('pendingRef').textContent = _orgProfile.reg_ref || _orgProfile.org_name;
-  return false;
 }
 
 async function submitRegister(){
