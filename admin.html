@@ -558,12 +558,36 @@ h1,h2,h3{font-family:'Kanit',sans-serif;}
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 20px;font-size:13px;">
           <div><span style="color:var(--text-muted,#6B5D4A)">เลขที่ใบสมัคร</span><br><b id="of-ref">–</b></div>
           <div><span style="color:var(--text-muted,#6B5D4A)">จังหวัด</span><br><b id="of-prov">–</b></div>
-          <div><span style="color:var(--text-muted,#6B5D4A)">ประสบการณ์</span><br><b id="of-exp">–</b></div>
-          <div><span style="color:var(--text-muted,#6B5D4A)">อีเมล</span><br><b id="of-email-disp">–</b></div>
           <div><span style="color:var(--text-muted,#6B5D4A)">เบอร์โทร</span><br><b id="of-phone-disp">–</b></div>
+          <div><span style="color:var(--text-muted,#6B5D4A)">อีเมล</span><br><b id="of-email-disp">–</b></div>
+          <div><span style="color:var(--text-muted,#6B5D4A)">เลขบัตรประชาชน</span><br><b id="of-idcard">–</b></div>
+          <div><span style="color:var(--text-muted,#6B5D4A)">ประสบการณ์</span><br><b id="of-exp">–</b></div>
           <div><span style="color:var(--text-muted,#6B5D4A)">สมัครเมื่อ</span><br><b id="of-joined">–</b></div>
+          <div><span style="color:var(--text-muted,#6B5D4A)">Line ID</span><br><b id="of-line">–</b></div>
         </div>
         <div id="of-bio-block" style="margin-top:10px;display:none;"><span style="color:var(--text-muted,#6B5D4A);font-size:13px;">แนะนำตัว</span><br><p id="of-bio" style="font-size:13px;margin-top:4px;line-height:1.5;"></p></div>
+        <div id="of-license-block" style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(181,154,110,.2);display:none;">
+          <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted,#6B5D4A);margin-bottom:8px;">ใบอนุญาต</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 20px;font-size:13px;">
+            <div><span style="color:var(--text-muted,#6B5D4A)">ประเภท</span><br><b id="of-license-type">–</b></div>
+            <div><span style="color:var(--text-muted,#6B5D4A)">เลขที่</span><br><b id="of-license-no">–</b></div>
+            <div><span style="color:var(--text-muted,#6B5D4A)">วันหมดอายุ</span><br><b id="of-license-exp">–</b></div>
+          </div>
+          <div id="of-license-file-block" style="margin-top:10px;display:none;">
+            <a id="of-license-file-link" href="#" target="_blank" style="display:inline-flex;align-items:center;gap:6px;background:#E2672B;color:#fff;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              ดูไฟล์ใบอนุญาต
+            </a>
+          </div>
+        </div>
+        <div id="of-bank-block" style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(181,154,110,.2);display:none;">
+          <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted,#6B5D4A);margin-bottom:8px;">บัญชีธนาคาร</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 20px;font-size:13px;">
+            <div><span style="color:var(--text-muted,#6B5D4A)">ธนาคาร</span><br><b id="of-bank-name">–</b></div>
+            <div><span style="color:var(--text-muted,#6B5D4A)">เลขบัญชี</span><br><b id="of-bank-acc">–</b></div>
+            <div><span style="color:var(--text-muted,#6B5D4A)">ชื่อบัญชี</span><br><b id="of-bank-acc-name">–</b></div>
+          </div>
+        </div>
       </div>
       <div class="fld-row">
         <div class="fld"><label>ชื่อผู้จัด / เพจ</label><input id="of-name" placeholder="เช่น เหนือสุดเทรค"></div>
@@ -995,6 +1019,30 @@ function openEditOrg(id){
   const bioBlock=document.getElementById('of-bio-block');
   if(o.bio){ bioBlock.style.display='block'; document.getElementById('of-bio').textContent=o.bio; }
   else { bioBlock.style.display='none'; }
+  // new fields
+  document.getElementById('of-idcard').textContent=o.id_card||'–';
+  document.getElementById('of-line').textContent=o.line_id||'–';
+  // license section
+  const licBlock=document.getElementById('of-license-block');
+  if(o.license_type||o.license_number||o.license_file_url){
+    licBlock.style.display='block';
+    document.getElementById('of-license-type').textContent=o.license_type||'–';
+    document.getElementById('of-license-no').textContent=o.license_number||'–';
+    document.getElementById('of-license-exp').textContent=o.license_expiry||'–';
+    const fileBlock=document.getElementById('of-license-file-block');
+    if(o.license_file_url){
+      fileBlock.style.display='block';
+      document.getElementById('of-license-file-link').href=o.license_file_url;
+    } else { fileBlock.style.display='none'; }
+  } else { licBlock.style.display='none'; }
+  // bank section
+  const bankBlock=document.getElementById('of-bank-block');
+  if(o.bank_name||o.bank_account){
+    bankBlock.style.display='block';
+    document.getElementById('of-bank-name').textContent=o.bank_name||'–';
+    document.getElementById('of-bank-acc').textContent=o.bank_account||'–';
+    document.getElementById('of-bank-acc-name').textContent=o.bank_account_name||'–';
+  } else { bankBlock.style.display='none'; }
   // footer
   document.getElementById('of-foot-pending').style.display=isPending?'flex':'none';
   document.getElementById('of-foot-edit').style.display=isPending?'none':'flex';
