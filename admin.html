@@ -689,23 +689,25 @@ async function load(){
   } catch(e){ TRIPS = JSON.parse(JSON.stringify(SEED_TRIPS)); }
 
   try {
-    const { data: orgs } = await db.from('organizers').select('*, users(full_name, email, phone)').order('created_at', { ascending:false });
+    const { data: orgs, error: orgErr } = await db.from('organizers').select('*').order('created_at', { ascending:false });
+    console.log('[admin] organizers fetch:', orgs, orgErr);
     if(orgs && orgs.length) {
       ORGS = orgs.map(o => ({
         ...o,
-        name:     o.org_name,
-        contact:  o.users?.full_name || '–',
-        email:    o.users?.email || '–',
-        phone:    o.users?.phone || '–',
+        name:     o.org_name || o.full_name || '–',
+        contact:  o.full_name || '–',
+        email:    o.email || '–',
+        phone:    o.phone || '–',
         prov:     o.province,
-        tier:     o.badge_tier,
+        tier:     o.badge_tier || 'Unverified',
         joinedAt: o.created_at?.slice(0,10),
         note:     o.note || '',
       }));
     } else {
+      console.warn('[admin] no organizers from Supabase, using seed. error:', orgErr);
       ORGS = JSON.parse(JSON.stringify(SEED_ORGS));
     }
-  } catch(e){ ORGS = JSON.parse(JSON.stringify(SEED_ORGS)); }
+  } catch(e){ console.error('[admin] organizers catch:', e); ORGS = JSON.parse(JSON.stringify(SEED_ORGS)); }
 }
 
 async function saveTrips(t){
