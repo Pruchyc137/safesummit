@@ -61,15 +61,22 @@ h1,h2,h3,h4{font-family:'Kanit',sans-serif;}
 .page-head-text p{font-size:13.5px;color:var(--text-muted);}
 
 /* KPI */
-.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;}
-.kpi{background:var(--card-light);border-radius:12px;padding:16px 18px;box-shadow:var(--shadow);border-left:4px solid var(--accent-gold);}
-.kpi .label{font-family:'Bai Jamjuree',monospace;font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;}
-.kpi .val{font-family:'Kanit',sans-serif;font-size:26px;font-weight:700;line-height:1;color:var(--text-dark);}
-.kpi .sub{font-size:12px;color:var(--text-muted);margin-top:5px;}
-.kpi.k-active{border-left-color:var(--accent-trail);}
-.kpi.k-money{border-left-color:#5C8A5A;}
-.kpi.k-booked{border-left-color:#3E6E8E;}
-@media(max-width:860px){.kpis{grid-template-columns:1fr 1fr;}}
+.kpis-top{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:14px;}
+.kpis-bot{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:24px;}
+.kpi{background:var(--card-light);border-radius:14px;padding:18px 20px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:10px;}
+.kpi .kpi-header{display:flex;align-items:center;justify-content:space-between;}
+.kpi .label{font-size:12px;color:var(--text-muted);font-weight:600;}
+.kpi .kpi-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.kpi .val{font-family:'Kanit',sans-serif;font-size:30px;font-weight:700;line-height:1;}
+.kpi-divider{width:100%;height:1px;background:#EDE4D0;}
+.kpi .sub{font-size:11.5px;color:var(--text-muted);display:flex;align-items:center;gap:5px;}
+.kpi .sub-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.kpi.k-green .val{color:#2A7A4B;} .kpi.k-green .kpi-icon{background:#E8F5EE;} .kpi.k-green .sub-dot{background:#2A7A4B;}
+.kpi.k-orange .val{color:#E2672B;} .kpi.k-orange .kpi-icon{background:#FEF0E8;} .kpi.k-orange .sub-dot{background:#E2672B;}
+.kpi.k-gold .val{color:#C9A24B;} .kpi.k-gold .kpi-icon{background:#FDF6E3;} .kpi.k-gold .sub-dot{background:#C9A24B;}
+.kpi.k-blue .val{color:#3A7DC9;} .kpi.k-blue .kpi-icon{background:#EBF3FD;} .kpi.k-blue .sub-dot{background:#3A7DC9;}
+.kpi.k-teal .val{color:#2A7A6A;} .kpi.k-teal .kpi-icon{background:#E6F4F2;} .kpi.k-teal .sub-dot{background:#2A7A6A;}
+@media(max-width:860px){.kpis-top{grid-template-columns:1fr 1fr;} .kpis-bot{grid-template-columns:1fr 1fr;}}
 
 /* PANEL */
 .panel{background:var(--card-light);border-radius:14px;box-shadow:var(--shadow);overflow:hidden;margin-bottom:18px;}
@@ -434,7 +441,8 @@ h1,h2,h3,h4{font-family:'Kanit',sans-serif;}
           ลงทะเบียนทริปใหม่
         </button>
       </div>
-      <div class="kpis" id="ovKpis"></div>
+      <div class="kpis-top" id="ovKpisTop"></div>
+      <div class="kpis-bot" id="ovKpisBot"></div>
       <div class="panel">
         <div class="panel-head">
           <h3>ทริปของฉัน</h3>
@@ -976,7 +984,8 @@ async function loadBookings(){
     const ids = getMyTripIds();
     if(!ids.length) return [];
     const { data } = await db.from('bookings').select('*,trips(name_th)').in('trip_id', ids);
-    return data||[];
+    window._orgBookings = data||[];
+    return window._orgBookings;
   } catch(e){ return []; }
 }
 function v(id){ return document.getElementById(id)?.value||''; }
@@ -1004,18 +1013,44 @@ function showPage(key, el){
   if(key==='profile') loadProfile();
 }
 
+function kpiCard(cls, iconSvg, label, val, sub){
+  return `<div class="kpi ${cls}">
+    <div class="kpi-header"><span class="label">${label}</span><div class="kpi-icon">${iconSvg}</div></div>
+    <div class="val">${val}</div>
+    <div class="kpi-divider"></div>
+    <div class="sub"><span class="sub-dot"></span>${sub}</div>
+  </div>`;
+}
+
 // OVERVIEW
 function renderOverview(){
   const trips=getMyTrips();
-  const totalRev=trips.reduce((s,t)=>s+(t.booked||0)*(t.price||0),0);
-  const active=trips.filter(t=>t.status==='open').length;
+  const done=trips.filter(t=>t.status==='closed'||t.status==='full');
+  const upcoming=trips.filter(t=>t.status==='open');
+  const closedRev=done.reduce((s,t)=>s+(t.booked||0)*(t.price||0),0);
   const totalBooked=trips.reduce((s,t)=>s+(t.booked||0),0);
-  document.getElementById('ovKpis').innerHTML=`
-    <div class="kpi"><div class="label">ทริปทั้งหมด</div><div class="val">${trips.length}</div><div class="sub">ที่ลงทะเบียน</div></div>
-    <div class="kpi k-active"><div class="label">กำลังเปิดรับ</div><div class="val">${active}</div><div class="sub">ทริปเปิดอยู่</div></div>
-    <div class="kpi k-booked"><div class="label">ผู้ร่วมเดินทาง</div><div class="val">${totalBooked}</div><div class="sub">รวมทุกทริป</div></div>
-    <div class="kpi k-money"><div class="label">รายได้รวม (ประมาณ)</div><div class="val" style="font-size:18px;">${fmtMoney(totalRev)}</div><div class="sub">ก่อนหักค่า platform</div></div>
-  `;
+
+  const iconCheck=`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#2A7A4B" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`;
+  const iconClock=`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#E2672B" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
+  const iconMoney=`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#C9A24B" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>`;
+  const iconGroup=`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#3A7DC9" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`;
+  const iconUniq=`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#2A7A6A" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/></svg>`;
+
+  document.getElementById('ovKpisTop').innerHTML=
+    kpiCard('k-green', iconCheck, 'ทริปที่จัดไปแล้ว', done.length, 'ทริปที่ปิดแล้ว / เต็มแล้ว') +
+    kpiCard('k-orange', iconClock, 'ทริปกำลังจะจัด', upcoming.length, 'เปิดรับจองอยู่ในขณะนี้') +
+    kpiCard('k-gold', iconMoney, 'รายได้รวม (ปิดแล้ว)', fmtMoney(closedRev), 'ก่อนหักค่า platform');
+
+  // unique customers จาก bookings (ถ้าโหลดแล้ว)
+  const allBookings = window._orgBookings || [];
+  const myIds = getMyTripIds();
+  const myBookings = allBookings.filter(b => myIds.includes(b.trip_id));
+  const uniqueCustomers = new Set(myBookings.map(b => b.user_id||b.customer_email||b.id)).size;
+  const uniqueDisplay = allBookings.length ? uniqueCustomers : '—';
+
+  document.getElementById('ovKpisBot').innerHTML=
+    kpiCard('k-blue', iconGroup, 'จำนวนผู้เข้าร่วมทริปทั้งหมด', totalBooked, 'ที่นั่งที่ถูกจองรวมทุกทริป (นับซ้ำได้)') +
+    kpiCard('k-teal', iconUniq, 'ลูกค้าที่เคยร่วมทริป (ไม่นับซ้ำ)', uniqueDisplay, 'ลูกค้า unique ที่เคยจองกับคุณ');
   const tbody=document.getElementById('ovTable');
   const empty=document.getElementById('ovEmpty');
   if(!trips.length){ if(tbody) tbody.innerHTML=''; if(empty) empty.style.display='block'; return; }
