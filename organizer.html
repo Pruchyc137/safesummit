@@ -352,7 +352,8 @@ h1,h2,h3,h4{font-family:'Kanit',sans-serif;}
       <li style="color:var(--text-muted);opacity:.5;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>รอ Admin อนุมัติบัญชี</li>
     </ul>
     <p style="font-size:12.5px;color:var(--text-muted);margin-top:8px;">หากรอนานเกิน 3 วัน กรุณาติดต่อ <b>admin@safesummit.co.th</b></p>
-    <button class="btn btn-ghost" style="margin-top:20px;" onclick="window.location.href='safesummit.html'">กลับหน้าหลัก</button>
+    <button class="btn-primary" style="margin-top:20px;width:100%;" onclick="localStorage.removeItem('ss_org_pending');showGate('gateLogin')">เข้าสู่ระบบ (ได้รับอนุมัติแล้ว)</button>
+    <button class="btn btn-ghost" style="margin-top:8px;" onclick="window.location.href='safesummit.html'">กลับหน้าหลัก</button>
     <button class="btn" style="margin-top:8px;background:none;color:var(--text-muted);font-size:12px;width:100%;" onclick="resetRegistration()">ลงทะเบียนใหม่ (ล้างข้อมูล)</button>
   </div>
 </div>
