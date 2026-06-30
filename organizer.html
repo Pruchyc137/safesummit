@@ -42,7 +42,9 @@ h1,h2,h3,h4{font-family:'Kanit',sans-serif;}
 .layout{display:flex;flex:1;min-height:0;}
 
 /* SIDEBAR */
-.sidebar{width:var(--sidebar-w);background:var(--bg-deep-2);border-right:1px solid rgba(181,154,110,.15);flex-shrink:0;position:sticky;top:57px;height:calc(100vh - 57px);overflow-y:auto;}
+.sidebar{width:var(--sidebar-w);background:var(--bg-deep-2);border-right:1px solid rgba(181,154,110,.15);flex-shrink:0;position:sticky;top:57px;height:calc(100vh - 57px);overflow-y:auto;display:flex;flex-direction:column;}
+.sidebar-nav{flex:1;overflow-y:auto;}
+.sidebar-footer{padding:10px 8px;border-top:1px solid rgba(181,154,110,.12);}
 .sidebar-section{padding:20px 12px 8px;font-family:'Bai Jamjuree',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:rgba(181,154,110,.5);}
 .nav-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:9px;margin:2px 8px;font-size:14px;font-weight:600;color:var(--line-muted);cursor:pointer;transition:.15s;border:none;background:transparent;width:calc(100%-16px);width:calc(100% - 16px);text-align:left;font-family:'Sarabun',sans-serif;}
 .nav-item svg{width:17px;height:17px;flex-shrink:0;}
@@ -384,35 +386,38 @@ h1,h2,h3,h4{font-family:'Kanit',sans-serif;}
 <div class="layout" id="mainLayout" style="display:none;">
   <!-- SIDEBAR -->
   <aside class="sidebar" id="orgSidebar">
-    <div class="sidebar-section">เมนูหลัก</div>
-    <button class="nav-item active" onclick="showPage('overview',this)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
-      ภาพรวม
-    </button>
-    <button class="nav-item" onclick="showPage('my-trips',this)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12a9 9 0 0 0 9 9 9 9 0 0 0 9-9 9 9 0 0 0-9-9"/><path d="M3 12a9 9 0 0 1 9-9"/><path d="M12 8v4l3 3"/></svg>
-      ทริปของฉัน
-      <span class="badge" id="sideMyTrips">0</span>
-    </button>
-    <button class="nav-item" onclick="showPage('add-trip',this)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-      ลงทะเบียนทริป
-    </button>
-    <button class="nav-item" onclick="showPage('bookings',this)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-      การจองลูกค้า
-      <span class="badge" id="sideBookings">0</span>
-    </button>
-    <div class="sidebar-section" style="margin-top:8px;">โปรไฟล์</div>
-    <button class="nav-item" onclick="showPage('profile',this)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v2"/></svg>
-      ข้อมูลผู้จัด
-    </button>
-    <div class="sidebar-section" style="margin-top:8px;"></div>
-    <button class="nav-item" onclick="resetRegistration()" style="color:#E2672B;">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-      ออกจากระบบ
-    </button>
+    <div class="sidebar-nav">
+      <div class="sidebar-section">เมนูหลัก</div>
+      <button class="nav-item active" onclick="showPage('overview',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+        ภาพรวม
+      </button>
+      <button class="nav-item" onclick="showPage('my-trips',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12a9 9 0 0 0 9 9 9 9 0 0 0 9-9 9 9 0 0 0-9-9"/><path d="M3 12a9 9 0 0 1 9-9"/><path d="M12 8v4l3 3"/></svg>
+        ทริปของฉัน
+        <span class="badge" id="sideMyTrips">0</span>
+      </button>
+      <button class="nav-item" onclick="showPage('add-trip',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        ลงทะเบียนทริป
+      </button>
+      <button class="nav-item" onclick="showPage('bookings',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        การจองลูกค้า
+        <span class="badge" id="sideBookings">0</span>
+      </button>
+      <div class="sidebar-section" style="margin-top:8px;">โปรไฟล์</div>
+      <button class="nav-item" onclick="showPage('profile',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v2"/></svg>
+        ข้อมูลผู้จัด
+      </button>
+    </div>
+    <div class="sidebar-footer">
+      <button class="nav-item" onclick="resetRegistration()" style="color:#E2672B;margin:0;width:100%;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        ออกจากระบบ
+      </button>
+    </div>
   </aside>
 
   <main class="main">
