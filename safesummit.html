@@ -287,8 +287,9 @@ footer .foot-grid li a:hover{opacity:1;color:var(--accent-gold);}
 .foot-bottom span:first-child{color:var(--text-light);opacity:.85;}
 
 @media (max-width:760px){
-  .login-menu{right:0;left:auto;min-width:180px;max-width:calc(100vw - 20px);}
+  .login-menu{right:0;left:auto;min-width:160px;max-width:220px;}
   .login-menu a{font-size:13px;padding:10px 12px;}
+  .login-menu .mtitle{font-size:9.5px;padding:6px 12px 3px;}
 }
 
 @media (max-width:640px){
@@ -478,7 +479,18 @@ footer .foot-grid li a:hover{opacity:1;color:var(--accent-gold);}
         <button type="button" class="lang-btn" onclick="switchLang('en',this)">EN</button>
       </div>
       <div class="login-wrap" id="loginWrap">
-        <a class="btn btn-ghost" href="#" onclick="openRoleModal(event)">เข้าสู่ระบบ</a>
+        <a class="btn btn-ghost" href="#" onclick="toggleLogin(event)">เข้าสู่ระบบ ▾</a>
+        <div class="login-menu">
+          <div class="mtitle">เข้าสู่ระบบในฐานะ</div>
+          <a href="#" onclick="showAuth('login','customer',event)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg>
+            ลูกค้า
+          </a>
+          <a href="organizer.html">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 21h18"/><path d="M5 21V9l7-5 7 5v12"/><path d="M9 21v-6h6v6"/></svg>
+            ผู้จัดทริป
+          </a>
+        </div>
       </div>
     </div>
   </div>
@@ -962,54 +974,6 @@ function switchLang(lang, btn){
 function toggleLogin(e){ if(e) e.preventDefault(); document.getElementById('loginWrap').classList.toggle('open'); }
 
 // ===== ROLE MODAL =====
-const ADMIN_ACCOUNTS = [
-  {id:'admin001', pwd:'SafeSummit@2026'},
-  {id:'admin002', pwd:'TrailBoss@99'},
-  {id:'admin003', pwd:'AlphaAdmin@7'},
-];
-
-function openRoleModal(e){
-  if(e) e.preventDefault();
-  document.getElementById('roleModal').style.display='block';
-  document.body.style.overflow='hidden';
-}
-function closeRoleModal(e){
-  if(e) e.preventDefault();
-  document.getElementById('roleModal').style.display='none';
-  document.body.style.overflow='';
-  document.getElementById('roleStep1').style.display='block';
-  document.getElementById('roleStep2').style.display='none';
-  document.getElementById('adminPasscode').value='';
-  document.getElementById('adminCodeErr').style.display='none';
-}
-function selectRole(role){
-  if(role==='customer'){
-    closeRoleModal();
-    showAuth('login','customer',null);
-  } else if(role==='organizer'){
-    closeRoleModal();
-    location.href='organizer.html';
-  } else if(role==='admin'){
-    document.getElementById('roleStep1').style.display='none';
-    document.getElementById('roleStep2').style.display='block';
-    setTimeout(()=>document.getElementById('adminPasscode').focus(),100);
-  }
-}
-function verifyAdminCode(){
-  const id = (document.getElementById('adminId').value||'').trim();
-  const pwd = (document.getElementById('adminPwd').value||'').trim();
-  const match = ADMIN_ACCOUNTS.find(a=>a.id===id && a.pwd===pwd);
-  const err = document.getElementById('adminCodeErr');
-  if(match){
-    closeRoleModal();
-    location.href='admin.html';
-  } else {
-    err.textContent = !id||!pwd ? 'กรุณากรอก ID และ Password' : 'ID หรือ Password ไม่ถูกต้อง';
-    err.style.display='block';
-    document.getElementById('adminPwd').value='';
-    document.getElementById('adminPwd').focus();
-  }
-}
 document.addEventListener('click', function(e){
   const w = document.getElementById('loginWrap');
   if(w && !w.contains(e.target)) w.classList.remove('open');
@@ -1482,8 +1446,8 @@ setTimeout(()=>{ const s=document.getElementById('searchQ'); if(s) s.value=''; }
   </div>
 </div>
 
-<!-- ===== ROLE MODAL ===== -->
-<div id="roleModal" style="display:none;position:fixed;inset:0;z-index:300;background:var(--bg-light);overflow-y:auto;">
+<!-- role modal removed -->
+<div id="roleModal" style="display:none;">
   <div style="min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 20px;">
     <a href="#" onclick="closeRoleModal(event)" style="position:absolute;top:20px;left:20px;display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text-muted);text-decoration:none;">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>กลับหน้าแรก

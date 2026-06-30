@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SafeSummit — Admin Login</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Kanit:wght@700;800&family=Sarabun:wght@400;500;600;700&family=Bai+Jamjuree:wght@400;500;600&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Sarabun',sans-serif;background:#FAF6EA;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px 16px;}
+.card{background:#fff;border-radius:18px;box-shadow:0 12px 40px rgba(40,28,18,.14);padding:40px 36px;width:100%;max-width:400px;}
+.logo{display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:6px;}
+.logo svg{width:34px;height:34px;}
+.logo-text{font-family:'Kanit',sans-serif;font-weight:800;font-size:22px;color:#2B2118;}
+.logo-text .star-wrap{position:relative;display:inline-block;}
+.logo-text .star{position:absolute;left:50%;top:-0.44em;transform:translateX(-50%);width:0.48em;height:0.48em;color:#C9A24B;}
+.tag{font-family:'Bai Jamjuree',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;background:rgba(201,162,75,.15);color:#C9A24B;border:1px solid rgba(201,162,75,.4);padding:3px 9px;border-radius:20px;margin-left:2px;}
+.subtitle{text-align:center;color:#6B5D4A;font-size:13.5px;margin-bottom:28px;}
+.field{margin-bottom:15px;}
+.field label{display:block;font-size:12.5px;font-weight:600;color:#2B2118;margin-bottom:6px;}
+.field input{width:100%;padding:13px 15px;border:1.5px solid #E0D5BD;border-radius:10px;font-family:'Sarabun',sans-serif;font-size:15px;background:#FCFAF3;color:#2B2118;outline:none;transition:.15s;}
+.field input:focus{border-color:#C9A24B;box-shadow:0 0 0 3px rgba(201,162,75,.16);}
+.btn{width:100%;background:#C9A24B;color:#2B2118;border:none;border-radius:10px;padding:14px;font-family:'Sarabun',sans-serif;font-weight:700;font-size:15.5px;cursor:pointer;margin-top:6px;box-shadow:0 8px 20px rgba(201,162,75,.28);transition:.15s;}
+.btn:hover{filter:brightness(1.06);}
+.err{display:none;text-align:center;font-size:13px;color:#C0552F;background:#FEF0EE;border-radius:8px;padding:10px;margin-bottom:12px;}
+.back{display:flex;align-items:center;gap:5px;justify-content:center;margin-top:22px;font-size:13px;color:#6B5D4A;text-decoration:none;}
+.back:hover{color:#2B2118;}
+.back svg{width:14px;height:14px;}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">
+    <svg viewBox="0 0 50 50" fill="none">
+      <polygon points="25,4 46,40 4,40" fill="none" stroke="#C9A24B" stroke-width="2.5"/>
+      <polygon points="25,14 38,38 12,38" fill="rgba(226,103,43,.25)" stroke="#E2672B" stroke-width="1.5"/>
+      <line x1="25" y1="4" x2="25" y2="40" stroke="#C9A24B" stroke-width="1" opacity=".4"/>
+    </svg>
+    <span class="logo-text">SafeSummit <span class="tag">Admin</span></span>
+  </div>
+  <p class="subtitle">สำหรับผู้ดูแลระบบ SafeSummit เท่านั้น</p>
+
+  <div class="err" id="errMsg"></div>
+
+  <div class="field">
+    <label>Admin ID <span style="color:#C0552F">*</span></label>
+    <input id="adminId" type="text" placeholder="กรอก Admin ID" autocomplete="off"
+      onkeydown="if(event.key==='Enter')document.getElementById('adminPwd').focus()">
+  </div>
+  <div class="field">
+    <label>Password <span style="color:#C0552F">*</span></label>
+    <input id="adminPwd" type="password" placeholder="กรอก Password"
+      onkeydown="if(event.key==='Enter')doLogin()">
+  </div>
+
+  <button class="btn" onclick="doLogin()">เข้าสู่ระบบ Admin</button>
+
+  <a href="safesummit.html" class="back">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+    กลับหน้าแรก
+  </a>
+</div>
+
+<script>
+const ADMIN_ACCOUNTS = [
+  {id:'admin001', pwd:'SafeSummit@2026'},
+  {id:'admin002', pwd:'TrailBoss@99'},
+  {id:'admin003', pwd:'AlphaAdmin@7'},
+];
+function doLogin(){
+  const id  = document.getElementById('adminId').value.trim();
+  const pwd = document.getElementById('adminPwd').value.trim();
+  const err = document.getElementById('errMsg');
+  if(!id || !pwd){ err.textContent='กรุณากรอก Admin ID และ Password'; err.style.display='block'; return; }
+  if(ADMIN_ACCOUNTS.find(a=>a.id===id && a.pwd===pwd)){
+    location.href='admin.html';
+  } else {
+    err.textContent='Admin ID หรือ Password ไม่ถูกต้อง';
+    err.style.display='block';
+    document.getElementById('adminPwd').value='';
+    document.getElementById('adminPwd').focus();
+  }
+}
+</script>
+</body>
+</html>
