@@ -724,20 +724,21 @@ async function uploadToStorage(file, folder){
 }
 
 async function checkAuthState(){
-  // ถ้ามี pending registration ใน localStorage → แสดง pending screen
-  const pending = (() => { try { return JSON.parse(localStorage.getItem('ss_org_pending')); } catch(e){ return null; } })();
-  if(pending){
-    document.getElementById('gatePending').classList.add('show');
-    document.getElementById('pendingRef').textContent = pending.ref || pending.org;
-    return false;
-  }
-
   try {
     const user = await Auth.getUser();
     if(!user){
-      document.getElementById('gateLogin').classList.add('show');
+      // ไม่ได้ login — เช็ค localStorage pending
+      const pending = (() => { try { return JSON.parse(localStorage.getItem('ss_org_pending')); } catch(e){ return null; } })();
+      if(pending){
+        document.getElementById('gatePending').classList.add('show');
+        document.getElementById('pendingRef').textContent = pending.ref || pending.org;
+      } else {
+        document.getElementById('gateLogin').classList.add('show');
+      }
       return false;
     }
+    // Login แล้ว — ล้าง localStorage pending แล้วเช็ค status จาก DB
+    localStorage.removeItem('ss_org_pending');
     _orgProfile = await Organizers.getMyProfile();
     if(!_orgProfile){
       document.getElementById('gateLogin').classList.add('show');
