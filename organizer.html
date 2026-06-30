@@ -911,7 +911,7 @@ async function submitRegister(){
 
 async function resetRegistration(){
   if(!confirm('ออกจากระบบ?')) return;
-  await Auth.signOut();
+  try { await Auth.signOut(); } catch(e){}
   location.href = 'safesummit.html';
 }
 function showGate(id){
