@@ -286,7 +286,10 @@ footer .foot-grid li a:hover{opacity:1;color:var(--accent-gold);}
 .foot-bottom{color:var(--line-muted);}
 .foot-bottom span:first-child{color:var(--text-light);opacity:.85;}
 
-@media (max-width:760px){ .login-menu{right:auto;left:0;} }
+@media (max-width:760px){
+  .login-menu{right:0;left:auto;min-width:180px;max-width:calc(100vw - 20px);}
+  .login-menu a{font-size:13px;padding:10px 12px;}
+}
 
 @media (max-width:640px){
   .wrap{padding:0 14px;}
