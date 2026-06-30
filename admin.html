@@ -357,7 +357,7 @@ h1,h2,h3{font-family:'Kanit',sans-serif;}
         <div class="tscroll">
           <table>
             <thead><tr>
-              <th>ชื่อทริป</th><th>ผู้จัด</th><th>วันเดินทาง</th>
+              <th>ชื่อทริป</th><th>จังหวัด</th><th>ผู้จัด</th><th>วันเดินทาง</th>
               <th>ที่นั่ง</th><th>ราคา/คน</th><th>ยอดรวม</th><th>สถานะ</th><th style="text-align:right">จัดการ</th>
             </tr></thead>
             <tbody id="tripRows"></tbody>
@@ -832,7 +832,8 @@ function renderTrips(){
     const orgName = t.org || t.organizer_name || '–';
     const badge = t.badge || t.badge_tier || '–';
     return `<tr${t.status==='draft'?' style="background:rgba(226,103,43,.05);"':''}>
-      <td><div class="d-name">${tripName(t)}</div><div class="d-sub">${t.prov||'–'}</div></td>
+      <td><div class="d-name">${tripName(t)}</div></td>
+      <td class="d-muted">${t.province||t.prov||'–'}</td>
       <td class="d-muted"><div class="d-name" style="font-size:13px;">${orgName}</div><div class="d-sub">${badge}</div></td>
       <td class="d-muted">${fmtDate(t.start_date||t.date)}</td>
       <td><span style="font-family:'Bai Jamjuree',monospace;font-size:13px">${t.status==='completed'&&t.actual!=null?t.actual+' ไปจริง':(t.booked_count||t.booked||0)+'/'+(t.capacity||t.cap||0)}</span><div class="seatbar"><i style="width:${pct}%"></i></div></td>
