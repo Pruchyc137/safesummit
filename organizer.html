@@ -458,9 +458,18 @@ h1,h2,h3,h4{font-family:'Kanit',sans-serif;}
         </div>
       </div>
 
-      <div id="addSuccess" style="display:none;" class="success-banner">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-        <div><strong id="addSuccessTitle">ลงทะเบียนทริปสำเร็จ!</strong><span id="addSuccessSub">ทริปของคุณอยู่ระหว่างรอการอนุมัติ จะปรากฎบนแพลตฟอร์มภายใน 24 ชั่วโมง</span></div>
+      <!-- SUCCESS STATE -->
+      <div id="addSuccess" style="display:none;flex-direction:column;align-items:center;text-align:center;padding:60px 24px;">
+        <div style="width:72px;height:72px;background:#E8F5E9;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:20px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2.5" width="36" height="36"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </div>
+        <h2 style="margin:0 0 8px;font-size:22px;">ทริปของคุณได้รับการลงทะเบียนแล้ว</h2>
+        <p style="color:var(--text-muted);margin:0 0 6px;" id="addSuccessTitle"></p>
+        <p style="color:var(--text-muted);font-size:13px;margin:0 0 32px;">ทริปอยู่ระหว่างรอการอนุมัติจาก Admin จะปรากฏบนแพลตฟอร์มภายใน 24 ชั่วโมง</p>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;">
+          <button class="btn btn-ghost" onclick="showPage('my-trips',document.querySelectorAll('.nav-item')[1])">← กลับหน้าหลัก</button>
+          <button class="btn btn-primary" onclick="document.getElementById('addSuccess').style.display='none';document.getElementById('addTripForm').style.display='block'">+ เพิ่มทริปต่อไป</button>
+        </div>
       </div>
 
       <div class="form-wrap" id="addTripForm">
@@ -997,24 +1006,74 @@ function renderMyTrips(){
     const pct=Math.round((t.booked||0)/t.cap*100);
     return `<tr>
       <td><div class="d-name">${t.name_th||t.name?.th||t.name||'–'}</div><div class="d-sub">${t.province||t.prov||''}</div></td>
-      <td class="d-muted">${fmtDate(t.date)}</td>
-      <td><span class="d-money">${fmtMoney(t.price)}</span></td>
-      <td>
-        <div style="font-size:12.5px;margin-bottom:4px;">${t.booked||0}/${t.cap} (${pct}%)</div>
-        <div class="seats-bar-wrap"><div class="seats-bar-fill" style="width:${pct}%"></div></div>
-      </td>
-      <td><span class="d-money">${fmtMoney((t.booked||0)*(t.price||0))}</span></td>
+      <td class="d-muted">${fmtDate(t.start_date||t.date)}</td>
+      <td><span class="d-money">${fmtMoney(t.price_per_person||t.price)}</span></td>
+      <td><span style="font-size:13px;font-weight:600;">${t.booked_count||t.booked||0}/${t.capacity||t.cap} ที่นั่ง</span></td>
+      <td><span class="d-money">${fmtMoney((t.booked_count||t.booked||0)*(t.price_per_person||t.price||0))}</span></td>
       <td><span class="pill ${STATUS_CLASS[t.status]||'open'}">${STATUS_TH[t.status]||t.status}</span></td>
       <td class="row-acts">
-        <button class="icon-btn danger" onclick="deleteTrip('${t.id}')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6m5 0V4h4v2"/></svg>
-          ลบ
-        </button>
+        <button class="icon-btn" onclick="openTripDetail('${t.id}')">ดู</button>
+        <button class="icon-btn" onclick="openEditTrip('${t.id}')">แก้ไข</button>
+        <button class="icon-btn danger" onclick="openCancelTrip('${t.id}')">ยกเลิก</button>
       </td>
     </tr>`;
   }).join('');
 }
 
+function openTripDetail(id){
+  const t=TRIPS.find(x=>x.id===id); if(!t) return;
+  window.open('trip.html?id='+id,'_blank');
+}
+let _editTripId=null;
+function openEditTrip(id){
+  const t=TRIPS.find(x=>x.id===id); if(!t) return;
+  _editTripId=id;
+  document.getElementById('et-name').value=t.name_th||'';
+  document.getElementById('et-date').value=t.start_date||t.date||'';
+  document.getElementById('et-price').value=t.price_per_person||t.price||'';
+  document.getElementById('et-cap').value=t.capacity||t.cap||'';
+  document.getElementById('et-desc').value=t.description||'';
+  document.getElementById('et-reason').value='';
+  document.getElementById('modalEditTrip').style.display='flex';
+}
+async function submitEditTrip(){
+  if(!_editTripId) return;
+  const reason=document.getElementById('et-reason').value.trim();
+  if(!reason){ toast('กรุณาระบุเหตุผลในการแก้ไข'); return; }
+  const update={
+    name_th: document.getElementById('et-name').value.trim(),
+    start_date: document.getElementById('et-date').value,
+    price_per_person: parseInt(document.getElementById('et-price').value)||0,
+    capacity: parseInt(document.getElementById('et-cap').value)||0,
+    description: document.getElementById('et-desc').value.trim(),
+    status: 'draft',
+    note: '[ขอแก้ไข] '+reason,
+  };
+  const { error } = await db.from('trips').update(update).eq('id',_editTripId);
+  if(error){ toast('บันทึกไม่สำเร็จ'); return; }
+  const t=TRIPS.find(x=>x.id===_editTripId);
+  if(t) Object.assign(t,update);
+  document.getElementById('modalEditTrip').style.display='none';
+  renderMyTrips(); toast('ส่งคำขอแก้ไขแล้ว รอ Admin อนุมัติ ✓');
+}
+function openCancelTrip(id){
+  const t=TRIPS.find(x=>x.id===id); if(!t) return;
+  _editTripId=id;
+  document.getElementById('ct-tripname').textContent=t.name_th||t.name||'';
+  document.getElementById('ct-reason').value='';
+  document.getElementById('modalCancelTrip').style.display='flex';
+}
+async function submitCancelTrip(){
+  if(!_editTripId) return;
+  const reason=document.getElementById('ct-reason').value.trim();
+  if(!reason){ toast('กรุณาระบุเหตุผล'); return; }
+  const { error } = await db.from('trips').update({ status:'cancelled', note:'[ขอยกเลิก] '+reason }).eq('id',_editTripId);
+  if(error){ toast('บันทึกไม่สำเร็จ'); return; }
+  const t=TRIPS.find(x=>x.id===_editTripId);
+  if(t){ t.status='cancelled'; t.note='[ขอยกเลิก] '+reason; }
+  document.getElementById('modalCancelTrip').style.display='none';
+  renderMyTrips(); toast('ส่งคำขอยกเลิกแล้ว รอ Admin อนุมัติ ✓');
+}
 function deleteTrip(id){
   if(!confirm('ยืนยันลบทริปนี้?')) return;
   TRIPS=TRIPS.filter(t=>t.id!==id);
@@ -1172,11 +1231,13 @@ async function submitTrip(){
     if(error) throw error;
 
     TRIPS.unshift(data);
-    document.getElementById('addSuccessTitle').textContent='ลงทะเบียน "'+fullName+'" สำเร็จ!';
+    document.getElementById('addSuccessTitle').textContent='"'+fullName+'" รอการอนุมัติจาก Admin';
+    document.getElementById('addTripForm').style.display='none';
     document.getElementById('addSuccess').style.display='flex';
-    document.getElementById('addTripForm').scrollIntoView({behavior:'smooth'});
+    window.scrollTo({top:0,behavior:'smooth'});
     const st=document.getElementById('sideMyTrips');
     if(st) st.textContent=TRIPS.length;
+    renderMyTrips(); renderOverview();
     toast('เพิ่มทริปสำเร็จ ✓');
     clearForm();
   } catch(e){
@@ -1195,5 +1256,42 @@ function toast(msg){
 
 load().then(ok => { if(ok !== false) renderOverview(); });
 </script>
+
+<!-- MODAL: แก้ไขทริป -->
+<div id="modalEditTrip" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:900;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#fff;border-radius:16px;padding:32px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;">
+    <h2 style="margin:0 0 4px;font-size:18px;">ขอแก้ไขทริป</h2>
+    <p style="color:var(--text-muted);font-size:13px;margin:0 0 20px;">การแก้ไขจะส่งให้ Admin อนุมัติก่อนมีผล</p>
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <div><label class="form-label">ชื่อทริป</label><input class="form-input" id="et-name"></div>
+      <div><label class="form-label">วันเดินทาง</label><input class="form-input" type="date" id="et-date"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div><label class="form-label">ราคา/คน (บาท)</label><input class="form-input" type="number" id="et-price"></div>
+        <div><label class="form-label">จำนวนที่นั่ง</label><input class="form-input" type="number" id="et-cap"></div>
+      </div>
+      <div><label class="form-label">รายละเอียด</label><textarea class="form-input" id="et-desc" rows="3" style="resize:vertical;"></textarea></div>
+      <div><label class="form-label">เหตุผลในการแก้ไข *</label><input class="form-input" id="et-reason" placeholder="ระบุเหตุผล เช่น เปลี่ยนวันเดินทาง..."></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:24px;justify-content:flex-end;">
+      <button class="btn btn-ghost" onclick="document.getElementById('modalEditTrip').style.display='none'">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="submitEditTrip()">ส่งคำขอแก้ไข</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: ขอยกเลิกทริป -->
+<div id="modalCancelTrip" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:900;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#fff;border-radius:16px;padding:32px;width:100%;max-width:460px;">
+    <h2 style="margin:0 0 4px;font-size:18px;color:#C0392B;">ขอยกเลิกทริป</h2>
+    <p style="color:var(--text-muted);font-size:13px;margin:0 0 6px;">ทริป: <strong id="ct-tripname"></strong></p>
+    <p style="color:var(--text-muted);font-size:13px;margin:0 0 20px;">คำขอยกเลิกจะส่งให้ Admin อนุมัติก่อนมีผล</p>
+    <div><label class="form-label">เหตุผลในการยกเลิก *</label><textarea class="form-input" id="ct-reason" rows="3" placeholder="ระบุเหตุผล เช่น จำนวนผู้สมัครไม่ถึงขั้นต่ำ..." style="resize:vertical;"></textarea></div>
+    <div style="display:flex;gap:10px;margin-top:24px;justify-content:flex-end;">
+      <button class="btn btn-ghost" onclick="document.getElementById('modalCancelTrip').style.display='none'">ปิด</button>
+      <button class="btn" style="background:#C0392B;color:#fff;" onclick="submitCancelTrip()">ส่งคำขอยกเลิก</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
