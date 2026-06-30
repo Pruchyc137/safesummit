@@ -338,8 +338,26 @@ h1,h2,h3{font-family:'Kanit',sans-serif;}
       <div class="tab-row" id="tripTabs"></div>
 
       <div class="toolbar">
-        <div class="toolbar-left">
+        <div class="toolbar-left" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
           <input class="search-input" id="tripSearch" placeholder="ค้นหาทริป หรือผู้จัด…" oninput="renderTrips()">
+          <select id="tripFilterYear" onchange="renderTrips()" style="height:36px;padding:0 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--card);color:var(--text);cursor:pointer;">
+            <option value="">ทุกปี</option>
+          </select>
+          <select id="tripFilterMonth" onchange="renderTrips()" style="height:36px;padding:0 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--card);color:var(--text);cursor:pointer;">
+            <option value="">ทุกเดือน</option>
+            <option value="01">มกราคม</option>
+            <option value="02">กุมภาพันธ์</option>
+            <option value="03">มีนาคม</option>
+            <option value="04">เมษายน</option>
+            <option value="05">พฤษภาคม</option>
+            <option value="06">มิถุนายน</option>
+            <option value="07">กรกฎาคม</option>
+            <option value="08">สิงหาคม</option>
+            <option value="09">กันยายน</option>
+            <option value="10">ตุลาคม</option>
+            <option value="11">พฤศจิกายน</option>
+            <option value="12">ธันวาคม</option>
+          </select>
         </div>
         <div style="display:flex;gap:8px;">
           <button class="btn btn-export" onclick="exportTrips()">
@@ -795,6 +813,7 @@ function renderOverview(){
 // ===== TRIPS =====
 const TRIP_TABS = [
   {key:'all',label:'ทั้งหมด',match:()=>true},
+  {key:'draft',label:'รออนุมัติ',match:t=>t.status==='draft'},
   {key:'open',label:'เปิดรับจอง',match:t=>t.status==='open'},
   {key:'full',label:'เต็มแล้ว',match:t=>t.status==='full'},
   {key:'ongoing',label:'กำลังเดินทาง',match:t=>t.status==='ongoing'},
@@ -804,15 +823,29 @@ const TRIP_TABS = [
 
 function renderTrips(){
   const q = (document.getElementById('tripSearch')||{}).value||'';
-  // tabs
+  const selYear = (document.getElementById('tripFilterYear')||{}).value||'';
+  const selMonth = (document.getElementById('tripFilterMonth')||{}).value||'';
+
+  // populate year dropdown from trip dates
+  const yearEl = document.getElementById('tripFilterYear');
+  if(yearEl){
+    const years = [...new Set(TRIPS.map(t=>(t.start_date||t.date||'').slice(0,4)).filter(Boolean))].sort((a,b)=>b-a);
+    const cur = yearEl.value;
+    yearEl.innerHTML = '<option value="">ทุกปี</option>' + years.map(y=>`<option value="${y}"${cur===y?' selected':''}>${parseInt(y)+543}</option>`).join('');
+  }
+
+  // tabs (count before year/month filter so badge shows real total)
   document.getElementById('tripTabs').innerHTML = TRIP_TABS.map(tab=>{
     const n = TRIPS.filter(tab.match).length;
     return `<button class="tab-btn ${tripTabKey===tab.key?'active':''}" onclick="setTripTab('${tab.key}')">${tab.label}<span class="cnt">${n}</span></button>`;
   }).join('');
+
   // rows
   const def = TRIP_TABS.find(t=>t.key===tripTabKey);
   let list = TRIPS.filter(def.match);
-  if(q) list = list.filter(t=>tripName(t).includes(q)||t.org.includes(q)||t.prov.includes(q));
+  if(q) list = list.filter(t=>tripName(t).includes(q)||(t.org||'').includes(q)||(t.province||t.prov||'').includes(q));
+  if(selYear) list = list.filter(t=>(t.start_date||t.date||'').startsWith(selYear));
+  if(selMonth) list = list.filter(t=>(t.start_date||t.date||'').slice(5,7)===selMonth);
   // draft (รออนุมัติ) ขึ้นก่อน แล้วเรียงตามวันที่
   list = list.sort((a,b)=>{
     if(a.status==='draft' && b.status!=='draft') return -1;
