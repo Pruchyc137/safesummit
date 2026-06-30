@@ -219,6 +219,11 @@ canvas#qrCanvas{display:block;}
 
     <!-- STEP 1: BOOKING INFO -->
     <div class="step-content active" id="sc1">
+      <div id="loginBanner" style="display:none;align-items:center;gap:12px;background:#FDF6E3;border:1px solid rgba(201,162,75,.45);border-radius:12px;padding:14px 16px;margin-bottom:16px;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#A07A1E" stroke-width="1.8" style="flex-shrink:0;"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        <div style="flex:1;font-size:13.5px;color:#7A5E1A;">เข้าสู่ระบบก่อนจอง เพื่อบันทึกการจองไว้ใน "ทริปของฉัน"</div>
+        <button onclick="goLoginFromBooking()" style="background:var(--accent-trail);color:#fff;border:none;border-radius:8px;padding:9px 16px;font-family:'Sarabun',sans-serif;font-weight:700;font-size:13.5px;cursor:pointer;white-space:nowrap;">เข้าสู่ระบบ</button>
+      </div>
       <div class="panel">
         <div class="panel-head">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -531,6 +536,7 @@ function goStep(n){
 
 function goStep2(){
   if(!trip){ toast('ไม่พบข้อมูลทริป'); return; }
+  if(!BOOKING_USER){ toast('กรุณาเข้าสู่ระบบก่อนจอง'); goLoginFromBooking(); return; }
   const fname=document.getElementById('f-fname').value.trim();
   const lname=document.getElementById('f-lname').value.trim();
   const email=document.getElementById('f-email').value.trim();
@@ -729,10 +735,34 @@ function toast(msg){
   clearTimeout(toastTimer); toastTimer=setTimeout(()=>{ el.style.opacity='0'; el.style.transform='translateX(-50%) translateY(20px)'; },2800);
 }
 
+// ===== AUTH =====
+let BOOKING_USER = null;
+function goLoginFromBooking(){
+  const next = encodeURIComponent(location.pathname.split('/').pop() + location.search);
+  location.href = 'login.html?next=' + next;
+}
+async function initBookingAuth(){
+  try { const { data } = await db.auth.getUser(); BOOKING_USER = data?.user || null; } catch(e){}
+  if(BOOKING_USER){
+    // prefill จากโปรไฟล์
+    let prof = {};
+    try { const { data } = await db.from('users').select('full_name,phone,email').eq('id', BOOKING_USER.id).single(); if(data) prof = data; } catch(e){}
+    const parts = (prof.full_name||'').trim().split(/\s+/);
+    if(parts[0]) document.getElementById('f-fname').value = parts[0];
+    if(parts.length>1) document.getElementById('f-lname').value = parts.slice(1).join(' ');
+    document.getElementById('f-email').value = prof.email || BOOKING_USER.email || '';
+    if(prof.phone) document.getElementById('f-phone').value = prof.phone;
+  } else {
+    const b = document.getElementById('loginBanner');
+    if(b) b.style.display = 'flex';
+  }
+}
+
 // ===== INIT =====
 const _tripId = getTripId();
 if(_tripId) {
   loadTripFromDB(_tripId);
+  initBookingAuth();
 } else {
   document.getElementById('tripSummaryBody').innerHTML='<p style="color:#C0552F;font-size:14px;padding:8px 0;">ไม่พบ ID ทริป — <a href="safesummit.html" style="color:var(--accent-trail)">กลับหน้าแรก</a></p>';
 }

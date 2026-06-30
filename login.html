@@ -139,6 +139,16 @@ const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let currentRole = 'customer';
 
+// ?next= redirect target (same-site relative paths only)
+function getNext(){
+  const n = new URLSearchParams(location.search).get('next');
+  if(!n) return null;
+  const dec = decodeURIComponent(n);
+  // block absolute URLs / protocol-relative to avoid open redirect
+  if(/^(https?:)?\/\//i.test(dec) || dec.includes('://')) return null;
+  return dec;
+}
+
 function switchTab(role, el){
   currentRole = role;
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -156,7 +166,8 @@ async function doLogin(){
   if(!email || !pw){ err.textContent = 'กรุณากรอกอีเมลและรหัสผ่าน'; err.style.display = 'block'; return; }
   const { data, error } = await db.auth.signInWithPassword({ email, password: pw });
   if(error){ err.textContent = 'อีเมลหรือรหัสผ่านไม่ถูกต้อง'; err.style.display = 'block'; return; }
-  location.href = currentRole === 'organizer' ? 'organizer.html' : 'safesummit.html';
+  const next = getNext();
+  location.href = next ? next : (currentRole === 'organizer' ? 'organizer.html' : 'safesummit.html');
 }
 
 async function doGoogle(){
