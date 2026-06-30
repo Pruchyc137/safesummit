@@ -742,23 +742,26 @@ function seedIdxFromUUID(uuid){
   return parseInt(last,16)||0;
 }
 function mapSupabaseTrip(r){
-  const idx = seedIdxFromUUID(r.id);
-  const seed = SEED_TRIPS.find(s=>s.id===`t${idx}`) || {};
+  // ใช้ seed ถ้าเป็น ID รูปแบบ "00000xxx-..." เท่านั้น (seed trips ที่ migrate ขึ้น Supabase)
+  const isSeedFormat = /^00000/.test(r.id);
+  const idx = isSeedFormat ? seedIdxFromUUID(r.id) : 0;
+  const seed = isSeedFormat ? (SEED_TRIPS.find(s=>s.id===`t${idx}`) || {}) : {};
+  const nameTh = r.name_th || seed.name?.th || '';
   return {
     id: r.id,
-    name: seed.name || {th:r.name_th||'',en:r.name_th||''},
-    org: seed.org||'',
-    region: r.region||seed.region||'',
-    prov: r.province||seed.prov||'',
-    date: r.start_date||seed.date||'',
-    cap: r.capacity||seed.cap||0,
-    booked: r.booked_count||seed.booked||0,
-    price: parseFloat(r.price_per_person)||seed.price||0,
-    status: r.status||seed.status||'open',
-    badge: seed.badge||'Verified Basic',
-    rating: r.avg_rating||seed.rating||null,
-    img: r.image_url||seed.img||null,
-    scene: seed.scene||'peak',
+    name: seed.name || {th: nameTh, en: r.name_en || nameTh},
+    org: r.organizer_name || seed.org || '',
+    region: r.region || seed.region || 'north',
+    prov: r.province || seed.prov || '',
+    date: r.start_date || seed.date || '',
+    cap: r.capacity || seed.cap || 0,
+    booked: r.booked_count || seed.booked || 0,
+    price: parseFloat(r.price_per_person) || seed.price || 0,
+    status: r.status || seed.status || 'open',
+    badge: r.organizer_badge || seed.badge || 'Verified Basic',
+    rating: r.avg_rating || seed.rating || null,
+    img: r.image_url || seed.img || null,
+    scene: seed.scene || ({north:'peak',northeast:'sunrise',south:'forest',west:'forest',east:'forest',central:'sunrise'}[r.region||'north']||'peak'),
   };
 }
 
@@ -768,8 +771,8 @@ async function loadTrips(){
   if(typeof db !== 'undefined'){
     try{
       const { data, error } = await db.from('trips')
-        .select('id,name_th,price_per_person,capacity,booked_count,start_date,region,province,status,image_url')
-        .in('status',['open','full','ongoing','completed'])
+        .select('id,name_th,name_en,price_per_person,capacity,booked_count,start_date,region,province,status,image_url,avg_rating,organizer_name,organizer_badge')
+        .in('status',['open','full'])
         .order('start_date');
       if(!error && data && data.length>0){
         TRIPS = data.map(mapSupabaseTrip);
