@@ -1170,6 +1170,21 @@ function dToast(msg){
   clearTimeout(dToastTimer); dToastTimer=setTimeout(()=>{ dToastEl.style.opacity='0'; dToastEl.style.transform='translateX(-50%) translateY(20px)'; },2400);
 }
 
+// ===== AUTH LOGIN =====
+async function handleSiteLogin(){
+  const email = document.getElementById('login-email').value.trim();
+  const pw = document.getElementById('login-password').value;
+  if(!email||!pw){ alert('กรุณากรอก email และ รหัสผ่าน'); return; }
+  const loginRole = document.querySelector('#overlay-login #tab-organizer.active') ? 'organizer' : 'customer';
+  if(loginRole === 'organizer'){
+    location.href = 'organizer.html';
+    return;
+  }
+  const { error } = await db.auth.signInWithPassword({ email, password: pw });
+  if(error){ alert('อีเมลหรือรหัสผ่านไม่ถูกต้อง'); return; }
+  closeAuth();
+}
+
 // ===== AUTH REGISTER =====
 let _regRole = 'customer';
 function setRole(role){
@@ -1241,17 +1256,17 @@ async function handleRegister(){
 
   <div class="field">
     <label data-th="อีเมล" data-en="Email">อีเมล</label>
-    <input type="email" placeholder="you@example.com">
+    <input type="email" id="login-email" placeholder="you@example.com">
   </div>
   <div class="field">
     <label data-th="รหัสผ่าน" data-en="Password">รหัสผ่าน</label>
-    <input type="password" placeholder="••••••••">
+    <input type="password" id="login-password" placeholder="••••••••">
   </div>
   <div class="row-between">
     <label><input type="checkbox"> <span data-th="จดจำฉันไว้" data-en="Remember me">จดจำฉันไว้</span></label>
     <a href="#" onclick="return false" data-th="ลืมรหัสผ่าน?" data-en="Forgot password?">ลืมรหัสผ่าน?</a>
   </div>
-  <button class="btn-primary" data-th="เข้าสู่ระบบ" data-en="Log in">เข้าสู่ระบบ</button>
+  <button class="btn-primary" onclick="handleSiteLogin()" data-th="เข้าสู่ระบบ" data-en="Log in">เข้าสู่ระบบ</button>
 
   <div class="divider" data-th="หรือเข้าสู่ระบบด้วย" data-en="or continue with">หรือเข้าสู่ระบบด้วย</div>
   <div class="social">
