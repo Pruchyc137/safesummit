@@ -912,9 +912,7 @@ async function submitRegister(){
 async function resetRegistration(){
   if(!confirm('ออกจากระบบ?')) return;
   await Auth.signOut();
-  document.querySelectorAll('.gate').forEach(g=>g.classList.remove('show'));
-  document.getElementById('mainLayout').style.display='none';
-  document.getElementById('gateLogin').classList.add('show');
+  location.href = 'safesummit.html';
 }
 function showGate(id){
   document.querySelectorAll('.gate').forEach(g=>g.classList.remove('show'));
