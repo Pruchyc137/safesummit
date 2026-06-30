@@ -962,7 +962,11 @@ function switchLang(lang, btn){
 function toggleLogin(e){ if(e) e.preventDefault(); document.getElementById('loginWrap').classList.toggle('open'); }
 
 // ===== ROLE MODAL =====
-const ADMIN_CODES = ['SUMMIT2026','TRAILBOSS99','ALPHAADMIN7'];
+const ADMIN_ACCOUNTS = [
+  {id:'admin001', pwd:'SafeSummit@2026'},
+  {id:'admin002', pwd:'TrailBoss@99'},
+  {id:'admin003', pwd:'AlphaAdmin@7'},
+];
 
 function openRoleModal(e){
   if(e) e.preventDefault();
@@ -992,16 +996,18 @@ function selectRole(role){
   }
 }
 function verifyAdminCode(){
-  const code = document.getElementById('adminPasscode').value.trim();
-  if(ADMIN_CODES.includes(code)){
+  const id = (document.getElementById('adminId').value||'').trim();
+  const pwd = (document.getElementById('adminPwd').value||'').trim();
+  const match = ADMIN_ACCOUNTS.find(a=>a.id===id && a.pwd===pwd);
+  const err = document.getElementById('adminCodeErr');
+  if(match){
     closeRoleModal();
     location.href='admin.html';
   } else {
-    const err = document.getElementById('adminCodeErr');
-    err.textContent='รหัสไม่ถูกต้อง กรุณาลองใหม่';
+    err.textContent = !id||!pwd ? 'กรุณากรอก ID และ Password' : 'ID หรือ Password ไม่ถูกต้อง';
     err.style.display='block';
-    document.getElementById('adminPasscode').value='';
-    document.getElementById('adminPasscode').focus();
+    document.getElementById('adminPwd').value='';
+    document.getElementById('adminPwd').focus();
   }
 }
 document.addEventListener('click', function(e){
@@ -1524,23 +1530,30 @@ setTimeout(()=>{ const s=document.getElementById('searchQ'); if(s) s.value=''; }
         </div>
       </div>
 
-      <!-- STEP 2: Admin Passcode -->
+      <!-- STEP 2: Admin Login -->
       <div id="roleStep2" style="display:none;">
         <button onclick="document.getElementById('roleStep2').style.display='none';document.getElementById('roleStep1').style.display='block';" style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text-muted);background:none;border:none;cursor:pointer;margin-bottom:24px;padding:0;">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>เปลี่ยน Role
         </button>
-        <div style="text-align:center;margin-bottom:28px;">
-          <div style="width:56px;height:56px;border-radius:50%;background:#FDF8EE;border:2px solid #C9A24B;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#C9A24B" stroke-width="1.8"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <div style="background:#fff;border-radius:18px;box-shadow:0 12px 40px rgba(40,28,18,.14);padding:36px 32px;">
+          <div style="text-align:center;margin-bottom:28px;">
+            <div style="width:54px;height:54px;border-radius:50%;background:#FDF8EE;border:2px solid #C9A24B;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#C9A24B" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            </div>
+            <div style="font-family:'Kanit',sans-serif;font-size:20px;font-weight:700;color:var(--text-dark);margin-bottom:4px;">เข้าสู่ระบบ Admin</div>
+            <p style="font-size:13.5px;color:var(--text-muted);">สำหรับผู้ดูแลระบบ SafeSummit เท่านั้น</p>
           </div>
-          <div style="font-family:'Kanit',sans-serif;font-size:20px;font-weight:700;color:var(--text-dark);margin-bottom:4px;">รหัสผ่าน Admin</div>
-          <p style="font-size:13.5px;color:var(--text-muted);">กรอกรหัสที่ได้รับจาก SafeSummit</p>
+          <div style="margin-bottom:14px;">
+            <label style="display:block;font-size:12.5px;font-weight:600;color:var(--text-dark);margin-bottom:6px;">Admin ID <span style="color:#C0552F;">*</span></label>
+            <input id="adminId" type="text" placeholder="กรอก Admin ID" autocomplete="off" style="width:100%;padding:13px 15px;border:1.5px solid #E0D5BD;border-radius:10px;font-family:'Sarabun',sans-serif;font-size:15px;background:#FCFAF3;color:var(--text-dark);outline:none;" onkeydown="if(event.key==='Enter')document.getElementById('adminPwd').focus()">
+          </div>
+          <div style="margin-bottom:20px;">
+            <label style="display:block;font-size:12.5px;font-weight:600;color:var(--text-dark);margin-bottom:6px;">Password <span style="color:#C0552F;">*</span></label>
+            <input id="adminPwd" type="password" placeholder="กรอก Password" style="width:100%;padding:13px 15px;border:1.5px solid #E0D5BD;border-radius:10px;font-family:'Sarabun',sans-serif;font-size:15px;background:#FCFAF3;color:var(--text-dark);outline:none;" onkeydown="if(event.key==='Enter')verifyAdminCode()">
+          </div>
+          <div id="adminCodeErr" style="display:none;text-align:center;font-size:13px;color:#C0552F;margin-bottom:12px;padding:10px;background:#FEF0EE;border-radius:8px;"></div>
+          <button onclick="verifyAdminCode()" style="width:100%;background:var(--accent-gold);color:var(--bg-deep);border:none;border-radius:10px;padding:14px;font-family:'Sarabun',sans-serif;font-weight:700;font-size:15.5px;cursor:pointer;box-shadow:0 8px 20px rgba(201,162,75,.3);">เข้าสู่ระบบ</button>
         </div>
-        <div style="margin-bottom:16px;">
-          <input id="adminPasscode" type="password" placeholder="กรอกรหัส Admin" style="width:100%;padding:14px 16px;border:1.5px solid #E0D5BD;border-radius:12px;font-family:'Sarabun',sans-serif;font-size:16px;background:#fff;color:var(--text-dark);outline:none;text-align:center;letter-spacing:.12em;" onkeydown="if(event.key==='Enter')verifyAdminCode()">
-        </div>
-        <div id="adminCodeErr" style="display:none;text-align:center;font-size:13px;color:#C0552F;margin-bottom:12px;"></div>
-        <button onclick="verifyAdminCode()" style="width:100%;background:var(--accent-gold);color:var(--bg-deep);border:none;border-radius:12px;padding:14px;font-family:'Sarabun',sans-serif;font-weight:700;font-size:15.5px;cursor:pointer;">เข้าสู่ระบบ Admin</button>
       </div>
     </div>
   </div>
