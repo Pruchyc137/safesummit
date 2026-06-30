@@ -472,7 +472,7 @@ footer .foot-grid li a:hover{opacity:1;color:var(--accent-gold);}
     <div class="search-mock">
       <div class="field field-search">
         <label data-th="ค้นหาทริป" data-en="Search trips">ค้นหาทริป</label>
-        <input type="text" id="searchQ" autocomplete="off" placeholder="ชื่อทริป หรือจังหวัด…" style="appearance:none;border:none;background:transparent;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:600;color:var(--text-dark);width:100%;padding:0;outline:none;" data-ph-th="ชื่อทริป หรือจังหวัด…" data-ph-en="Trip name or province…">
+        <input type="search" id="searchQ" autocomplete="off" name="trip_search" placeholder="ชื่อทริป หรือจังหวัด…" onfocus="this.value=this.value" style="appearance:none;border:none;background:transparent;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:600;color:var(--text-dark);width:100%;padding:0;outline:none;" data-ph-th="ชื่อทริป หรือจังหวัด…" data-ph-en="Trip name or province…">
       </div>
       <div class="field">
         <label data-th="ช่วงราคา" data-en="Price range">ช่วงราคา</label>
@@ -1236,6 +1236,7 @@ async function handleRegister(){
 
 // ===== INIT =====
 (async function(){ await loadTrips(); updateRegionCounts(); renderTripCards('all','all',''); })();
+setTimeout(()=>{ const s=document.getElementById('searchQ'); if(s) s.value=''; }, 100);
 
 </script>
 
