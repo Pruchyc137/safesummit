@@ -102,7 +102,7 @@ body{font-family:'Sarabun',sans-serif;background:#FAF6EA;min-height:100vh;displa
 
   <div class="row-opts">
     <label class="remember"><input type="checkbox" id="rememberMe"> จดจำฉันไว้</label>
-    <a href="#" class="forgot">ลืมรหัสผ่าน?</a>
+    <a href="#" class="forgot" onclick="doForgot(event)">ลืมรหัสผ่าน?</a>
   </div>
 
   <button class="btn-login" onclick="doLogin()">เข้าสู่ระบบ</button>
@@ -163,6 +163,7 @@ async function doLogin(){
   const pw    = document.getElementById('pwInput').value;
   const err   = document.getElementById('errMsg');
   err.style.display = 'none';
+  err.style.color = ''; err.style.background = '';   // reset จาก doForgot (สีเขียว)
   if(!email || !pw){ err.textContent = 'กรุณากรอกอีเมลและรหัสผ่าน'; err.style.display = 'block'; return; }
   const { data, error } = await db.auth.signInWithPassword({ email, password: pw });
   if(error){ err.textContent = 'อีเมลหรือรหัสผ่านไม่ถูกต้อง'; err.style.display = 'block'; return; }
@@ -190,6 +191,36 @@ async function doLogin(){
 
   const next = getNext();
   location.href = next ? next : (currentRole === 'organizer' ? 'organizer.html' : 'safesummit.html');
+}
+
+async function doForgot(e){
+  if(e) e.preventDefault();
+  const err = document.getElementById('errMsg');
+  err.style.display = 'none';
+  const email = (document.getElementById('emailInput').value||'').trim();
+  if(!email || !email.includes('@')){
+    err.textContent = 'กรุณากรอกอีเมลในช่องด้านบนก่อน แล้วกด "ลืมรหัสผ่าน?" อีกครั้ง';
+    err.style.display = 'block';
+    document.getElementById('emailInput').focus();
+    return;
+  }
+  const link = document.querySelector('.forgot');
+  const orig = link.textContent;
+  link.textContent = 'กำลังส่ง...';
+  try {
+    const redirectTo = location.href.replace(/[^/]*$/, 'reset-password.html');
+    const { error } = await db.auth.resetPasswordForEmail(email, { redirectTo });
+    if(error) throw error;
+    err.textContent = '';
+    err.style.color = '#2A7A4B';
+    err.style.background = '#E8F5EE';
+    err.textContent = 'ส่งลิงก์รีเซ็ตรหัสผ่านไปที่ ' + email + ' แล้ว กรุณาเช็คอีเมล';
+    err.style.display = 'block';
+  } catch(ex){
+    err.textContent = 'ส่งลิงก์ไม่สำเร็จ กรุณาลองใหม่';
+    err.style.display = 'block';
+  }
+  link.textContent = orig;
 }
 
 async function doGoogle(){

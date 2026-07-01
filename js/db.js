@@ -70,13 +70,7 @@ const Bookings = {
     }).select().single();
     if (error) throw error;
 
-    // 4. อัปเดต booked_count ของทริป (best-effort — ถ้า RLS บล็อกจะข้ามไป)
-    try {
-      await db.from('trips')
-        .update({ booked_count: trip.booked_count + seats })
-        .eq('id', tripId);
-    } catch(e) { /* ใช้ DB trigger ฝั่ง Supabase จะแม่นกว่า */ }
-
+    // booked_count อัปเดตอัตโนมัติด้วย DB trigger ฝั่ง Supabase (trg_booking_seats)
     return data;
   },
 

@@ -566,6 +566,14 @@ async function load(){
       .order('booked_at',{ascending:false});
     if(error) throw error;
     BOOKINGS = (data||[]).map(mapBooking);
+    // ทำเครื่องหมายทริปที่รีวิวแล้ว
+    try{
+      const { data: revs } = await db.from('reviews').select('booking_id,rating').eq('user_id', user.id);
+      (revs||[]).forEach(r=>{
+        const b = BOOKINGS.find(x=>x.id===r.booking_id);
+        if(b){ b.reviewed=true; b.rating=r.rating; }
+      });
+    }catch(e){ /* ยังไม่มีตาราง reviews ก็ข้ามไป */ }
   }catch(e){ console.warn('load bookings failed', e); BOOKINGS=[]; }
 }
 function save(){ try{ localStorage.setItem('safesummit:mybookings',JSON.stringify(BOOKINGS)); }catch(e){} }
@@ -845,11 +853,25 @@ function renderStars(n){
   document.getElementById('starRow').innerHTML=[1,2,3,4,5].map(i=>`<button class="star-btn ${i<=n?'active':''}" onclick="renderStars(${i})">★</button>`).join('');
   document.getElementById('starLabel').textContent=STAR_LABEL[n]||'เลือกคะแนน';
 }
-function submitReview(){
+async function submitReview(){
   if(!reviewRating){ toast('กรุณาเลือกคะแนน'); return; }
   const b=BOOKINGS.find(x=>x.id===reviewId); if(!b) return;
+  const comment = (document.getElementById('reviewText').value||'').trim();
+  // บันทึกรีวิวลง Supabase
+  try{
+    if(typeof db!=='undefined'){
+      const { data:{ user } } = await db.auth.getUser();
+      if(user){
+        const { error } = await db.from('reviews').upsert({
+          booking_id: b.id, trip_id: b.tripId, user_id: user.id,
+          rating: reviewRating, comment: comment || null
+        }, { onConflict: 'booking_id' });
+        if(error) throw error;
+      }
+    }
+  }catch(e){ console.error('save review failed', e); toast('บันทึกรีวิวไม่สำเร็จ ลองใหม่'); return; }
   b.reviewed=true; b.rating=reviewRating;
-  save(); refreshAll(); closeModal('modalReview');
+  refreshAll(); closeModal('modalReview');
   toast('ขอบคุณสำหรับรีวิว '+'★'.repeat(reviewRating));
 }
 
