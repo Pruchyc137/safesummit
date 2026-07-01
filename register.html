@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SafeSummit — สมัครสมาชิก</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@600;700;800&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg-light:#FAF6EA; --card-light:#FFFFFF; --bg-card:#F3ECDA;
+  --accent-trail:#E2672B; --accent-gold:#C9A24B;
+  --text-dark:#2B2118; --text-muted:#6B5D4A; --line-muted:#B59A6E;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Sarabun',sans-serif;color:var(--text-dark);background:var(--bg-light);min-height:100vh;padding:28px 16px;}
+a{text-decoration:none;color:inherit;}
+svg{display:block;}
+h1,h2,h3{font-family:'Kanit',sans-serif;}
+
+.wrap{max-width:640px;margin:0 auto;}
+
+/* Header */
+.reg-head{text-align:center;margin-bottom:24px;}
+.logo{display:inline-flex;align-items:center;gap:9px;font-family:'Kanit',sans-serif;font-weight:800;font-size:24px;color:var(--text-dark);margin-bottom:6px;}
+.logo svg{width:30px;height:30px;}
+.reg-head p{font-size:13.5px;color:var(--text-muted);}
+
+/* Card */
+.card{background:var(--card-light);border-radius:18px;padding:28px 26px;box-shadow:0 8px 32px rgba(40,28,18,.12);margin-bottom:18px;}
+.section-title{font-size:15.5px;font-weight:700;color:var(--text-dark);margin-bottom:4px;display:flex;align-items:center;gap:9px;}
+.section-title .num{width:24px;height:24px;border-radius:50%;background:var(--accent-trail);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;}
+.section-sub{font-size:12px;color:var(--line-muted);margin:0 0 18px 33px;}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media(max-width:520px){.grid2{grid-template-columns:1fr;}}
+.field{margin-bottom:14px;}
+.field.full{grid-column:1 / -1;}
+.field label{display:block;font-size:12.5px;font-weight:600;color:var(--text-dark);margin-bottom:6px;}
+.field label .req{color:#C0552F;}
+.field input,.field select,.field textarea{width:100%;padding:12px 14px;border:1.5px solid #E0D5BD;border-radius:10px;font-family:'Sarabun',sans-serif;font-size:14.5px;color:var(--text-dark);background:#FCFAF3;outline:none;transition:.15s;}
+.field textarea{resize:vertical;min-height:64px;}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent-gold);box-shadow:0 0 0 3px rgba(201,162,75,.14);}
+.field .hint{font-size:11.5px;color:var(--line-muted);margin-top:5px;}
+
+.btn{width:100%;border:none;border-radius:11px;padding:15px;font-family:'Sarabun',sans-serif;font-weight:700;font-size:16px;cursor:pointer;transition:.15s;}
+.btn-primary{background:var(--accent-trail);color:#fff;box-shadow:0 10px 24px rgba(226,103,43,.28);}
+.btn-primary:hover{filter:brightness(1.05);}
+.btn-primary:disabled{opacity:.6;cursor:not-allowed;}
+
+.err{display:none;background:#FEF0EE;color:#C0552F;border-radius:10px;padding:12px 16px;font-size:13.5px;margin-bottom:16px;}
+.err.show{display:block;}
+
+.foot-link{text-align:center;font-size:13.5px;color:var(--text-muted);margin-top:8px;}
+.foot-link a{color:var(--accent-trail);font-weight:600;}
+.back{display:flex;align-items:center;justify-content:center;gap:5px;margin-top:16px;font-size:13px;color:var(--text-muted);}
+.back svg{width:14px;height:14px;}
+
+/* Success screen */
+.success{display:none;text-align:center;background:var(--card-light);border-radius:18px;padding:44px 30px;box-shadow:0 8px 32px rgba(40,28,18,.12);}
+.success.show{display:block;}
+.success .badge{width:78px;height:78px;border-radius:50%;background:#E8F5EE;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;}
+.success h2{font-size:22px;font-weight:700;margin-bottom:10px;}
+.success p{font-size:14.5px;color:var(--text-muted);line-height:1.6;margin-bottom:8px;}
+.success .ref-box{background:var(--bg-card);border-radius:12px;padding:16px;margin:22px 0;}
+.success .ref-box .lbl{font-size:12px;color:var(--text-muted);}
+.success .ref-box .val{font-family:'Kanit',sans-serif;font-size:16px;font-weight:700;color:var(--accent-trail);margin-top:3px;word-break:break-all;}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="reg-head">
+    <div class="logo">
+      <svg viewBox="0 0 50 50" fill="none">
+        <polygon points="25,4 46,40 4,40" stroke="#C9A24B" stroke-width="2.5" fill="none"/>
+        <polygon points="25,14 38,38 12,38" fill="rgba(226,103,43,.25)" stroke="#E2672B" stroke-width="1.5"/>
+      </svg>
+      SafeSummit
+    </div>
+    <p>สมัครสมาชิกลูกค้า / นักเดินป่า</p>
+  </div>
+
+  <!-- FORM -->
+  <div id="formArea">
+    <div class="err" id="errMsg"></div>
+
+    <!-- Section 1: Account -->
+    <div class="card">
+      <div class="section-title"><span class="num">1</span> บัญชีเข้าสู่ระบบ</div>
+      <div class="section-sub">ใช้อีเมลและรหัสผ่านนี้เข้าสู่ระบบ</div>
+      <div class="field full">
+        <label>อีเมล <span class="req">*</span></label>
+        <input id="r-email" type="email" placeholder="you@example.com" autocomplete="email">
+      </div>
+      <div class="grid2">
+        <div class="field">
+          <label>รหัสผ่าน <span class="req">*</span></label>
+          <input id="r-pw" type="password" placeholder="อย่างน้อย 6 ตัวอักษร" autocomplete="new-password">
+        </div>
+        <div class="field">
+          <label>ยืนยันรหัสผ่าน <span class="req">*</span></label>
+          <input id="r-pw2" type="password" placeholder="พิมพ์รหัสผ่านอีกครั้ง" autocomplete="new-password">
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 2: Personal -->
+    <div class="card">
+      <div class="section-title"><span class="num">2</span> ข้อมูลส่วนตัว</div>
+      <div class="section-sub">ใช้สำหรับลงทะเบียนเข้าอุทยานและติดต่อ</div>
+      <div class="grid2">
+        <div class="field">
+          <label>ชื่อ-นามสกุล <span class="req">*</span></label>
+          <input id="r-name" type="text" placeholder="ชื่อ นามสกุล">
+        </div>
+        <div class="field">
+          <label>เบอร์โทรศัพท์ <span class="req">*</span></label>
+          <input id="r-phone" type="tel" placeholder="08X-XXX-XXXX">
+        </div>
+        <div class="field">
+          <label>เลขบัตรประชาชน / พาสปอร์ต <span class="req">*</span></label>
+          <input id="r-idcard" type="text" placeholder="เลข 13 หลัก หรือเลขพาสปอร์ต">
+          <div class="hint">ใช้ลงทะเบียนเข้าอุทยานแห่งชาติ</div>
+        </div>
+        <div class="field">
+          <label>สัญชาติ <span class="req">*</span></label>
+          <input id="r-nationality" type="text" placeholder="ไทย" value="ไทย">
+        </div>
+        <div class="field">
+          <label>วันเกิด</label>
+          <input id="r-dob" type="date">
+        </div>
+        <div class="field">
+          <label>เพศ</label>
+          <select id="r-gender">
+            <option value="">— เลือก —</option>
+            <option value="ชาย">ชาย</option>
+            <option value="หญิง">หญิง</option>
+            <option value="อื่นๆ">อื่นๆ / ไม่ระบุ</option>
+          </select>
+        </div>
+        <div class="field full">
+          <label>ที่อยู่</label>
+          <textarea id="r-address" placeholder="บ้านเลขที่ ตำบล อำเภอ จังหวัด รหัสไปรษณีย์"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 3: Health -->
+    <div class="card">
+      <div class="section-title"><span class="num">3</span> ข้อมูลสุขภาพ</div>
+      <div class="section-sub">เพื่อความปลอดภัยระหว่างเดินป่า</div>
+      <div class="grid2">
+        <div class="field">
+          <label>กรุ๊ปเลือด</label>
+          <select id="r-blood">
+            <option value="">— เลือก —</option>
+            <option>A</option><option>B</option><option>AB</option><option>O</option>
+            <option value="ไม่ทราบ">ไม่ทราบ</option>
+          </select>
+        </div>
+        <div class="field full">
+          <label>โรคประจำตัว / ยาที่แพ้ / อาหารที่แพ้</label>
+          <textarea id="r-medical" placeholder="เช่น หอบหืด, แพ้อาหารทะเล, แพ้ยาเพนนิซิลลิน (ถ้าไม่มี ปล่อยว่างได้)"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 4: Emergency contact -->
+    <div class="card">
+      <div class="section-title"><span class="num">4</span> ผู้ติดต่อฉุกเฉิน</div>
+      <div class="section-sub">กรณีเกิดเหตุฉุกเฉินระหว่างเดินทาง</div>
+      <div class="grid2">
+        <div class="field">
+          <label>ชื่อผู้ติดต่อ <span class="req">*</span></label>
+          <input id="r-emg-name" type="text" placeholder="ชื่อ-นามสกุล">
+        </div>
+        <div class="field">
+          <label>เบอร์โทร <span class="req">*</span></label>
+          <input id="r-emg-phone" type="tel" placeholder="08X-XXX-XXXX">
+        </div>
+        <div class="field full">
+          <label>ความสัมพันธ์</label>
+          <input id="r-emg-rel" type="text" placeholder="เช่น บิดา, มารดา, คู่สมรส, เพื่อน">
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="padding:22px;">
+      <button class="btn btn-primary" id="submitBtn" onclick="doRegister()">สมัครสมาชิก</button>
+      <p class="foot-link">มีบัญชีอยู่แล้ว? <a href="login.html">เข้าสู่ระบบ</a></p>
+    </div>
+
+    <a href="safesummit.html" class="back">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+      กลับหน้าแรก
+    </a>
+  </div>
+
+  <!-- SUCCESS -->
+  <div class="success" id="successArea">
+    <div class="badge">
+      <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#2A7A4B" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+    </div>
+    <h2>สมัครสมาชิกสำเร็จ!</h2>
+    <p>ข้อมูลของคุณถูกส่งเรียบร้อยแล้ว</p>
+    <p><b>บัญชีอยู่ระหว่างรอ Admin ตรวจสอบและอนุมัติ</b><br>เมื่ออนุมัติแล้วคุณจะสามารถเข้าสู่ระบบและจองทริปได้</p>
+    <div class="ref-box">
+      <div class="lbl">อีเมลที่ใช้สมัคร</div>
+      <div class="val" id="successEmail">—</div>
+    </div>
+    <a href="safesummit.html" class="btn btn-primary" style="display:block;text-decoration:none;text-align:center;">กลับหน้าแรก</a>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/db.js"></script>
+<script>
+function showErr(msg){
+  const e = document.getElementById('errMsg');
+  e.textContent = msg; e.classList.add('show');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function hideErr(){ document.getElementById('errMsg').classList.remove('show'); }
+const val = id => (document.getElementById(id).value||'').trim();
+
+async function doRegister(){
+  hideErr();
+  const email = val('r-email');
+  const pw    = document.getElementById('r-pw').value;
+  const pw2   = document.getElementById('r-pw2').value;
+  const name  = val('r-name');
+  const phone = val('r-phone');
+  const idcard= val('r-idcard');
+  const nationality = val('r-nationality');
+  const emgName = val('r-emg-name');
+  const emgPhone= val('r-emg-phone');
+
+  // ── validate ──
+  if(!email || !email.includes('@')){ showErr('กรุณากรอกอีเมลให้ถูกต้อง'); return; }
+  if(pw.length < 6){ showErr('รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร'); return; }
+  if(pw !== pw2){ showErr('รหัสผ่านทั้งสองช่องไม่ตรงกัน'); return; }
+  if(!name){ showErr('กรุณากรอกชื่อ-นามสกุล'); return; }
+  if(!phone || phone.length < 9){ showErr('กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง'); return; }
+  if(!idcard){ showErr('กรุณากรอกเลขบัตรประชาชน / พาสปอร์ต'); return; }
+  if(!nationality){ showErr('กรุณากรอกสัญชาติ'); return; }
+  if(!emgName || !emgPhone){ showErr('กรุณากรอกข้อมูลผู้ติดต่อฉุกเฉิน (ชื่อ + เบอร์โทร)'); return; }
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true; btn.textContent = 'กำลังสมัคร...';
+
+  try {
+    // 1. สร้าง auth user (Supabase เก็บรหัสผ่านแบบ hash อย่างปลอดภัย)
+    const { data: signUpData, error: signUpErr } = await db.auth.signUp({
+      email, password: pw,
+      options: { data: { full_name: name, phone } }
+    });
+    if(signUpErr) throw signUpErr;
+    const uid = signUpData?.user?.id;
+    if(!uid) throw new Error('no-user-id');
+
+    // 2. บันทึกโปรไฟล์ + ข้อมูลเข้าอุทยาน + สถานะรออนุมัติ
+    const { error: insErr } = await db.from('users').insert({
+      id: uid,
+      email,
+      password_hash: '-',            // Supabase Auth จัดการรหัสผ่านจริง
+      full_name: name,
+      phone,
+      role: 'customer',
+      status: 'pending',
+      id_card: idcard,
+      nationality,
+      birth_date: val('r-dob') || null,
+      gender: val('r-gender') || null,
+      address: val('r-address') || null,
+      blood_type: val('r-blood') || null,
+      medical_info: val('r-medical') || null,
+      emergency_name: emgName,
+      emergency_phone: emgPhone,
+      emergency_relation: val('r-emg-rel') || null
+    });
+    if(insErr) throw insErr;
+
+    // 3. ออกจากระบบทันที (บัญชียังรออนุมัติ)
+    try { await db.auth.signOut(); } catch(_){}
+
+    // 4. หน้าสำเร็จ
+    document.getElementById('successEmail').textContent = email;
+    document.getElementById('formArea').style.display = 'none';
+    document.getElementById('successArea').classList.add('show');
+    window.scrollTo({top:0,behavior:'smooth'});
+
+  } catch(e){
+    console.error('register error', e);
+    let msg = 'สมัครไม่สำเร็จ กรุณาลองใหม่';
+    if((e.message||'').toLowerCase().includes('already') || e.code==='user_already_exists') msg = 'อีเมลนี้ถูกใช้สมัครแล้ว ลองเข้าสู่ระบบแทน';
+    showErr(msg);
+    btn.disabled = false; btn.textContent = 'สมัครสมาชิก';
+  }
+}
+</script>
+</body>
+</html>

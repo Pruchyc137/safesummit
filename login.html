@@ -121,7 +121,7 @@ body{font-family:'Sarabun',sans-serif;background:#FAF6EA;min-height:100vh;displa
   </div>
 
   <div class="register-row" id="registerRow">
-    ยังไม่มีบัญชี? <a href="#" onclick="switchToRegister(event)">สมัครสมาชิก</a>
+    ยังไม่มีบัญชี? <a href="register.html">สมัครสมาชิก</a>
   </div>
 
   <a href="safesummit.html" class="back">
@@ -166,6 +166,28 @@ async function doLogin(){
   if(!email || !pw){ err.textContent = 'กรุณากรอกอีเมลและรหัสผ่าน'; err.style.display = 'block'; return; }
   const { data, error } = await db.auth.signInWithPassword({ email, password: pw });
   if(error){ err.textContent = 'อีเมลหรือรหัสผ่านไม่ถูกต้อง'; err.style.display = 'block'; return; }
+
+  // ตรวจสถานะอนุมัติ (เฉพาะลูกค้า) — organizer มีระบบ gate ของตัวเองใน organizer.html
+  if(currentRole === 'customer'){
+    let status = 'approved';
+    try {
+      const { data: prof } = await db.from('users').select('status,role').eq('id', data.user.id).single();
+      if(prof && prof.status) status = prof.status;
+    } catch(e){}
+    if(status === 'pending'){
+      await db.auth.signOut();
+      err.textContent = 'บัญชีของคุณกำลังรอ Admin อนุมัติ กรุณารอการยืนยัน';
+      err.style.display = 'block';
+      return;
+    }
+    if(status === 'suspended'){
+      await db.auth.signOut();
+      err.textContent = 'บัญชีของคุณถูกระงับ กรุณาติดต่อผู้ดูแลระบบ';
+      err.style.display = 'block';
+      return;
+    }
+  }
+
   const next = getNext();
   location.href = next ? next : (currentRole === 'organizer' ? 'organizer.html' : 'safesummit.html');
 }
@@ -175,11 +197,6 @@ async function doGoogle(){
 }
 async function doFacebook(){
   await db.auth.signInWithOAuth({ provider:'facebook', options:{ redirectTo: location.origin+'/safesummit/' } });
-}
-function switchToRegister(e){
-  e.preventDefault();
-  // TODO: link to register page or show register form
-  alert('หน้าสมัครสมาชิกอยู่ระหว่างพัฒนา');
 }
 </script>
 </body>

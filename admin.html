@@ -303,6 +303,11 @@ h1,h2,h3{font-family:'Kanit',sans-serif;}
       ผู้จัดทริป
       <span class="badge" id="sideOrgs">2</span>
     </button>
+    <button class="nav-item" onclick="showPage('customers',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      ลูกค้า
+      <span class="badge" id="sideCustomers"></span>
+    </button>
     <button class="nav-item" onclick="showPage('bookings',this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
       การจองลูกค้า
@@ -452,6 +457,35 @@ h1,h2,h3{font-family:'Kanit',sans-serif;}
         <div class="empty" id="orgEmpty" style="display:none;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v2"/></svg>
           <p>ไม่พบผู้จัดในกลุ่มนี้</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======== CUSTOMERS ======== -->
+    <div class="page" id="page-customers">
+      <div class="page-head">
+        <h1>ลูกค้า / นักเดินป่า</h1>
+        <p>ตรวจสอบข้อมูลและอนุมัติสมาชิกลูกค้าที่สมัครเข้ามา</p>
+      </div>
+
+      <div class="tab-row" id="custTabs"></div>
+
+      <div class="toolbar">
+        <input class="search-input" id="custSearch" placeholder="ค้นหาชื่อ / อีเมล / เบอร์…" oninput="renderCustomers()">
+      </div>
+
+      <div class="panel">
+        <div class="tscroll">
+          <table>
+            <thead><tr>
+              <th>ลูกค้า</th><th>เบอร์โทร</th><th>สมัครเมื่อ</th><th>สถานะ</th><th style="text-align:right">จัดการ</th>
+            </tr></thead>
+            <tbody id="custRows"></tbody>
+          </table>
+        </div>
+        <div class="empty" id="custEmpty" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+          <p>ไม่พบลูกค้าในกลุ่มนี้</p>
         </div>
       </div>
     </div>
@@ -672,6 +706,14 @@ h1,h2,h3{font-family:'Kanit',sans-serif;}
 </div>
 
 <!-- APPROVE CONFIRM -->
+<div class="modal-bg" id="modalCust">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-h"><div><h3 id="custModalTitle">ข้อมูลลูกค้า</h3><p>ตรวจสอบข้อมูลก่อนอนุมัติ</p></div><button class="modal-x" onclick="closeModal('modalCust')">×</button></div>
+    <div class="modal-b" id="custModalBody"></div>
+    <div class="modal-foot" id="custModalFoot"></div>
+  </div>
+</div>
+
 <div class="modal-bg" id="modalConfirm">
   <div class="modal" style="max-width:400px;">
     <div class="modal-h"><div><h3 id="confirmTitle">ยืนยัน</h3></div><button class="modal-x" onclick="closeModal('modalConfirm')">×</button></div>
@@ -707,10 +749,11 @@ const SEED_ORGS = [
   {id:'o6',name:'ใต้เส้นทาง',contact:'ธนพล มีสุข',email:'southpath@email.com',phone:'086-789-0123',tier:'Unverified',status:'pending',joinedAt:'2026-06-20',note:'ส่งเอกสารไม่ครบ'},
 ];
 
-let TRIPS = [], ORGS = [];
-let editTripId = null, editOrgId = null, closeTripId = null;
+let TRIPS = [], ORGS = [], CUSTOMERS = [];
+let editTripId = null, editOrgId = null, closeTripId = null, viewCustId = null;
 let tripTabKey = 'all';
 let orgTabKey = 'all';
+let custTabKey = 'pending';
 
 const STORAGE_KEY = 'safesummit:trips';
 const ORG_KEY = 'safesummit:orgs';
@@ -760,6 +803,25 @@ async function load(){
       ORGS = JSON.parse(JSON.stringify(SEED_ORGS));
     }
   } catch(e){ console.error('[admin] organizers catch:', e); ORGS = JSON.parse(JSON.stringify(SEED_ORGS)); }
+
+  // ── ลูกค้า / นักเดินป่า ──
+  try {
+    const { data: users, error: userErr } = await db.from('users')
+      .select('*').eq('role','customer').order('created_at', { ascending:false });
+    if(userErr) console.warn('[admin] customers fetch error:', userErr);
+    CUSTOMERS = (users||[]).map(u => ({
+      id: u.id,
+      name: u.full_name || '–',
+      email: u.email || '–',
+      phone: u.phone || '–',
+      status: u.status || 'approved',          // null = บัญชีเก่า ถือว่าอนุมัติแล้ว
+      joinedAt: u.created_at ? u.created_at.slice(0,10) : '',
+      idCard: u.id_card || '', nationality: u.nationality || '',
+      birthDate: u.birth_date || '', gender: u.gender || '', address: u.address || '',
+      bloodType: u.blood_type || '', medical: u.medical_info || '',
+      emgName: u.emergency_name || '', emgPhone: u.emergency_phone || '', emgRel: u.emergency_relation || '',
+    }));
+  } catch(e){ console.error('[admin] customers catch:', e); CUSTOMERS = []; }
 }
 
 async function saveTrips(t){
@@ -801,6 +863,7 @@ function showPage(key, el){
   if(key==='overview') renderOverview();
   if(key==='trips') renderTrips();
   if(key==='organizers') renderOrgs();
+  if(key==='customers') renderCustomers();
   if(key==='finance') renderFinance();
   if(key==='bookings') loadBookings().then(renderBookings);
 }
@@ -1082,6 +1145,112 @@ async function suspendOrg(id){
   o.status='suspended'; renderOrgs(); renderOverview(); toast('ระงับบัญชีแล้ว');
 }
 
+// ===== CUSTOMERS =====
+const CUST_STATUS_LABELS = {approved:'อนุมัติแล้ว',pending:'รออนุมัติ',suspended:'ระงับ'};
+const CUST_TABS = [
+  {key:'pending',label:'รออนุมัติ',match:c=>c.status==='pending'},
+  {key:'approved',label:'อนุมัติแล้ว',match:c=>c.status==='approved'},
+  {key:'suspended',label:'ระงับ',match:c=>c.status==='suspended'},
+  {key:'all',label:'ทั้งหมด',match:()=>true},
+];
+function setCustTab(k){ custTabKey=k; renderCustomers(); }
+
+function renderCustomers(){
+  const q=(document.getElementById('custSearch')||{}).value||'';
+  document.getElementById('custTabs').innerHTML = CUST_TABS.map(tab=>{
+    const n=CUSTOMERS.filter(tab.match).length;
+    return `<button class="tab-btn ${custTabKey===tab.key?'active':''}" onclick="setCustTab('${tab.key}')">${tab.label}<span class="cnt">${n}</span></button>`;
+  }).join('');
+  const def=CUST_TABS.find(t=>t.key===custTabKey) || CUST_TABS[0];
+  let list=CUSTOMERS.filter(def.match);
+  if(q) list=list.filter(c=>(c.name+c.email+c.phone).includes(q));
+  const tbody=document.getElementById('custRows');
+  const empty=document.getElementById('custEmpty');
+  if(!list.length){ tbody.innerHTML=''; empty.style.display='block'; updateCustBadge(); return; }
+  empty.style.display='none';
+  tbody.innerHTML = list.map(c=>{
+    let acts=`<button class="icon-btn" onclick="openCustomer('${c.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>ดูข้อมูล</button>`;
+    if(c.status==='pending') acts=`<button class="icon-btn approve" onclick="openCustomer('${c.id}')">ดู / อนุมัติ</button>`+acts;
+    else if(c.status==='approved') acts+=`<button class="icon-btn suspend" onclick="confirmAction('ระงับบัญชี &quot;${c.name}&quot; ใช่ไหม?','suspendCustomer','${c.id}','btn-red')">ระงับ</button>`;
+    else if(c.status==='suspended') acts+=`<button class="icon-btn approve" onclick="confirmAction('คืนสถานะ &quot;${c.name}&quot; ใช่ไหม?','approveCustomer','${c.id}','btn-green')">คืนสถานะ</button>`;
+    return `<tr>
+      <td><div style="display:flex;align-items:center;gap:10px;">
+        <div class="org-avatar" style="background:${avatarColor(c.name)}">${c.name.charAt(0)}</div>
+        <div><div class="d-name">${c.name}</div><div class="d-sub">${c.email}</div></div>
+      </div></td>
+      <td class="d-muted" style="font-family:'Bai Jamjuree',monospace">${c.phone}</td>
+      <td class="d-muted">${fmtDate(c.joinedAt)}</td>
+      <td><span class="pill ${c.status}">${CUST_STATUS_LABELS[c.status]||c.status}</span></td>
+      <td><div class="row-acts">${acts}</div></td>
+    </tr>`;
+  }).join('');
+  updateCustBadge();
+}
+
+function updateCustBadge(){
+  const pending=CUSTOMERS.filter(c=>c.status==='pending').length;
+  const b=document.getElementById('sideCustomers');
+  if(b){ b.textContent=pending||''; b.style.display=pending?'':'none'; }
+}
+
+function custRow(label, val){
+  return `<div style="display:flex;justify-content:space-between;gap:16px;padding:9px 0;border-bottom:1px solid var(--bg-card);">
+    <span style="color:var(--text-muted);font-size:13px;flex-shrink:0;">${label}</span>
+    <span style="font-size:13.5px;font-weight:600;text-align:right;">${val||'—'}</span></div>`;
+}
+function openCustomer(id){
+  const c=CUSTOMERS.find(x=>x.id===id); if(!c) return;
+  viewCustId=id;
+  document.getElementById('custModalTitle').textContent=c.name;
+  document.getElementById('custModalBody').innerHTML=`
+    <div style="margin-bottom:14px;"><span class="pill ${c.status}">${CUST_STATUS_LABELS[c.status]||c.status}</span></div>
+    <div style="font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--line-muted);text-transform:uppercase;margin:6px 0 2px;">ข้อมูลส่วนตัว</div>
+    ${custRow('อีเมล', c.email)}
+    ${custRow('เบอร์โทร', c.phone)}
+    ${custRow('เลขบัตร ปชช./พาสปอร์ต', c.idCard)}
+    ${custRow('สัญชาติ', c.nationality)}
+    ${custRow('วันเกิด', c.birthDate ? fmtDate(c.birthDate) : '')}
+    ${custRow('เพศ', c.gender)}
+    ${custRow('ที่อยู่', c.address)}
+    <div style="font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--line-muted);text-transform:uppercase;margin:16px 0 2px;">ข้อมูลสุขภาพ</div>
+    ${custRow('กรุ๊ปเลือด', c.bloodType)}
+    ${custRow('โรคประจำตัว / แพ้', c.medical)}
+    <div style="font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--line-muted);text-transform:uppercase;margin:16px 0 2px;">ผู้ติดต่อฉุกเฉิน</div>
+    ${custRow('ชื่อ', c.emgName)}
+    ${custRow('เบอร์โทร', c.emgPhone)}
+    ${custRow('ความสัมพันธ์', c.emgRel)}`;
+  let foot='';
+  if(c.status==='pending'){
+    foot=`<button class="btn btn-ghost" onclick="closeModal('modalCust')">ปิด</button>
+      <button class="btn btn-primary" onclick="approveCustomer('${c.id}',true)">✓ อนุมัติลูกค้า</button>`;
+  } else if(c.status==='approved'){
+    foot=`<button class="btn btn-ghost" onclick="closeModal('modalCust')">ปิด</button>
+      <button class="btn" style="background:#C0552F;color:#fff;" onclick="suspendCustomer('${c.id}',true)">ระงับบัญชี</button>`;
+  } else {
+    foot=`<button class="btn btn-ghost" onclick="closeModal('modalCust')">ปิด</button>
+      <button class="btn btn-primary" onclick="approveCustomer('${c.id}',true)">คืนสถานะ</button>`;
+  }
+  document.getElementById('custModalFoot').innerHTML=foot;
+  openModal('modalCust');
+}
+
+async function approveCustomer(id, fromModal){
+  const c=CUSTOMERS.find(x=>x.id===id); if(!c) return;
+  try { await db.from('users').update({ status:'approved' }).eq('id', id); }
+  catch(e){ console.error(e); toast('อนุมัติไม่สำเร็จ'); return; }
+  c.status='approved';
+  if(fromModal) closeModal('modalCust');
+  renderCustomers(); toast('อนุมัติลูกค้าแล้ว ✓');
+}
+async function suspendCustomer(id, fromModal){
+  const c=CUSTOMERS.find(x=>x.id===id); if(!c) return;
+  try { await db.from('users').update({ status:'suspended' }).eq('id', id); }
+  catch(e){ console.error(e); toast('ระงับไม่สำเร็จ'); return; }
+  c.status='suspended';
+  if(fromModal) closeModal('modalCust');
+  renderCustomers(); toast('ระงับบัญชีแล้ว');
+}
+
 function openAddOrg(){
   editOrgId=null;
   document.getElementById('orgModalTitle').textContent='เพิ่มผู้จัด';
@@ -1320,7 +1489,7 @@ function downloadCSV(data, filename){
 }
 
 // ===== INIT =====
-load().then(() => renderOverview());
+load().then(() => { renderOverview(); updateCustBadge(); });
 </script>
 </body>
 </html>
