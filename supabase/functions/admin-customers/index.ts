@@ -9,7 +9,7 @@
 //
 // เรียกจาก client ด้วย header:  x-admin-key: <ADMIN_API_KEY>
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient } from 'jsr:@supabase/supabase-js@2';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
