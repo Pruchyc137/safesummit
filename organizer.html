@@ -1140,10 +1140,11 @@ async function submitCancelTrip(){
   if(!_editTripId) return;
   const reason=document.getElementById('ct-reason').value.trim();
   if(!reason){ toast('กรุณาระบุเหตุผล'); return; }
-  const { error } = await db.from('trips').update({ status:'cancelled', note:'[ขอยกเลิก] '+reason }).eq('id',_editTripId);
+  // เป็น "คำขอ" — พักทริปไว้ (draft) รอ Admin อนุมัติ ยังไม่ยกเลิกทันที
+  const { error } = await db.from('trips').update({ status:'draft', note:'[ขอยกเลิก] '+reason }).eq('id',_editTripId);
   if(error){ toast('บันทึกไม่สำเร็จ'); return; }
   const t=TRIPS.find(x=>x.id===_editTripId);
-  if(t){ t.status='cancelled'; t.note='[ขอยกเลิก] '+reason; }
+  if(t){ t.status='draft'; t.note='[ขอยกเลิก] '+reason; }
   document.getElementById('modalCancelTrip').style.display='none';
   renderMyTrips(); toast('ส่งคำขอยกเลิกแล้ว รอ Admin อนุมัติ ✓');
 }
