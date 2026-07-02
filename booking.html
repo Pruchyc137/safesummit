@@ -450,7 +450,7 @@ async function loadTripFromDB(id){
       booked: data.booked_count,
       status: data.status,
       badge: data.badge_tier,
-      rating: data.rating_avg || 0,
+      rating: data.avg_rating || 0,
       scene: 'peak',
       days: data.duration_days
     };
