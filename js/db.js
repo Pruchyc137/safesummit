@@ -178,3 +178,37 @@ const Auth = {
     return data?.user || null;
   }
 };
+
+// ─── LOCATION IMAGE MATCHER ───────────────────────────────
+// จับคู่ชื่อทริป/จังหวัด กับรูปในคลัง (fallback เมื่อผู้จัดไม่ได้อัปโหลดรูปเอง)
+const LOCATION_IMAGES = [
+  { img:'images/doichiangdao.png',    kw:['เชียงดาว'] },
+  { img:'images/doiinthanon.webp',    kw:['อินทนนท์'] },
+  { img:'images/kiwmaepan.jpg',       kw:['กิ่วแม่ปาน'] },
+  { img:'images/doimaeya.jpg',        kw:['แม่ยะ'] },
+  { img:'images/doiphaompok.jpg',     kw:['ผ้าห่มปก'] },
+  { img:'images/phukradung.webp',     kw:['ภูกระดึง','กระดึง'] },
+  { img:'images/phusoidao.webp',      kw:['ภูสอยดาว','สอยดาว'] },
+  { img:'images/phuhinrongkla.jpg',   kw:['ร่องกล้า'] },
+  { img:'images/phutabberk.jpg',      kw:['ทับเบิก'] },
+  { img:'images/phulomloh.jpg',       kw:['ลมโล'] },
+  { img:'images/phukamyao.jpg',       kw:['กามยาว','กำยาน'] },
+  { img:'images/thilosu.jpg',         kw:['ทีลอซู'] },
+  { img:'images/sannokvua.jpg',       kw:['สันนกวัว','นกวัว'] },
+  { img:'images/khaoluangnakhon.jpg', kw:['เขาหลวงนคร'] },
+  { img:'images/khaoluangprachuap.jpg', kw:['เขาหลวงประจวบ'] },
+  { img:'images/khaosamroiyod.jpg',   kw:['สามร้อยยอด'] },
+  { img:'images/khaosok.jpg',         kw:['เขาสก'] },
+  { img:'images/khaophanom.jpg',      kw:['เขาพนม','พนมเบญจา'] },
+  { img:'images/khaochang.jpg',       kw:['เขาช้าง','เขาช่อง'] },
+  { img:'images/khaoluang.jpg',       kw:['เขาหลวง'] },
+];
+function matchLocationImg(t){
+  if(!t) return null;
+  const name = (t.name && (t.name.th || t.name.en)) || t.name || '';
+  const hay = (name + ' ' + (t.prov || t.province || '')).replace(/\s+/g,'');
+  for(const loc of LOCATION_IMAGES){
+    if(loc.kw.some(k => hay.includes(k))) return loc.img;
+  }
+  return null;
+}

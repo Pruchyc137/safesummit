@@ -371,10 +371,11 @@ function avatarColor(name){
 function renderHero(t){
   const hw=document.getElementById('heroWrap');
   let imgHtml='';
-  if(t.img){
-    imgHtml=`<img class="hero-img" src="${t.img}" alt="${t.name.th}" onerror="this.style.display='none';document.getElementById('heroSvg').style.display='block';">`;
+  const heroImg = t.img || (typeof matchLocationImg==='function' ? matchLocationImg(t) : null);
+  if(heroImg){
+    imgHtml=`<img class="hero-img" src="${heroImg}" alt="${t.name.th}" onerror="this.style.display='none';document.getElementById('heroSvg').style.display='block';">`;
   }
-  const svgHtml=`<div class="hero-svg" id="heroSvg" style="${t.img?'display:none':'display:block'}">${SCENES[t.scene]||SCENES.forest}</div>`;
+  const svgHtml=`<div class="hero-svg" id="heroSvg" style="${heroImg?'display:none':'display:block'}">${SCENES[t.scene]||SCENES.forest}</div>`;
   const avail=t.cap-t.booked;
   const isFull=t.status==='full'||t.booked>=t.cap;
   hw.innerHTML=`<div class="hero">

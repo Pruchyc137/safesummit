@@ -735,9 +735,11 @@ const SCENES = {
   forest:`<svg class="scene" viewBox="0 0 300 160" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="s_c" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#BFE0C8"/><stop offset="1" stop-color="#6FA37A"/></linearGradient></defs><rect width="300" height="160" fill="url(#s_c)"/><path d="M0,0 L300,0 L300,70 L210,60 L120,78 L0,64 Z" fill="#4E7E58" opacity="0.7"/><path d="M0,160 L0,72 L80,84 L160,70 L240,86 L300,74 L300,160 Z" fill="#2F5638"/><path d="M120,60 L132,60 L138,150 L114,150 Z" fill="#EAF4EC" opacity="0.9"/><path d="M150,160 L150,96 L230,108 L300,98 L300,160 Z" fill="#1F3B27" opacity="0.85"/></svg>`
 };
 function sceneFor(t){
-  if(t.img) return `<img src="${t.img}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">`;
-  if(t.scene) return SCENES[t.scene]||SCENES.peak;
-  return ({north:SCENES.peak,northeast:SCENES.sunrise,south:SCENES.forest})[t.region]||SCENES.peak;
+  const sceneSvg = t.scene ? (SCENES[t.scene]||SCENES.peak) : (({north:SCENES.peak,northeast:SCENES.sunrise,south:SCENES.forest})[t.region]||SCENES.peak);
+  // 1) รูปที่ผู้จัดอัปโหลด  2) จับคู่ชื่อ/จังหวัดกับคลังรูป  3) ภาพวาด SVG
+  const img = t.img || (typeof matchLocationImg==='function' ? matchLocationImg(t) : null);
+  if(img) return `<img src="${img}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'">`;
+  return sceneSvg;
 }
 
 // ===== SHARED TRIP DATA =====
