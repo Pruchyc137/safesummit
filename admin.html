@@ -574,7 +574,8 @@ h1,h2,h3{font-family:'Kanit',sans-serif;}
   <div class="modal">
     <div class="modal-h"><div><h3 id="tripModalTitle">เพิ่มทริปใหม่</h3><p>กรอกรายละเอียดทริป</p></div><button class="modal-x" onclick="closeModal('modalTrip')">×</button></div>
     <div class="modal-b">
-      <div class="fld"><label>ชื่อทริป</label><input id="tf-name" placeholder="เช่น ภูกระดึง 3 วัน 2 คืน"></div>
+      <div class="fld"><label>ชื่อทริป</label><input id="tf-name" placeholder="เช่น ภูกระดึง 3 วัน 2 คืน" oninput="updateTripImgPreview()"></div>
+      <div id="tripImgPreview" style="display:none;margin-bottom:14px;"></div>
       <div class="fld-row">
         <div class="fld"><label>ผู้จัด</label>
           <select id="tf-org"><option value="">-- เลือกผู้จัด --</option></select>
@@ -587,7 +588,7 @@ h1,h2,h3{font-family:'Kanit',sans-serif;}
         <div class="fld"><label>ภาค</label>
           <select id="tf-region"><option value="north">ภาคเหนือ</option><option value="northeast">ภาคอีสาน</option><option value="central">ภาคกลาง</option><option value="east">ภาคตะวันออก</option><option value="west">ภาคตะวันตก</option><option value="south">ภาคใต้</option></select>
         </div>
-        <div class="fld"><label>จังหวัด</label><input id="tf-prov" placeholder="เช่น เลย"></div>
+        <div class="fld"><label>จังหวัด</label><input id="tf-prov" placeholder="เช่น เลย" oninput="updateTripImgPreview()"></div>
       </div>
       <div class="fld-row">
         <div class="fld"><label>วันเดินทาง</label><input id="tf-date" type="date"></div>
@@ -1047,7 +1048,7 @@ function openAddTrip(){
   document.getElementById('tf-price').value=2900;
   document.getElementById('tf-status').value='open';
   document.getElementById('tf-badge').value='Verified Pro';
-  populateOrgSelect(); openModal('modalTrip');
+  populateOrgSelect(); updateTripImgPreview(); openModal('modalTrip');
 }
 function openEditTrip(id){
   const t=TRIPS.find(x=>x.id===id); if(!t) return; editTripId=id;
@@ -1061,14 +1062,32 @@ function openEditTrip(id){
   document.getElementById('tf-price').value=t.price||0;
   document.getElementById('tf-status').value=t.status||'open';
   document.getElementById('tf-badge').value=t.badge||'Verified Pro';
-  populateOrgSelect(t.org); openModal('modalTrip');
+  populateOrgSelect(t.org); updateTripImgPreview(); openModal('modalTrip');
 }
 function populateOrgSelect(selected){
   const sel = document.getElementById('tf-org');
   sel.innerHTML = '<option value="">-- เลือกผู้จัด --</option>' +
     ORGS.filter(o=>o.status==='approved').map(o=>`<option${o.name===selected?' selected':''}>${o.name}</option>`).join('');
 }
-function saveTrip(){
+// preview รูปที่จะ match ตามชื่อ/จังหวัด (สดๆ ตอนพิมพ์)
+function updateTripImgPreview(){
+  const box=document.getElementById('tripImgPreview');
+  if(!box) return;
+  const name=(document.getElementById('tf-name').value||'').trim();
+  const prov=(document.getElementById('tf-prov').value||'').trim();
+  if(!name){ box.style.display='none'; return; }
+  const img = (typeof matchLocationImg==='function') ? matchLocationImg({name:{th:name}, prov}) : null;
+  box.style.display='block';
+  if(img){
+    box.innerHTML=`<div style="display:flex;align-items:center;gap:12px;background:#E8F5EE;border:1px solid #A9D9BE;border-radius:10px;padding:10px 12px;">
+      <img src="${img}" style="width:70px;height:46px;object-fit:cover;border-radius:6px;flex-shrink:0;">
+      <div style="font-size:12.5px;color:#2A7A4B;line-height:1.5;"><b>✓ จับคู่รูปได้</b><br>รูปนี้จะแสดงบนหน้าเว็บอัตโนมัติ (ถ้าผู้จัดไม่ได้อัปโหลดรูปเอง)</div></div>`;
+  } else {
+    box.innerHTML=`<div style="background:#FDF6E3;border:1px solid rgba(201,162,75,.5);border-radius:10px;padding:10px 12px;font-size:12.5px;color:#8A6D1E;line-height:1.5;">⚠ ชื่อนี้ไม่ตรงกับรูปในคลัง — จะใช้ภาพวาดตามภาคแทน<br>ลองใส่ชื่อสถานที่ให้ตรง เช่น "ภูกระดึง", "ดอยอินทนนท์", "ภูสอยดาว"</div>`;
+  }
+}
+
+async function saveTrip(){
   const name=document.getElementById('tf-name').value.trim();
   if(!name){ toast('กรุณากรอกชื่อทริป'); return; }
   const data={
@@ -1082,15 +1101,17 @@ function saveTrip(){
     status:document.getElementById('tf-status').value,
     badge:document.getElementById('tf-badge').value,
   };
+  let edited=null;
   if(editTripId){
     const t=TRIPS.find(x=>x.id===editTripId);
     if(typeof t.name==='object') t.name.th=name; else t.name=name;
-    Object.assign(t,data); toast('บันทึกการแก้ไขแล้ว');
+    Object.assign(t,data); edited=t; toast('บันทึกการแก้ไขแล้ว');
   } else {
     TRIPS.push(Object.assign({id:'t'+Date.now(),name:{th:name,en:name},rating:4.8},data));
     toast('เพิ่มทริปแล้ว');
   }
-  saveTrips(); renderTrips(); renderOverview(); closeModal('modalTrip');
+  if(edited) await saveTrips(edited);   // บันทึกชื่อ/รายละเอียดลง Supabase จริง
+  renderTrips(); renderOverview(); closeModal('modalTrip');
 }
 
 async function approveTrip(id){
