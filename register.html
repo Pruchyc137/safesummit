@@ -128,7 +128,7 @@ h1,h2,h3{font-family:'Kanit',sans-serif;}
           <input id="r-nationality" type="text" placeholder="ไทย" value="ไทย">
         </div>
         <div class="field">
-          <label>วันเกิด</label>
+          <label>วันเกิด <span class="req">*</span></label>
           <input id="r-dob" type="date">
         </div>
         <div class="field">
@@ -141,7 +141,7 @@ h1,h2,h3{font-family:'Kanit',sans-serif;}
           </select>
         </div>
         <div class="field full">
-          <label>ที่อยู่</label>
+          <label>ที่อยู่ <span class="req">*</span></label>
           <textarea id="r-address" placeholder="บ้านเลขที่ ตำบล อำเภอ จังหวัด รหัสไปรษณีย์"></textarea>
         </div>
       </div>
@@ -225,6 +225,15 @@ function showErr(msg){
 function hideErr(){ document.getElementById('errMsg').classList.remove('show'); }
 const val = id => (document.getElementById(id).value||'').trim();
 
+// ตรวจ checksum เลขบัตรประชาชนไทย 13 หลัก
+function isValidThaiID(id){
+  if(!/^\d{13}$/.test(id)) return false;
+  let sum = 0;
+  for(let i=0;i<12;i++) sum += parseInt(id[i],10) * (13 - i);
+  const check = (11 - (sum % 11)) % 10;
+  return check === parseInt(id[12],10);
+}
+
 async function doRegister(){
   hideErr();
   const email = val('r-email');
@@ -232,8 +241,10 @@ async function doRegister(){
   const pw2   = document.getElementById('r-pw2').value;
   const name  = val('r-name');
   const phone = val('r-phone');
-  const idcard= val('r-idcard');
+  let idcard= val('r-idcard');
   const nationality = val('r-nationality');
+  const dob     = val('r-dob');
+  const address = val('r-address');
   const emgName = val('r-emg-name');
   const emgPhone= val('r-emg-phone');
 
@@ -244,7 +255,18 @@ async function doRegister(){
   if(!name){ showErr('กรุณากรอกชื่อ-นามสกุล'); return; }
   if(!phone || phone.length < 9){ showErr('กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง'); return; }
   if(!idcard){ showErr('กรุณากรอกเลขบัตรประชาชน / พาสปอร์ต'); return; }
+  // ตรวจเลขบัตร: ถ้าเป็นตัวเลขล้วน = บัตรไทย ต้อง 13 หลัก + checksum ถูก; ถ้ามีตัวอักษร = พาสปอร์ต
+  const idClean = idcard.replace(/[\s-]/g,'');
+  if(/^\d+$/.test(idClean)){
+    if(idClean.length !== 13){ showErr('เลขบัตรประชาชนต้องมี 13 หลัก'); return; }
+    if(!isValidThaiID(idClean)){ showErr('เลขบัตรประชาชนไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง'); return; }
+    idcard = idClean;
+  } else if(idClean.length < 6){
+    showErr('เลขพาสปอร์ตไม่ถูกต้อง'); return;
+  }
   if(!nationality){ showErr('กรุณากรอกสัญชาติ'); return; }
+  if(!dob){ showErr('กรุณาเลือกวันเกิด'); return; }
+  if(!address){ showErr('กรุณากรอกที่อยู่'); return; }
   if(!emgName || !emgPhone){ showErr('กรุณากรอกข้อมูลผู้ติดต่อฉุกเฉิน (ชื่อ + เบอร์โทร)'); return; }
 
   const btn = document.getElementById('submitBtn');
