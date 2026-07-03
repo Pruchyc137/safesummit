@@ -389,6 +389,35 @@ h1,h2,h3,h4{font-family:'Kanit',sans-serif;}
   </div>
 </div>
 
+<!-- GATE: ต้องแก้ไข/ส่งเอกสารเพิ่ม -->
+<div class="gate" id="gateRevision">
+  <div class="gate-card">
+    <div class="pending-icon" style="background:rgba(217,119,6,.12);color:#D97706;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+    </div>
+    <div class="gate-title" style="text-align:center;">ต้องแก้ไขเอกสารเพิ่มเติม</div>
+    <p class="gate-sub" style="text-align:center;margin-bottom:16px;">Admin ตรวจสอบใบสมัครแล้ว และขอให้คุณแก้ไข/ส่งเอกสารเพิ่ม ตามรายละเอียดด้านล่าง</p>
+    <div style="background:#FEF6E7;border:1px solid rgba(217,119,6,.4);border-radius:10px;padding:14px 16px;margin-bottom:18px;">
+      <div style="font-size:11.5px;font-weight:700;color:#B45309;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">ข้อความจาก Admin</div>
+      <div id="revReason" style="font-size:14px;color:#7A4E0A;line-height:1.6;">–</div>
+    </div>
+    <div class="fld" style="margin-bottom:14px;">
+      <label style="display:block;font-size:12.5px;font-weight:600;margin-bottom:6px;">แนบเอกสารใหม่ (ถ้าต้องส่งไฟล์)</label>
+      <label class="upload-box" id="rev-upload-label" style="padding:16px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="width:22px;height:22px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <span id="rev-file-name">คลิกเพื่อเลือกไฟล์ (PDF/JPG/PNG)</span>
+        <input id="rev-file" type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" hidden onchange="document.getElementById('rev-file-name').textContent=this.files[0]?this.files[0].name:'คลิกเพื่อเลือกไฟล์';document.getElementById('rev-upload-label').classList.toggle('has-file',!!this.files[0]);">
+      </label>
+    </div>
+    <div class="fld" style="margin-bottom:16px;">
+      <label style="display:block;font-size:12.5px;font-weight:600;margin-bottom:6px;">ข้อความถึง Admin (ถ้ามี)</label>
+      <textarea id="rev-msg" placeholder="เช่น แนบใบอนุญาตใหม่ที่ชัดเจนแล้วครับ" style="width:100%;min-height:64px;padding:12px 14px;border:1.5px solid var(--line-muted);border-radius:10px;font-family:'Sarabun',sans-serif;font-size:14px;resize:vertical;"></textarea>
+    </div>
+    <button class="btn-primary" id="revSubmitBtn" style="width:100%;" onclick="submitRevision()">ส่งเอกสารใหม่ให้ Admin ตรวจสอบ</button>
+    <button class="btn btn-ghost" style="margin-top:8px;width:100%;" onclick="resetRegistration()">ออกจากระบบ</button>
+  </div>
+</div>
+
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 <div class="layout" id="mainLayout" style="display:none;">
   <!-- SIDEBAR -->
@@ -798,6 +827,12 @@ async function checkAuthState(){
       document.getElementById('mainLayout').style.display='flex';
       return true;
     }
+    // Admin ส่งกลับให้แก้ไข — แสดงหน้าแก้เอกสาร
+    if((_orgProfile.note||'').startsWith('[ต้องแก้ไข]')){
+      document.getElementById('revReason').textContent = _orgProfile.note.replace('[ต้องแก้ไข]','').trim() || '–';
+      document.getElementById('gateRevision').classList.add('show');
+      return false;
+    }
     document.getElementById('gatePending').classList.add('show');
     document.getElementById('pendingRef').textContent = _orgProfile.reg_ref || _orgProfile.org_name;
     return false;
@@ -912,6 +947,37 @@ async function submitRegister(){
 async function resetRegistration(){
   try { await Auth.signOut(); } catch(e){}
   window.location.replace('safesummit.html');
+}
+
+async function submitRevision(){
+  if(!_orgProfile){ toast('ไม่พบข้อมูลผู้จัด'); return; }
+  const file = document.getElementById('rev-file').files[0];
+  const msg  = document.getElementById('rev-msg').value.trim();
+  if(!file && !msg){ toast('กรุณาแนบไฟล์ใหม่ หรือเขียนข้อความถึง Admin'); return; }
+  const btn = document.getElementById('revSubmitBtn');
+  btn.disabled = true; btn.textContent = 'กำลังส่ง...';
+  try {
+    const update = { status:'pending', note: msg ? ('[ส่งใหม่] '+msg) : null };
+    if(file){
+      btn.textContent = 'กำลังอัปโหลดไฟล์...';
+      try {
+        const url = await uploadToStorage(file, `licenses/${_orgProfile.user_id||'guest'}`);
+        if(url) update.license_file_url = url;
+      } catch(e){ console.warn('upload failed:', e.message); }
+    }
+    const { error } = await db.from('organizers').update(update).eq('id', _orgProfile.id);
+    if(error) throw error;
+    _orgProfile.note = update.note;
+    // แสดงหน้ารอตรวจสอบ
+    document.querySelectorAll('.gate').forEach(g=>g.classList.remove('show'));
+    document.getElementById('gatePending').classList.add('show');
+    document.getElementById('pendingRef').textContent = _orgProfile.reg_ref || _orgProfile.org_name;
+    toast('ส่งเอกสารใหม่แล้ว รอ Admin ตรวจสอบอีกครั้ง ✓');
+  } catch(e){
+    console.error('submitRevision:', e);
+    toast('ส่งไม่สำเร็จ กรุณาลองใหม่');
+    btn.disabled = false; btn.textContent = 'ส่งเอกสารใหม่ให้ Admin ตรวจสอบ';
+  }
 }
 function showGate(id){
   document.querySelectorAll('.gate').forEach(g=>g.classList.remove('show'));

@@ -692,10 +692,10 @@ h1,h2,h3{font-family:'Kanit',sans-serif;}
           <select id="of-status"><option value="approved">อนุมัติแล้ว</option><option value="pending">รออนุมัติ</option><option value="suspended">ระงับ</option></select>
         </div>
       </div>
-      <div class="fld"><label>หมายเหตุ</label><input id="of-note" placeholder="หมายเหตุเพิ่มเติม (ถ้ามี)"></div>
+      <div class="fld"><label>หมายเหตุ / เหตุผลที่ขอให้แก้ไข</label><input id="of-note" placeholder="เช่น เอกสารใบอนุญาตไม่ชัด กรุณาถ่ายใหม่ให้เห็นเลขชัดเจน"></div>
       <div class="modal-foot" id="of-foot-pending" style="display:none;">
         <button class="btn btn-ghost" onclick="closeModal('modalOrg')">ยกเลิก</button>
-        <button class="btn" style="background:#DC2626;color:#fff;" onclick="quickReject()">ปฏิเสธ</button>
+        <button class="btn" style="background:#D97706;color:#fff;" onclick="quickRequestRevision()">ขอเอกสารเพิ่ม/แก้ไข</button>
         <button class="btn btn-primary" onclick="quickApprove()">อนุมัติ</button>
       </div>
       <div class="modal-foot" id="of-foot-edit">
@@ -1205,7 +1205,7 @@ function renderOrgs(){
     return `<tr>
       <td><div style="display:flex;align-items:center;gap:10px;">
         <div class="org-avatar" style="background:${avatarColor(o.name)}">${o.name.charAt(0)}</div>
-        <div><div class="d-name">${o.name}</div><div class="d-sub">${o.contact} · ${o.email}</div></div>
+        <div><div class="d-name">${o.name}</div><div class="d-sub">${o.contact} · ${o.email}</div>${(o.note||'').startsWith('[ต้องแก้ไข]')?'<div class="d-sub" style="color:#D97706;font-weight:600;">⏳ ส่งกลับให้แก้ไข — รอผู้จัดส่งเอกสารใหม่</div>':((o.note||'').startsWith('[ส่งใหม่]')?'<div class="d-sub" style="color:#2A7A4B;font-weight:600;">↻ ผู้จัดส่งเอกสารใหม่แล้ว</div>':'')}</div>
       </div></td>
       <td><span style="font-size:12.5px;font-weight:600;font-family:'Bai Jamjuree',monospace">${o.tier}</span></td>
       <td class="d-muted">${fmtDate(o.joinedAt)}</td>
@@ -1442,11 +1442,14 @@ async function quickApprove(){
   const o=ORGS.find(x=>x.id===editOrgId); if(o) o.status='approved';
   closeModal('modalOrg'); renderOrgs(); renderOverview(); toast('อนุมัติผู้จัดแล้ว ✓');
 }
-async function quickReject(){
+async function quickRequestRevision(){
   if(!editOrgId) return;
-  await db.from('organizers').update({ status:'suspended' }).eq('id',editOrgId);
-  const o=ORGS.find(x=>x.id===editOrgId); if(o) o.status='suspended';
-  closeModal('modalOrg'); renderOrgs(); renderOverview(); toast('ปฏิเสธใบสมัครแล้ว');
+  let reason = (document.getElementById('of-note').value||'').trim().replace(/^\[(ต้องแก้ไข|ส่งใหม่)\]\s*/,'');
+  if(!reason){ toast('กรุณากรอกเหตุผล/สิ่งที่ต้องแก้ในช่องหมายเหตุ'); document.getElementById('of-note').focus(); return; }
+  const note='[ต้องแก้ไข] '+reason;
+  await db.from('organizers').update({ status:'pending', note }).eq('id',editOrgId);
+  const o=ORGS.find(x=>x.id===editOrgId); if(o){ o.status='pending'; o.note=note; }
+  closeModal('modalOrg'); renderOrgs(); renderOverview(); toast('ส่งกลับให้ผู้จัดแก้ไขแล้ว ✓');
 }
 function saveOrg(){
   const name=document.getElementById('of-name').value.trim();
