@@ -558,6 +558,21 @@ async function load(){
   let user=null;
   try{ const {data}=await db.auth.getUser(); user=data?.user||null; }catch(e){}
   if(!user){ location.replace('login.html?next=my-trips.html'); return; }
+  // แสดงชื่อ/อีเมลจริงของลูกค้าที่ล็อกอิน
+  try{
+    let prof={};
+    try{ const { data } = await db.from('users').select('full_name,email,created_at').eq('id', user.id).single(); if(data) prof=data; }catch(e){}
+    const name = prof.full_name || user.email || 'ลูกค้า';
+    const email = prof.email || user.email || '';
+    document.getElementById('userName').textContent = name;
+    document.getElementById('userEmail').textContent = email;
+    document.getElementById('userAvatar').textContent = (name||'?').trim().charAt(0).toUpperCase();
+    const since = prof.created_at ? new Date(prof.created_at) : null;
+    if(since){
+      const m = since.toLocaleDateString('th-TH',{month:'long'});
+      document.querySelector('.member-badge').innerHTML = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 17l-6 3 1-7-5-5h7l3-7 3 7h7l-5 5 1 7z"/></svg>สมาชิกตั้งแต่ ${m} ${since.getFullYear()+543}`;
+    }
+  }catch(e){}
   // โหลดการจองจริงของลูกค้าคนนี้
   try{
     const { data, error } = await db.from('bookings')
