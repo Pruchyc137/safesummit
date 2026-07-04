@@ -204,6 +204,28 @@ async function doLogin(){
     }
   }
 
+  // ผู้จัด: บัญชีต้องเป็นผู้จัดจริง (มีข้อมูลใน organizers) ไม่งั้นถือว่ารหัสไม่ถูกต้อง
+  if(currentRole === 'organizer'){
+    let org = null;
+    try {
+      const { data: o } = await db.from('organizers').select('status').eq('user_id', data.user.id).maybeSingle();
+      org = o;
+    } catch(e){}
+    if(!org){
+      await db.auth.signOut();
+      err.textContent = 'อีเมลหรือรหัสผ่านไม่ถูกต้อง (บัญชีนี้ไม่ใช่ผู้จัดทริป)';
+      err.style.display = 'block';
+      return;
+    }
+    if(org.status === 'suspended'){
+      await db.auth.signOut();
+      err.textContent = 'บัญชีของคุณถูกระงับ กรุณาติดต่อผู้ดูแลระบบ';
+      err.style.display = 'block';
+      return;
+    }
+    // pending / รอแก้ไข / approved → organizer.html จัดการหน้าจอต่อ
+  }
+
   const next = getNext();
   location.href = next ? next : (currentRole === 'organizer' ? 'organizer.html' : 'safesummit.html');
 }

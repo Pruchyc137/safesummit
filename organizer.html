@@ -269,9 +269,14 @@ h1,h2,h3,h4{font-family:'Kanit',sans-serif;}
       <svg viewBox="0 0 50 50" fill="none"><polygon points="25,4 46,40 4,40" fill="none" stroke="#C9A24B" stroke-width="2.5"/><polygon points="25,14 38,38 12,38" fill="rgba(226,103,43,.25)" stroke="#E2672B" stroke-width="1.5"/></svg>
       SafeSummit <span style="font-size:13px;font-weight:400;color:var(--text-muted);margin-left:4px;">ผู้จัดทริป</span>
     </div>
-    <div class="gate-title">สมัครเป็นผู้จัดทริป</div>
-    <p class="gate-sub">กรอกข้อมูลเพื่อส่งขอการอนุมัติจาก Admin SafeSummit บัญชีของคุณจะพร้อมใช้งานภายใน 1-3 วันทำการ</p>
-    <div class="gate-steps">
+    <div class="gate-title" id="regTitle">สมัครเป็นผู้จัดทริป</div>
+    <p class="gate-sub" id="regSub">กรอกข้อมูลเพื่อส่งขอการอนุมัติจาก Admin SafeSummit บัญชีของคุณจะพร้อมใช้งานภายใน 1-3 วันทำการ</p>
+    <div id="regRejectBanner" style="display:none;background:#FEF6E7;border:1px solid rgba(217,119,6,.4);border-radius:10px;padding:14px 16px;margin-bottom:16px;text-align:left;">
+      <div style="font-size:11.5px;font-weight:700;color:#B45309;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">⚠ Admin ขอให้แก้ไข</div>
+      <div id="regRejectMsg" style="font-size:14px;color:#7A4E0A;line-height:1.6;">–</div>
+      <div style="font-size:12px;color:#9A6A1A;margin-top:8px;">แก้ไขข้อมูลด้านล่างแล้วกด "ส่งใบสมัครอีกครั้ง"</div>
+    </div>
+    <div class="gate-steps" id="regSteps">
       <div class="gate-step"><div class="gate-step-num">1</div>กรอกข้อมูลและส่งใบสมัคร</div>
       <div class="gate-step"><div class="gate-step-num">2</div>Admin ตรวจสอบและอนุมัติบัญชี</div>
       <div class="gate-step"><div class="gate-step-num">3</div>เริ่มลงทะเบียนทริปได้ทันที</div>
@@ -777,6 +782,7 @@ let TRIPS=[], MY_ORG='', selectedBadge='Verified Basic';
 
 // ===== AUTH STATE (Supabase) =====
 let _orgProfile = null; // cache organizer row
+let _isRevision = false; // กำลังแก้ใบสมัครที่ถูก reject
 
 function handleFileSelect(input, labelId, boxId){
   const file = input.files[0];
@@ -830,10 +836,9 @@ async function checkAuthState(){
       document.getElementById('mainLayout').style.display='flex';
       return true;
     }
-    // Admin ส่งกลับให้แก้ไข — แสดงหน้าแก้เอกสาร
+    // Admin ส่งกลับให้แก้ไข — เปิดหน้าสมัครที่กรอกข้อมูลเดิมไว้ + ข้อความจาก Admin
     if((_orgProfile.note||'').startsWith('[ต้องแก้ไข]')){
-      document.getElementById('revReason').textContent = _orgProfile.note.replace('[ต้องแก้ไข]','').trim() || '–';
-      document.getElementById('gateRevision').classList.add('show');
+      await openRevisionRegister(_orgProfile);
       return false;
     }
     document.getElementById('gatePending').classList.add('show');
@@ -846,7 +851,69 @@ async function checkAuthState(){
   }
 }
 
+// เปิดหน้าสมัครแบบ "แก้ไข" — กรอกข้อมูลเดิม + แสดงข้อความ Admin
+async function openRevisionRegister(org){
+  _isRevision = true;
+  let u = {};
+  try{ const { data } = await db.from('users').select('full_name,phone,email').eq('id', org.user_id).maybeSingle(); if(data) u=data; }catch(e){}
+  const setV = (id,v)=>{ const el=document.getElementById(id); if(el) el.value = (v==null?'':v); };
+  const parts = (u.full_name||'').trim().split(/\s+/);
+  setV('r-fname', parts[0]||''); setV('r-lname', parts.slice(1).join(' '));
+  setV('r-idcard', org.id_card); setV('r-email', u.email||''); setV('r-phone', u.phone||'');
+  setV('r-org', org.org_name); setV('r-prov', org.province); setV('r-exp', org.exp_years);
+  setV('r-line', org.line_id); setV('r-fb', org.facebook_url); setV('r-bio', org.bio);
+  if(org.license_type) setV('r-license-type', org.license_type);
+  setV('r-license-no', org.license_number); setV('r-license-exp', org.license_expiry);
+  if(org.bank_name) setV('r-bank', org.bank_name);
+  setV('r-bank-acc', org.bank_account); setV('r-bank-name', org.bank_account_name);
+  document.getElementById('regRejectMsg').textContent = (org.note||'').replace('[ต้องแก้ไข]','').trim() || '–';
+  document.getElementById('regRejectBanner').style.display = 'block';
+  document.getElementById('regSteps').style.display = 'none';
+  document.getElementById('regTitle').textContent = 'แก้ไขใบสมัครผู้จัด';
+  document.getElementById('regSub').textContent = 'แก้ไขข้อมูลตามที่ Admin แจ้ง แล้วส่งอีกครั้ง';
+  const emailEl = document.getElementById('r-email'); if(emailEl) emailEl.disabled = true;
+  const pwFld = document.getElementById('r-password')?.closest('.fld'); if(pwFld) pwFld.style.display='none';
+  const regBtn = document.querySelector('#gateRegister .btn-primary'); if(regBtn) regBtn.innerHTML = regBtn.innerHTML.replace('ส่งใบสมัคร','ส่งใบสมัครอีกครั้ง');
+  showGate('gateRegister');
+}
+
+// ส่งใบสมัครที่แก้ไข → UPDATE ข้อมูลเดิม (ไม่สร้างบัญชีใหม่)
+async function submitRevisionUpdate(){
+  const g = id => (document.getElementById(id)?.value||'').trim();
+  const org=g('r-org'), prov=g('r-prov'), idcard=g('r-idcard'), bankAcc=g('r-bank-acc'), bankAccName=g('r-bank-name');
+  if(!org){ toast('กรุณากรอกชื่อองค์กร'); return; }
+  if(!prov){ toast('กรุณากรอกจังหวัด'); return; }
+  if(!idcard||idcard.replace(/-/g,'').length!==13){ toast('เลขบัตรประชาชนต้องมี 13 หลัก'); return; }
+  if(!bankAcc||!bankAccName){ toast('กรุณากรอกข้อมูลบัญชีธนาคาร'); return; }
+  const btn = document.querySelector('#gateRegister .btn-primary');
+  if(btn){ btn.disabled=true; btn.textContent='กำลังส่ง...'; }
+  try{
+    const file = document.getElementById('r-license-file')?.files[0] || null;
+    const update = {
+      org_name:org, province:prov, exp_years:parseInt(g('r-exp'))||0, bio:g('r-bio')||null, id_card:idcard,
+      license_type:document.getElementById('r-license-type').value||null, license_number:g('r-license-no')||null,
+      license_expiry:g('r-license-exp')||null, line_id:g('r-line')||null, facebook_url:g('r-fb')||null,
+      bank_name:document.getElementById('r-bank').value||null, bank_account:bankAcc, bank_account_name:bankAccName,
+      status:'pending', note:'[ส่งใหม่]',
+    };
+    if(file){ try{ const url=await uploadToStorage(file,`licenses/${_orgProfile.user_id||'guest'}`); if(url) update.license_file_url=url; }catch(e){} }
+    try{ await db.from('users').update({ full_name:(g('r-fname')+' '+g('r-lname')).trim(), phone:g('r-phone') }).eq('id', _orgProfile.user_id); }catch(e){}
+    const { error } = await db.from('organizers').update(update).eq('id', _orgProfile.id);
+    if(error) throw error;
+    _isRevision=false; _orgProfile.status='pending'; _orgProfile.note='[ส่งใหม่]';
+    document.querySelectorAll('.gate').forEach(x=>x.classList.remove('show'));
+    document.getElementById('gatePending').classList.add('show');
+    document.getElementById('pendingRef').textContent = _orgProfile.reg_ref || _orgProfile.org_name;
+    toast('ส่งใบสมัครแก้ไขแล้ว รอ Admin ตรวจสอบอีกครั้ง ✓');
+  }catch(e){
+    console.error('revision update:', e);
+    toast('ส่งไม่สำเร็จ กรุณาลองใหม่');
+    if(btn){ btn.disabled=false; btn.textContent='ส่งใบสมัครอีกครั้ง'; }
+  }
+}
+
 async function submitRegister(){
+  if(_isRevision){ return submitRevisionUpdate(); }
   const fname        = document.getElementById('r-fname').value.trim();
   const lname        = document.getElementById('r-lname').value.trim();
   const idcard       = document.getElementById('r-idcard').value.trim();
