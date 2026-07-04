@@ -350,7 +350,20 @@ h1,h2,h3,h4{font-family:'Kanit',sans-serif;}
   </div>
 </div>
 
-<!-- LOGIN SCREEN -->
+<!-- NO ORGANIZER PROFILE -->
+<div class="gate" id="gateNoOrg">
+  <div class="gate-card" style="text-align:center;">
+    <div class="pending-icon" style="background:rgba(201,162,75,.14);color:#C9A24B;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+    </div>
+    <div class="gate-title">บัญชีนี้ยังไม่ได้เป็นผู้จัดทริป</div>
+    <p class="gate-sub">บัญชี <b id="noOrgEmail">–</b> เข้าสู่ระบบแล้ว แต่ยังไม่พบข้อมูลผู้จัดทริปในระบบ</p>
+    <button class="btn-primary" style="margin-top:22px;width:100%;" onclick="showGate('gateRegister')">สมัครเป็นผู้จัดทริป</button>
+    <button class="btn btn-ghost" style="margin-top:8px;width:100%;" onclick="window.location.href='safesummit.html'">ฉันเป็นลูกค้า — ไปหน้าหลัก</button>
+    <button class="btn" style="margin-top:8px;background:none;color:var(--text-muted);font-size:12px;width:100%;" onclick="resetRegistration()">ออกจากระบบ / เข้าด้วยบัญชีอื่น</button>
+  </div>
+</div>
+
 <!-- PENDING APPROVAL SCREEN -->
 <div class="gate" id="gatePending">
   <div class="gate-card" style="text-align:center;">
@@ -807,8 +820,10 @@ async function checkAuthState(){
     localStorage.removeItem('ss_org_pending');
     _orgProfile = await Organizers.getMyProfile();
     if(!_orgProfile){
-      // login แล้วแต่ยังไม่ได้สมัครเป็นผู้จัด → ไปหน้าสมัคร
-      showGate('gateRegister');
+      // login แล้วแต่ไม่พบข้อมูลผู้จัด
+      if(wantRegister){ showGate('gateRegister'); return false; }
+      const em = document.getElementById('noOrgEmail'); if(em) em.textContent = user.email || '–';
+      showGate('gateNoOrg');
       return false;
     }
     if(_orgProfile.status === 'approved'){
