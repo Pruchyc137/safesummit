@@ -346,28 +346,11 @@ h1,h2,h3,h4{font-family:'Kanit',sans-serif;}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
       ส่งใบสมัคร
     </button>
-    <p style="text-align:center;font-size:12.5px;color:var(--text-muted);margin-top:14px;">มีบัญชีอยู่แล้ว? <a href="safesummit.html" style="color:var(--accent-trail);font-weight:600;">กลับหน้าหลัก</a></p>
+    <p style="text-align:center;font-size:12.5px;color:var(--text-muted);margin-top:14px;">มีบัญชีอยู่แล้ว? <a href="login.html?role=organizer" style="color:var(--accent-trail);font-weight:600;">เข้าสู่ระบบ</a></p>
   </div>
 </div>
 
 <!-- LOGIN SCREEN -->
-<div class="gate" id="gateLogin">
-  <div class="gate-card">
-    <div class="gate-logo">
-      <svg viewBox="0 0 50 50" fill="none"><polygon points="25,4 46,40 4,40" fill="none" stroke="#C9A24B" stroke-width="2.5"/><polygon points="25,14 38,38 12,38" fill="rgba(226,103,43,.25)" stroke="#E2672B" stroke-width="1.5"/></svg>
-      SafeSummit <span style="font-size:13px;font-weight:400;color:var(--text-muted);margin-left:4px;">ผู้จัดทริป</span>
-    </div>
-    <div class="gate-title">เข้าสู่ระบบ</div>
-    <p class="gate-sub">เข้าสู่ระบบด้วย email และ password ที่ใช้สมัคร</p>
-    <div style="display:flex;flex-direction:column;gap:14px;margin-top:20px;">
-      <div><label class="form-label">อีเมล *</label><input class="form-input" type="email" id="l-email" placeholder="email@example.com"></div>
-      <div><label class="form-label">รหัสผ่าน *</label><input class="form-input" type="password" id="l-password" placeholder="รหัสผ่าน"></div>
-      <button class="btn-primary" style="margin-top:8px;" onclick="handleLogin()">เข้าสู่ระบบ</button>
-      <p style="text-align:center;font-size:13px;color:var(--text-muted);margin:0;">ยังไม่มีบัญชี? <a href="#" onclick="showGate('gateRegister')" style="color:var(--accent-trail);font-weight:600;">สมัครเป็นผู้จัด</a></p>
-    </div>
-  </div>
-</div>
-
 <!-- PENDING APPROVAL SCREEN -->
 <div class="gate" id="gatePending">
   <div class="gate-card" style="text-align:center;">
@@ -383,7 +366,7 @@ h1,h2,h3,h4{font-family:'Kanit',sans-serif;}
       <li style="color:var(--text-muted);opacity:.5;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>รอ Admin อนุมัติบัญชี</li>
     </ul>
     <p style="font-size:12.5px;color:var(--text-muted);margin-top:8px;">หากรอนานเกิน 3 วัน กรุณาติดต่อ <b>admin@safesummit.co.th</b></p>
-    <button class="btn-primary" style="margin-top:20px;width:100%;" onclick="localStorage.removeItem('ss_org_pending');showGate('gateLogin')">เข้าสู่ระบบ (ได้รับอนุมัติแล้ว)</button>
+    <button class="btn-primary" style="margin-top:20px;width:100%;" onclick="localStorage.removeItem('ss_org_pending');location.href='login.html?role=organizer'">เข้าสู่ระบบ (ได้รับอนุมัติแล้ว)</button>
     <button class="btn btn-ghost" style="margin-top:8px;" onclick="window.location.href='safesummit.html'">กลับหน้าหลัก</button>
     <button class="btn" style="margin-top:8px;background:none;color:var(--text-muted);font-size:12px;width:100%;" onclick="resetRegistration()">ลงทะเบียนใหม่ (ล้างข้อมูล)</button>
   </div>
@@ -803,24 +786,29 @@ async function uploadToStorage(file, folder){
 }
 
 async function checkAuthState(){
+  const wantRegister = new URLSearchParams(location.search).get('register')==='1';
   try {
     const user = await Auth.getUser();
     if(!user){
-      // ไม่ได้ login — เช็ค localStorage pending
+      // อยากสมัคร → หน้าสมัคร
+      if(wantRegister){ showGate('gateRegister'); return false; }
+      // เพิ่งสมัครเสร็จ (ยังไม่ login) → หน้ารออนุมัติ
       const pending = (() => { try { return JSON.parse(localStorage.getItem('ss_org_pending')); } catch(e){ return null; } })();
       if(pending){
         document.getElementById('gatePending').classList.add('show');
         document.getElementById('pendingRef').textContent = pending.ref || pending.org;
-      } else {
-        document.getElementById('gateLogin').classList.add('show');
+        return false;
       }
+      // ไม่ได้ login → ไปหน้า login รวม (login.html)
+      location.replace('login.html?role=organizer');
       return false;
     }
     // Login แล้ว — ล้าง localStorage pending แล้วเช็ค status จาก DB
     localStorage.removeItem('ss_org_pending');
     _orgProfile = await Organizers.getMyProfile();
     if(!_orgProfile){
-      document.getElementById('gateLogin').classList.add('show');
+      // login แล้วแต่ยังไม่ได้สมัครเป็นผู้จัด → ไปหน้าสมัคร
+      showGate('gateRegister');
       return false;
     }
     if(_orgProfile.status === 'approved'){
@@ -838,7 +826,7 @@ async function checkAuthState(){
     return false;
   } catch(e){
     console.warn('checkAuthState error:', e);
-    document.getElementById('gateLogin').classList.add('show');
+    location.replace('login.html?role=organizer');
     return false;
   }
 }
@@ -982,18 +970,6 @@ async function submitRevision(){
 function showGate(id){
   document.querySelectorAll('.gate').forEach(g=>g.classList.remove('show'));
   document.getElementById(id).classList.add('show');
-}
-async function handleLogin(){
-  const email = document.getElementById('l-email').value.trim();
-  const pw = document.getElementById('l-password').value;
-  if(!email||!pw){ toast('กรุณากรอก email และ รหัสผ่าน'); return; }
-  const btn = document.querySelector('#gateLogin .btn-primary');
-  if(btn){ btn.disabled=true; btn.textContent='กำลังเข้าสู่ระบบ...'; }
-  const { data, error } = await db.auth.signInWithPassword({ email, password:pw });
-  if(btn){ btn.disabled=false; btn.textContent='เข้าสู่ระบบ'; }
-  if(error){ toast('อีเมลหรือรหัสผ่านไม่ถูกต้อง'); return; }
-  localStorage.removeItem('ss_org_pending');
-  await checkAuthState();
 }
 
 async function load(){

@@ -121,7 +121,7 @@ body{font-family:'Sarabun',sans-serif;background:#FAF6EA;min-height:100vh;displa
   </div>
 
   <div class="register-row" id="registerRow">
-    ยังไม่มีบัญชี? <a href="register.html">สมัครสมาชิก</a>
+    ยังไม่มีบัญชี? <a id="registerLink" href="register.html">สมัครสมาชิก</a>
   </div>
 
   <a href="safesummit.html" class="back">
@@ -155,8 +155,23 @@ function switchTab(role, el){
   el.classList.add('active');
   const isOrg = role === 'organizer';
   document.getElementById('formSub').textContent = isOrg ? 'เข้าสู่ระบบในฐานะผู้จัดทริป' : 'เข้าสู่ระบบในฐานะลูกค้า / นักเดินป่า';
+  // ลิงก์สมัคร: ลูกค้า → register.html, ผู้จัด → organizer.html?register=1
+  const rl = document.getElementById('registerLink');
+  if(rl){
+    rl.setAttribute('href', isOrg ? 'organizer.html?register=1' : 'register.html');
+    rl.textContent = isOrg ? 'สมัครเป็นผู้จัด' : 'สมัครสมาชิก';
+  }
   document.getElementById('errMsg').style.display = 'none';
 }
+
+// preselect แท็บตาม ?role=
+(function(){
+  const role = new URLSearchParams(location.search).get('role');
+  if(role === 'organizer'){
+    const tab = document.querySelector('.tab:nth-child(2)');
+    if(tab) switchTab('organizer', tab);
+  }
+})();
 
 async function doLogin(){
   const email = document.getElementById('emailInput').value.trim();
