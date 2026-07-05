@@ -173,7 +173,7 @@ canvas#qrCanvas{display:block;}
 <!-- TOPBAR -->
 <div class="topbar">
   <div class="topbar-inner">
-    <a class="brand" href="safesummit.html">
+    <a class="brand" href="index.html">
       <svg class="mark" viewBox="0 0 50 50" fill="none">
         <polygon points="25,4 46,40 4,40" fill="none" stroke="#C9A24B" stroke-width="2.5"/>
         <polygon points="25,14 38,38 12,38" fill="rgba(226,103,43,.25)" stroke="#E2672B" stroke-width="1.5"/>
@@ -181,7 +181,7 @@ canvas#qrCanvas{display:block;}
       </svg>
       Safe<span class="istar">S<svg class="star" viewBox="0 0 12 12" fill="currentColor"><polygon points="6,0 7.5,4.5 12,4.5 8.5,7 9.8,12 6,9 2.2,12 3.5,7 0,4.5 4.5,4.5"/></svg></span>ummit
     </a>
-    <a class="back-btn" href="safesummit.html">
+    <a class="back-btn" href="index.html">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
       กลับหน้าแรก
     </a>
@@ -463,9 +463,9 @@ async function loadTripFromDB(id){
   renderSummary();
   changeSeat(0);
   if(!trip){
-    document.getElementById('tripSummaryBody').innerHTML='<p style="color:#C0552F;font-size:14px;padding:8px 0;">ไม่พบทริปที่ระบุ — <a href="safesummit.html" style="color:var(--accent-trail)">กลับหน้าแรก</a></p>';
+    document.getElementById('tripSummaryBody').innerHTML='<p style="color:#C0552F;font-size:14px;padding:8px 0;">ไม่พบทริปที่ระบุ — <a href="index.html" style="color:var(--accent-trail)">กลับหน้าแรก</a></p>';
   } else if(!['open'].includes(trip.status)){
-    document.getElementById('tripSummaryBody').innerHTML=`<p style="color:#C0552F;font-size:14px;padding:8px 0;">ทริปนี้ไม่สามารถจองได้ (สถานะ: ${trip.status}) — <a href="safesummit.html" style="color:var(--accent-trail)">กลับหน้าแรก</a></p>`;
+    document.getElementById('tripSummaryBody').innerHTML=`<p style="color:#C0552F;font-size:14px;padding:8px 0;">ทริปนี้ไม่สามารถจองได้ (สถานะ: ${trip.status}) — <a href="index.html" style="color:var(--accent-trail)">กลับหน้าแรก</a></p>`;
   }
 }
 
@@ -764,7 +764,7 @@ if(_tripId) {
   loadTripFromDB(_tripId);
   initBookingAuth();
 } else {
-  document.getElementById('tripSummaryBody').innerHTML='<p style="color:#C0552F;font-size:14px;padding:8px 0;">ไม่พบ ID ทริป — <a href="safesummit.html" style="color:var(--accent-trail)">กลับหน้าแรก</a></p>';
+  document.getElementById('tripSummaryBody').innerHTML='<p style="color:#C0552F;font-size:14px;padding:8px 0;">ไม่พบ ID ทริป — <a href="index.html" style="color:var(--accent-trail)">กลับหน้าแรก</a></p>';
 }
 </script>
 </body>

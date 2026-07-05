@@ -242,7 +242,7 @@ h1,h2,h3,h4{font-family:'Kanit',sans-serif;}
       <button class="hamburger" onclick="toggleSidebar()" aria-label="เมนู">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
       </button>
-      <a href="safesummit.html" class="brand">
+      <a href="index.html" class="brand">
         <svg class="mark" viewBox="0 0 50 50" fill="none">
           <polygon points="25,4 46,40 4,40" fill="none" stroke="#C9A24B" stroke-width="2.5"/>
           <polygon points="25,14 38,38 12,38" fill="rgba(226,103,43,.25)" stroke="#E2672B" stroke-width="1.5"/>
@@ -254,7 +254,7 @@ h1,h2,h3,h4{font-family:'Kanit',sans-serif;}
     </div>
     <div class="topbar-right">
       <span class="org-chip" id="orgChip">ไกด์ล้านนา</span>
-      <a href="safesummit.html" class="back-btn">
+      <a href="index.html" class="back-btn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
         <span class="back-label">หน้าหลัก</span>
       </a>
@@ -364,7 +364,7 @@ h1,h2,h3,h4{font-family:'Kanit',sans-serif;}
     <div class="gate-title">บัญชีนี้ยังไม่ได้เป็นผู้จัดทริป</div>
     <p class="gate-sub">บัญชี <b id="noOrgEmail">–</b> เข้าสู่ระบบแล้ว แต่ยังไม่พบข้อมูลผู้จัดทริปในระบบ</p>
     <button class="btn-primary" style="margin-top:22px;width:100%;" onclick="showGate('gateRegister')">สมัครเป็นผู้จัดทริป</button>
-    <button class="btn btn-ghost" style="margin-top:8px;width:100%;" onclick="window.location.href='safesummit.html'">ฉันเป็นลูกค้า — ไปหน้าหลัก</button>
+    <button class="btn btn-ghost" style="margin-top:8px;width:100%;" onclick="window.location.href='index.html'">ฉันเป็นลูกค้า — ไปหน้าหลัก</button>
     <button class="btn" style="margin-top:8px;background:none;color:var(--text-muted);font-size:12px;width:100%;" onclick="resetRegistration()">ออกจากระบบ / เข้าด้วยบัญชีอื่น</button>
   </div>
 </div>
@@ -385,7 +385,7 @@ h1,h2,h3,h4{font-family:'Kanit',sans-serif;}
     </ul>
     <p style="font-size:12.5px;color:var(--text-muted);margin-top:8px;">หากรอนานเกิน 3 วัน กรุณาติดต่อ <b>admin@safesummit.co.th</b></p>
     <button class="btn-primary" style="margin-top:20px;width:100%;" onclick="localStorage.removeItem('ss_org_pending');location.href='login.html?role=organizer'">เข้าสู่ระบบ (ได้รับอนุมัติแล้ว)</button>
-    <button class="btn btn-ghost" style="margin-top:8px;" onclick="window.location.href='safesummit.html'">กลับหน้าหลัก</button>
+    <button class="btn btn-ghost" style="margin-top:8px;" onclick="window.location.href='index.html'">กลับหน้าหลัก</button>
     <button class="btn" style="margin-top:8px;background:none;color:var(--text-muted);font-size:12px;width:100%;" onclick="resetRegistration()">ลงทะเบียนใหม่ (ล้างข้อมูล)</button>
   </div>
 </div>
@@ -1016,7 +1016,7 @@ async function submitRegister(){
 
 async function resetRegistration(){
   try { await Auth.signOut(); } catch(e){}
-  window.location.replace('safesummit.html');
+  window.location.replace('index.html');
 }
 
 async function submitRevision(){

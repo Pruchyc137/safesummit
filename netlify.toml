@@ -1,0 +1,8 @@
+# SafeSummit — Netlify config (static site, no build step)
+[build]
+  publish = "."
+  command = ""
+
+# กันไม่ให้ Netlify พยายาม build อะไร (เว็บเป็น static ล้วน)
+[build.environment]
+  NETLIFY_USE_YARN = "false"

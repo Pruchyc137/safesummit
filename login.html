@@ -124,7 +124,7 @@ body{font-family:'Sarabun',sans-serif;background:#FAF6EA;min-height:100vh;displa
     ยังไม่มีบัญชี? <a id="registerLink" href="register.html">สมัครสมาชิก</a>
   </div>
 
-  <a href="safesummit.html" class="back">
+  <a href="index.html" class="back">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
     กลับหน้าแรก
   </a>
@@ -227,7 +227,7 @@ async function doLogin(){
   }
 
   const next = getNext();
-  location.href = next ? next : (currentRole === 'organizer' ? 'organizer.html' : 'safesummit.html');
+  location.href = next ? next : (currentRole === 'organizer' ? 'organizer.html' : 'index.html');
 }
 
 async function doForgot(e){

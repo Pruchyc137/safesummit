@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "safesummit",
+      "runtimeExecutable": "py",
+      "runtimeArgs": ["-m", "http.server", "5500", "--directory", "C:/Users/pruch/OneDrive/Desktop/AI/Claude/SafeSummit"],
+      "port": 5500
+    }
+  ]
+}

@@ -76,14 +76,14 @@ h1,h2,h3{font-family:'Kanit',sans-serif;}
 <!-- TOPBAR -->
 <div class="topbar">
   <div class="topbar-inner">
-    <a class="brand" href="safesummit.html">
+    <a class="brand" href="index.html">
       <svg class="mark" viewBox="0 0 48 48" fill="none" stroke-linecap="round" stroke-linejoin="round">
         <path d="M8,33 L21,14 L34,33" stroke="#C9A24B" stroke-width="3.2"/>
         <path d="M15,25 L20,31 L31,17" stroke="#E2672B" stroke-width="3.2"/>
       </svg>
       <span>SafeSumm<span class="istar"><span style="color:var(--text-light)">ı</span><svg class="star" viewBox="0 0 24 24" fill="currentColor" style="display:inline;width:.46em;height:.46em;vertical-align:top;color:var(--accent-gold)"><path d="M12 2l2.6 6.6L21.5 9.2l-5 4.8 1.4 7L12 17.8 6.1 21l1.4-7-5-4.8 6.9-.6z"/></svg></span>t</span>
     </a>
-    <a class="back-btn" href="safesummit.html">
+    <a class="back-btn" href="index.html">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
       กลับหน้าแรก
     </a>
@@ -114,7 +114,7 @@ h1,h2,h3{font-family:'Kanit',sans-serif;}
         <span class="qt">ทริปของฉัน</span>
         <span class="qs">ดูทริปที่จองไว้</span>
       </a>
-      <a class="qlink" href="safesummit.html#trips">
+      <a class="qlink" href="index.html#trips">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21 21l-4.35-4.35"/><circle cx="11" cy="11" r="7"/></svg>
         <span class="qt">ค้นหาทริป</span>
         <span class="qs">หาทริปใหม่ไปเดินป่า</span>
@@ -210,7 +210,7 @@ async function saveProfile(){
 
 async function doLogout(){
   try { await db.auth.signOut(); } catch(e){}
-  location.replace('safesummit.html');
+  location.replace('index.html');
 }
 
 let toastTimer;
