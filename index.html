@@ -131,10 +131,10 @@ section.block{padding:88px 0;background:var(--bg-light);}
 
 /* search mock */
 .search-mock{
-  display:flex;flex-wrap:wrap;gap:8px;background:var(--card-light);border-radius:12px;box-shadow:var(--shadow);
-  padding:10px;margin-bottom:40px;
+  display:flex;flex-wrap:wrap;gap:8px;background:#E4DAC2;border-radius:18px;box-shadow:0 12px 30px rgba(40,28,18,.10);
+  padding:12px;margin-bottom:40px;
 }
-.search-mock .field{position:relative;flex:1 1 calc(50% - 4px);min-width:0;padding:8px 32px 8px 12px;border:1px solid #ECE3CB;border-radius:8px;background:#FCFAF3;}
+.search-mock .field{position:relative;flex:1 1 calc(50% - 4px);min-width:0;padding:8px 32px 8px 12px;border:1px solid #D6C9A9;border-radius:12px;background:#F7F2E6;}
 .search-mock .field label{display:block;font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px;font-family:'Bai Jamjuree',monospace;}
 .search-mock .field select{
   appearance:none;-webkit-appearance:none;-moz-appearance:none;border:none;background:transparent;
@@ -145,7 +145,7 @@ section.block{padding:88px 0;background:var(--bg-light);}
   content:"▾";position:absolute;right:10px;top:50%;transform:translateY(2px);font-size:16px;color:var(--text-muted);pointer-events:none;
 }
 .search-mock .go{
-  flex:1 1 100%;width:100%;background:var(--accent-trail);color:#fff;border-radius:8px;
+  flex:1 1 100%;width:100%;background:var(--accent-trail);color:#fff;border-radius:12px;
   padding:12px;display:flex;align-items:center;justify-content:center;gap:9px;
   font-weight:700;font-size:15px;border:none;cursor:pointer;
 }
@@ -303,6 +303,51 @@ footer{background:var(--bg-deep);color:var(--line-muted);padding:54px 0 30px;bor
   .tv-hero .tv-panel{width:100%;background:rgba(22,32,22,.62);padding:0 26px;}
   .tv-hero p.lede{max-width:100%;}
 }
+/* Travel theme — sections */
+.tv-sec{padding:64px 0 0;}
+.tv-sechead{text-align:center;max-width:640px;margin:0 auto 38px;}
+.tv-sechead h2{font-family:'Kanit',sans-serif;font-weight:800;font-size:clamp(26px,3.4vw,38px);color:#1A1A1A;}
+.tv-sechead p{color:var(--text-muted);font-size:16px;margin-top:10px;}
+.tv-trust{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;}
+.tv-tcard{background:#E4DAC2;border-radius:20px;padding:26px 22px;}
+.tv-tcard .ic{width:50px;height:50px;border-radius:14px;background:#F3EEE2;display:flex;align-items:center;justify-content:center;margin-bottom:14px;}
+.tv-tcard .ic svg{width:25px;height:25px;color:var(--accent-trail);}
+.tv-tcard h4{font-family:'Kanit',sans-serif;font-weight:600;font-size:17px;color:#20291C;margin-bottom:6px;}
+.tv-tcard p{color:#7C7566;font-size:13.5px;line-height:1.5;}
+.tv-org{background:#20291C;border-radius:26px;padding:48px 52px;color:#EFE9DD;}
+.tv-org .eyebrow{color:#EE9A56;letter-spacing:.14em;text-transform:uppercase;}
+.tv-org h2{font-family:'Kanit',sans-serif;font-weight:800;font-size:clamp(24px,3vw,33px);color:#F3EEE2;margin:10px 0 0;max-width:640px;line-height:1.28;}
+.tv-org .sub{color:#C7CCC0;font-size:16px;margin-top:12px;max-width:600px;}
+.tv-org .feats{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:34px;}
+.tv-org .feat h4{font-family:'Kanit',sans-serif;font-weight:600;font-size:17px;color:#F3EEE2;display:flex;align-items:center;gap:9px;margin-bottom:6px;}
+.tv-org .feat h4 .dot{width:26px;height:26px;border-radius:8px;background:var(--accent-trail);display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;}
+.tv-org .feat h4 .dot svg{width:14px;height:14px;}
+.tv-org .feat p{color:#B7BDB0;font-size:13.5px;line-height:1.5;}
+.tv-org .tiers{display:flex;align-items:center;gap:12px;margin-top:34px;flex-wrap:wrap;}
+.tv-org .tier{font-family:'Kanit',sans-serif;font-size:13.5px;padding:8px 17px;border-radius:24px;border:1px solid #4A5545;color:#C7CCC0;}
+.tv-org .tier.on{background:var(--accent-trail);border-color:var(--accent-trail);color:#fff;}
+.tv-org .arr{color:#7A8574;}
+.tv-cta{background:linear-gradient(120deg,#E8792B,#D2551F);border-radius:26px;padding:52px;text-align:center;color:#fff;}
+.tv-cta h2{font-family:'Kanit',sans-serif;font-weight:800;font-size:clamp(24px,3vw,34px);color:#fff;}
+.tv-cta p{color:#FCE6D6;font-size:16px;margin-top:10px;}
+.tv-cta .btns{display:flex;gap:14px;justify-content:center;margin-top:26px;flex-wrap:wrap;}
+.tv-cta .b1{background:#fff;color:var(--accent-trail);font-family:'Kanit',sans-serif;font-weight:700;font-size:16px;border-radius:30px;padding:14px 32px;border:none;cursor:pointer;text-decoration:none;display:inline-block;}
+.tv-cta .b2{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.6);color:#fff;font-family:'Kanit',sans-serif;font-weight:700;font-size:16px;border-radius:30px;padding:14px 32px;cursor:pointer;text-decoration:none;display:inline-block;}
+.tv-news{background:#1C2417;margin-top:74px;padding:60px 0 34px;color:#EFE9DD;}
+.tv-news h2{font-family:'Kanit',sans-serif;font-weight:800;text-align:center;font-size:clamp(24px,3vw,34px);color:#F3EEE2;}
+.tv-news .nsub{text-align:center;color:#C7CCC0;font-size:16px;margin-top:10px;}
+.tv-news .nform{margin:26px auto 0;max-width:540px;background:#F3EEE4;border-radius:32px;display:flex;align-items:center;padding:6px 6px 6px 22px;}
+.tv-news .nform input{flex:1;border:none;background:transparent;font-family:'Sarabun',sans-serif;font-size:15px;color:#5C5748;outline:none;}
+.tv-news .nform button{background:var(--accent-trail);color:#fff;font-family:'Kanit',sans-serif;font-weight:700;font-size:15px;border:none;border-radius:30px;padding:13px 30px;cursor:pointer;}
+.tv-foot{display:flex;justify-content:space-between;gap:30px;margin-top:52px;padding-bottom:24px;border-bottom:1px solid rgba(255,255,255,.12);flex-wrap:wrap;}
+.tv-foot .about{max-width:280px;}
+.tv-foot .about img{height:26px;margin-bottom:10px;}
+.tv-foot .about p{color:#B7BDB0;font-size:13.5px;line-height:1.6;}
+.tv-foot .col h5{font-family:'Kanit',sans-serif;font-size:12.5px;letter-spacing:.05em;color:#EE9A56;margin-bottom:12px;text-transform:uppercase;}
+.tv-foot .col li{list-style:none;font-size:14px;color:#D0D4C9;margin-bottom:8px;cursor:pointer;}
+.tv-foot .col li a{color:#D0D4C9;}
+.tv-copy{text-align:center;color:#8A9182;font-size:13px;margin-top:22px;}
+@media(max-width:860px){.tv-trust{grid-template-columns:1fr 1fr;}.tv-org .feats{grid-template-columns:1fr;}.tv-org,.tv-cta{padding:36px 26px;}}
 
 /* footer text contrast fix: brighten body copy so it doesn't blend */
 footer p.foot-blurb{color:var(--text-light);opacity:.92;}
@@ -614,36 +659,34 @@ footer .foot-grid li a:hover{opacity:1;color:var(--accent-gold);}
 </section>
 
 <!-- FOR ORGANIZERS -->
-<section class="block on-light-org" id="organizers">
+<section class="tv-sec" id="organizers">
   <div class="wrap">
-    <div class="eyebrow" data-th="สำหรับผู้จัดทริป" data-en="For Organizers">สำหรับผู้จัดทริป</div>
-    <h2 data-th="ขยายฐานลูกค้าไทย+ต่างชาติ ไม่ต้องนั่งตอบ DM ทั้งวัน" data-en="Reach Thai & international customers, without answering DMs all day">ขยายฐานลูกค้าไทย+ต่างชาติ ไม่ต้องนั่งตอบ DM ทั้งวัน</h2>
-    <p class="sub" data-th="เปิดบัญชี ส่งเอกสารยืนยันครั้งเดียว แล้วให้ระบบจัดการการจองและเงินที่เหลือ" data-en="Open an account, verify once, and let the system handle bookings and payments.">เปิดบัญชี ส่งเอกสารยืนยันครั้งเดียว แล้วให้ระบบจัดการการจองและเงินที่เหลือ</p>
+    <div class="tv-org">
+      <div class="eyebrow" data-th="สำหรับผู้จัดทริป" data-en="For Organizers">สำหรับผู้จัดทริป</div>
+      <h2 data-th="ขยายฐานลูกค้าไทย+ต่างชาติ ไม่ต้องนั่งตอบ DM ทั้งวัน" data-en="Reach Thai & international customers, without answering DMs all day">ขยายฐานลูกค้าไทย+ต่างชาติ ไม่ต้องนั่งตอบ DM ทั้งวัน</h2>
+      <p class="sub" data-th="เปิดบัญชี ส่งเอกสารยืนยันครั้งเดียว แล้วให้ระบบจัดการการจองและเงินที่เหลือ" data-en="Open an account, verify once, and let the system handle bookings and payments.">เปิดบัญชี ส่งเอกสารยืนยันครั้งเดียว แล้วให้ระบบจัดการการจองและเงินที่เหลือ</p>
 
-    <div class="org-grid">
-      <div class="org-card">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a6 6 0 0 1 6-6h0a6 6 0 0 1 6 6v2"/><path d="M17 11a4 4 0 0 0 0-8"/></svg>
-        <h4 data-th="เข้าถึงลูกค้าใหม่" data-en="Reach new customers">เข้าถึงลูกค้าใหม่</h4>
-        <p data-th="ทั้งคนไทยและนักท่องเที่ยวต่างชาติที่หาทริปเดินป่าไม่เจอที่ไหน" data-en="Thai and foreign travelers who can't find trekking trips anywhere else">ทั้งคนไทยและนักท่องเที่ยวต่างชาติที่หาทริปเดินป่าไม่เจอที่ไหน</p>
+      <div class="feats">
+        <div class="feat">
+          <h4><span class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a6 6 0 0 1 6-6h0a6 6 0 0 1 6 6v2"/></svg></span><span data-th="เข้าถึงลูกค้าใหม่" data-en="Reach new customers">เข้าถึงลูกค้าใหม่</span></h4>
+          <p data-th="ทั้งคนไทยและนักท่องเที่ยวต่างชาติที่หาทริปเดินป่าไม่เจอที่ไหน" data-en="Thai and foreign travelers who can't find trekking trips anywhere else">ทั้งคนไทยและนักท่องเที่ยวต่างชาติที่หาทริปเดินป่าไม่เจอที่ไหน</p>
+        </div>
+        <div class="feat">
+          <h4><span class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18"/></svg></span><span data-th="ไม่ต้องนั่งตอบ DM" data-en="No more DM juggling">ไม่ต้องนั่งตอบ DM</span></h4>
+          <p data-th="ลูกค้าจองและจ่ายเงินในระบบโดยตรง ไม่ต้องเช็คสลิปเอง" data-en="Customers book and pay in-app. No more checking transfer slips.">ลูกค้าจองและจ่ายเงินในระบบโดยตรง ไม่ต้องเช็คสลิปเอง</p>
+        </div>
+        <div class="feat">
+          <h4><span class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="10" rx="1.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></span><span data-th="การันตีได้เงินครบ" data-en="Guaranteed payout">การันตีได้เงินครบ</span></h4>
+          <p data-th="เงินอยู่ใน Escrow รอไว้แล้ว จบทริปรับเงินทันที" data-en="Funds wait in escrow, released the moment the trip ends">เงินอยู่ใน Escrow รอไว้แล้ว จบทริปรับเงินทันที</p>
+        </div>
       </div>
-      <div class="org-card">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18"/></svg>
-        <h4 data-th="ไม่ต้องนั่งตอบ DM" data-en="No more DM juggling">ไม่ต้องนั่งตอบ DM</h4>
-        <p data-th="ลูกค้าจองและจ่ายเงินในระบบโดยตรง ไม่ต้องเช็คสลิปเอง" data-en="Customers book and pay in-app. No more checking transfer slips.">ลูกค้าจองและจ่ายเงินในระบบโดยตรง ไม่ต้องเช็คสลิปเอง</p>
-      </div>
-      <div class="org-card">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="10" width="16" height="10" rx="1.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
-        <h4 data-th="การันตีได้เงินครบ" data-en="Guaranteed payout">การันตีได้เงินครบ</h4>
-        <p data-th="เงินอยู่ใน Escrow รอไว้แล้ว จบทริปรับเงินทันที" data-en="Funds wait in escrow, released the moment the trip ends">เงินอยู่ใน Escrow รอไว้แล้ว จบทริปรับเงินทันที</p>
+
+      <div class="tiers">
+        <span class="tier">Unverified</span><span class="arr">→</span>
+        <span class="tier">Verified Basic</span><span class="arr">→</span>
+        <span class="tier on">Verified Pro</span>
       </div>
     </div>
-
-    <div class="tier-row">
-      <span class="tier">Unverified</span><span class="tier-arrow">→</span>
-      <span class="tier">Verified Basic</span><span class="tier-arrow">→</span>
-      <span class="tier active">Verified Pro</span>
-    </div>
-
   </div>
 </section>
 
@@ -669,57 +712,71 @@ footer .foot-grid li a:hover{opacity:1;color:var(--accent-gold);}
   </div>
 </section>
 
-<!-- TRUST STRIP (moved below reviews) -->
-<section class="trust" id="how">
-  <div class="wrap trust-grid">
-    <div class="trust-item">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>
-      <div><h4 data-th="ตรวจใบอนุญาตจริง" data-en="Real license checks">ตรวจใบอนุญาตจริง</h4><p data-th="เทียบกับฐานข้อมูลกรมการท่องเที่ยวก่อนอนุมัติ" data-en="Verified against the Tourism Department database before approval">เทียบกับฐานข้อมูลกรมการท่องเที่ยวก่อนอนุมัติ</p></div>
+<!-- WHY SAFESUMMIT (trust) -->
+<section class="tv-sec" id="how">
+  <div class="wrap">
+    <div class="tv-sechead">
+      <h2 data-th="ทำไมต้อง SafeSummit" data-en="Why SafeSummit">ทำไมต้อง SafeSummit</h2>
+      <p data-th="ทุกการจองผ่านระบบที่ออกแบบมาเพื่อความปลอดภัยของทั้งสองฝั่ง" data-en="Every booking runs through a system built to protect both sides">ทุกการจองผ่านระบบที่ออกแบบมาเพื่อความปลอดภัยของทั้งสองฝั่ง</p>
     </div>
-    <div class="trust-item">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><rect x="4" y="10" width="16" height="10" rx="1.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
-      <div><h4 data-th="เงินกักไว้ใน Escrow" data-en="Money held in escrow">เงินกักไว้ใน Escrow</h4><p data-th="จ่ายให้ผู้จัดก็ต่อเมื่อทริปจบแล้วเท่านั้น" data-en="Released to the organizer only after the trip ends">จ่ายให้ผู้จัดก็ต่อเมื่อทริปจบแล้วเท่านั้น</p></div>
-    </div>
-    <div class="trust-item">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M12 17l-6 3 1-7-5-5h7l3-7 3 7h7l-5 5 1 7z"/></svg>
-      <div><h4 data-th="รีวิวจากลูกค้าจริง" data-en="Reviews from real customers">รีวิวจากลูกค้าจริง</h4><p data-th="รีวิวได้เมื่อจองและจ่ายผ่านระบบเท่านั้น" data-en="Only those who booked and paid through us can review">รีวิวได้เมื่อจองและจ่ายผ่านระบบเท่านั้น</p></div>
-    </div>
-    <div class="trust-item">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M3 12a9 9 0 1 0 9-9"/><path d="M3 4v8h8"/></svg>
-      <div><h4 data-th="คืนเงินอัตโนมัติ" data-en="Automatic refunds">คืนเงินอัตโนมัติ</h4><p data-th="ถ้าทริปไม่ครบคนขั้นต่ำ ไม่ต้องรอผู้จัดตัดสินใจ" data-en="If a trip misses its minimum, you are refunded automatically">ถ้าทริปไม่ครบคนขั้นต่ำ ไม่ต้องรอผู้จัดตัดสินใจ</p></div>
+    <div class="tv-trust">
+      <div class="tv-tcard">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg></div>
+        <h4 data-th="ตรวจใบอนุญาตจริง" data-en="Real license checks">ตรวจใบอนุญาตจริง</h4>
+        <p data-th="เทียบกับฐานข้อมูลกรมการท่องเที่ยวก่อนอนุมัติ" data-en="Verified against the Tourism Department database before approval">เทียบกับฐานข้อมูลกรมการท่องเที่ยวก่อนอนุมัติ</p>
+      </div>
+      <div class="tv-tcard">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="10" width="16" height="10" rx="1.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></div>
+        <h4 data-th="เงินกักไว้ใน Escrow" data-en="Money held in escrow">เงินกักไว้ใน Escrow</h4>
+        <p data-th="จ่ายให้ผู้จัดก็ต่อเมื่อทริปจบแล้วเท่านั้น" data-en="Released to the organizer only after the trip ends">จ่ายให้ผู้จัดก็ต่อเมื่อทริปจบแล้วเท่านั้น</p>
+      </div>
+      <div class="tv-tcard">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 17l-6 3 1-7-5-5h7l3-7 3 7h7l-5 5 1 7z"/></svg></div>
+        <h4 data-th="รีวิวจากลูกค้าจริง" data-en="Reviews from real customers">รีวิวจากลูกค้าจริง</h4>
+        <p data-th="รีวิวได้เมื่อจองและจ่ายผ่านระบบเท่านั้น" data-en="Only those who booked and paid through us can review">รีวิวได้เมื่อจองและจ่ายผ่านระบบเท่านั้น</p>
+      </div>
+      <div class="tv-tcard">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 12a9 9 0 1 0 9-9"/><path d="M3 4v8h8"/></svg></div>
+        <h4 data-th="คืนเงินอัตโนมัติ" data-en="Automatic refunds">คืนเงินอัตโนมัติ</h4>
+        <p data-th="ถ้าทริปไม่ครบคนขั้นต่ำ ไม่ต้องรอผู้จัดตัดสินใจ" data-en="If a trip misses its minimum, you are refunded automatically">ถ้าทริปไม่ครบคนขั้นต่ำ ไม่ต้องรอผู้จัดตัดสินใจ</p>
+      </div>
     </div>
   </div>
 </section>
 
 <!-- FINAL CTA -->
-<section class="final-cta">
+<section class="tv-sec">
   <div class="wrap">
-    <h2 data-th="พร้อมเริ่มเดินป่าแบบไว้ใจได้หรือยัง?" data-en="Ready to trek with confidence?">พร้อมเริ่มเดินป่าแบบไว้ใจได้หรือยัง?</h2>
-    <p data-th="ไม่มีค่าใช้จ่ายในการสมัคร เริ่มค้นหาหรือลงทะเบียนได้ทันที" data-en="No signup fee. Start searching or register right away.">ไม่มีค่าใช้จ่ายในการสมัคร เริ่มค้นหาหรือลงทะเบียนได้ทันที</p>
-    <div class="hero-ctas">
-      <a class="btn btn-primary" href="#travelers" data-th="ค้นหาทริปเดินป่า →" data-en="Find a trek →">ค้นหาทริปเดินป่า →</a>
-      <a class="btn btn-ghost" href="organizer.html" data-th="สมัครเป็นผู้จัด" data-en="Become an organizer">สมัครเป็นผู้จัด</a>
+    <div class="tv-cta">
+      <h2 data-th="พร้อมเริ่มเดินป่าแบบไว้ใจได้หรือยัง?" data-en="Ready to trek with confidence?">พร้อมเริ่มเดินป่าแบบไว้ใจได้หรือยัง?</h2>
+      <p data-th="ไม่มีค่าใช้จ่ายในการสมัคร เริ่มค้นหาหรือลงทะเบียนได้ทันที" data-en="No signup fee. Start searching or register right away.">ไม่มีค่าใช้จ่ายในการสมัคร เริ่มค้นหาหรือลงทะเบียนได้ทันที</p>
+      <div class="btns">
+        <a class="b1" href="#travelers" data-th="ค้นหาทริปเดินป่า →" data-en="Find a trek →">ค้นหาทริปเดินป่า →</a>
+        <a class="b2" href="organizer.html" data-th="สมัครเป็นผู้จัด" data-en="Become an organizer">สมัครเป็นผู้จัด</a>
+      </div>
     </div>
   </div>
 </section>
 
-<footer>
+<footer class="tv-news">
   <div class="wrap">
-    <div class="foot-grid">
-      <div>
-        <a class="logo" href="#top" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;" style="margin-bottom:10px;">
-          <img src="brand/safesummit-full-cream.png" alt="SafeSummit" style="height:26px;width:auto;">
-        </a>
-        <p class="foot-blurb" style="font-size:13px;max-width:240px;" data-th="ตัวกลางจองทริปเดินป่าที่ตรวจสอบผู้จัดจริง ก่อนให้เปิดขายทริป" data-en="A trekking marketplace that verifies every organizer before they can sell trips.">ตัวกลางจองทริปเดินป่าที่ตรวจสอบผู้จัดจริง ก่อนให้เปิดขายทริป</p>
+    <h2 data-th="รับข่าวทริปใหม่ก่อนใคร" data-en="Get new trips first">รับข่าวทริปใหม่ก่อนใคร</h2>
+    <p class="nsub" data-th="สมัครรับข่าวทริปเดินป่าและผู้จัด Verified ใหม่ทุกสัปดาห์" data-en="Weekly updates on new treks and verified organizers">สมัครรับข่าวทริปเดินป่าและผู้จัด Verified ใหม่ทุกสัปดาห์</p>
+    <form class="nform" onsubmit="return false">
+      <input type="email" placeholder="อีเมลของคุณ" aria-label="email">
+      <button type="submit" data-th="สมัครรับข่าว" data-en="Subscribe">สมัครรับข่าว</button>
+    </form>
+
+    <div class="tv-foot">
+      <div class="about">
+        <a href="#top" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;"><img src="brand/safesummit-full-cream.png" alt="SafeSummit"></a>
+        <p data-th="ตัวกลางจองทริปเดินป่าที่ตรวจสอบผู้จัดจริง ก่อนให้เปิดขายทริป" data-en="A trekking marketplace that verifies every organizer before they can sell trips.">ตัวกลางจองทริปเดินป่าที่ตรวจสอบผู้จัดจริง ก่อนให้เปิดขายทริป</p>
       </div>
-      <div><h5 data-th="สำหรับนักเดินป่า" data-en="For Hikers">สำหรับนักเดินป่า</h5><ul><li><a href="#travelers" data-th="ค้นหาทริป" data-en="Search trips">ค้นหาทริป</a></li><li><a href="#" onclick="showAuth('register','customer',event)" data-th="วิธีจอง" data-en="How to book">วิธีจอง</a></li><li><a href="#" onclick="return false" data-th="นโยบายคืนเงิน" data-en="Refund policy">นโยบายคืนเงิน</a></li></ul></div>
-      <div><h5 data-th="สำหรับผู้จัด" data-en="For Organizers">สำหรับผู้จัด</h5><ul><li><a href="organizer.html" data-th="สมัครเป็นผู้จัด" data-en="Become an organizer">สมัครเป็นผู้จัด</a></li><li><a href="#" onclick="return false" data-th="ขั้นตอนยืนยันตัวตน" data-en="Verification steps">ขั้นตอนยืนยันตัวตน</a></li><li><a href="#" onclick="return false" data-th="ค่าคอมมิชชั่น" data-en="Commission fees">ค่าคอมมิชชั่น</a></li></ul></div>
-      <div><h5 data-th="บริษัท" data-en="Company">บริษัท</h5><ul><li><a href="#" onclick="return false" data-th="เกี่ยวกับเรา" data-en="About us">เกี่ยวกับเรา</a></li><li><a href="#" onclick="return false" data-th="ติดต่อเรา" data-en="Contact">ติดต่อเรา</a></li><li><a href="#" onclick="return false" data-th="ข้อกำหนดการใช้งาน" data-en="Terms of use">ข้อกำหนดการใช้งาน</a></li></ul></div>
+      <div class="col"><h5 data-th="สำหรับนักเดินป่า" data-en="For Hikers">สำหรับนักเดินป่า</h5><ul><li><a href="#travelers" data-th="ค้นหาทริป" data-en="Search trips">ค้นหาทริป</a></li><li><a href="#" onclick="showAuth('register','customer',event)" data-th="วิธีจอง" data-en="How to book">วิธีจอง</a></li><li><a href="#" onclick="return false" data-th="นโยบายคืนเงิน" data-en="Refund policy">นโยบายคืนเงิน</a></li></ul></div>
+      <div class="col"><h5 data-th="สำหรับผู้จัด" data-en="For Organizers">สำหรับผู้จัด</h5><ul><li><a href="organizer.html" data-th="สมัครเป็นผู้จัด" data-en="Become an organizer">สมัครเป็นผู้จัด</a></li><li><a href="#" onclick="return false" data-th="ขั้นตอนยืนยันตัวตน" data-en="Verification steps">ขั้นตอนยืนยันตัวตน</a></li><li><a href="#" onclick="return false" data-th="ค่าคอมมิชชั่น" data-en="Commission fees">ค่าคอมมิชชั่น</a></li></ul></div>
+      <div class="col"><h5 data-th="บริษัท" data-en="Company">บริษัท</h5><ul><li><a href="#" onclick="return false" data-th="เกี่ยวกับเรา" data-en="About us">เกี่ยวกับเรา</a></li><li><a href="#" onclick="return false" data-th="ติดต่อเรา" data-en="Contact">ติดต่อเรา</a></li><li><a href="#" onclick="return false" data-th="ข้อกำหนดการใช้งาน" data-en="Terms of use">ข้อกำหนดการใช้งาน</a></li></ul></div>
     </div>
-    <div class="foot-bottom">
-      <span>© 2569 SafeSummit. All rights reserved.</span>
-      <span data-th="ออกแบบเพื่อใช้เป็นต้นแบบนำเสนอแนวคิดแพลตฟอร์ม" data-en="Built as a concept prototype for the platform idea">ออกแบบเพื่อใช้เป็นต้นแบบนำเสนอแนวคิดแพลตฟอร์ม</span>
-    </div>
+    <div class="tv-copy">© 2569 SafeSummit · <span data-th="ออกแบบเพื่อใช้เป็นต้นแบบนำเสนอแนวคิดแพลตฟอร์ม" data-en="Built as a concept prototype for the platform idea">ออกแบบเพื่อใช้เป็นต้นแบบนำเสนอแนวคิดแพลตฟอร์ม</span></div>
   </div>
 </footer>
 
