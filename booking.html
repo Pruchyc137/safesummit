@@ -166,6 +166,56 @@ canvas#qrCanvas{display:block;}
 .pill{font-family:'Bai Jamjuree',monospace;font-size:10.5px;font-weight:600;padding:3px 8px;border-radius:20px;}
 .pill.open{background:rgba(62,110,142,.13);color:#3E6E8E;}
 .pill.full{background:rgba(201,154,59,.15);color:#C99A3B;}
+
+/* ── VAN SEAT MAP ── */
+.van-tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+.vtab{font-family:'Kanit',sans-serif;font-weight:700;font-size:12.5px;padding:7px 15px;border-radius:20px;border:1.5px solid #E6DCC6;color:var(--text-muted);background:#fff;cursor:pointer;transition:.15s;}
+.vtab.on{background:var(--accent-trail);border-color:var(--accent-trail);color:#fff;}
+.vtab.full{background:#F3ECDD;color:#A99B85;}
+.van{max-width:320px;margin:0 auto;background:#F7F1E4;border:2px solid #E2D6BC;border-radius:24px 24px 18px 18px;padding:16px 20px 22px;position:relative;}
+.van-front{display:flex;justify-content:space-between;align-items:center;padding:8px 2px 14px;border-bottom:2px dashed #DDD0B4;margin-bottom:14px;}
+.vseat{border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Kanit',sans-serif;font-weight:700;font-size:16px;gap:2px;transition:.15s;}
+.vseat small{font-family:'Sarabun',sans-serif;font-weight:600;font-size:9px;}
+.vseat.crew{background:#EDE4D2;color:#9B8E7A;width:74px;height:58px;}
+.vseat.crew svg{width:19px;height:19px;}
+.van-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px 12px;justify-items:center;}
+.vseat.p{cursor:pointer;width:70px;height:58px;}
+.vseat.p.free{background:#fff;border:2px solid var(--accent-trail);color:var(--accent-trail);}
+.vseat.p.free:hover{background:#FDF0E8;}
+.vseat.p.sel{background:var(--accent-trail);border:2px solid var(--accent-trail);color:#fff;box-shadow:0 6px 14px rgba(226,103,43,.30);}
+.vseat.p.taken{background:#E7DDC8;border:2px solid #E7DDC8;color:#B3A488;cursor:not-allowed;}
+.van-legend{display:flex;gap:16px;justify-content:center;margin-top:16px;font-size:12px;color:var(--text-dark);flex-wrap:wrap;}
+.van-legend span{display:flex;align-items:center;gap:6px;}
+.van-legend i{width:15px;height:15px;border-radius:5px;display:inline-block;}
+.seat-picked{font-size:13px;color:var(--text-muted);text-align:center;margin-top:12px;}
+.seat-picked b{color:var(--accent-trail);}
+
+/* ── PAYMENT TYPE ── */
+.pay-opt{border:2px solid #E6DCC6;border-radius:12px;padding:14px 16px;margin-bottom:12px;cursor:pointer;transition:.15s;}
+.pay-opt.on{border-color:var(--accent-trail);background:#FDF6F0;}
+.pay-opt-head{display:flex;align-items:flex-start;gap:12px;}
+.pay-radio{width:20px;height:20px;border-radius:50%;border:2px solid #CBBE9F;flex:0 0 auto;margin-top:2px;transition:.15s;}
+.pay-opt.on .pay-radio{border-color:var(--accent-trail);border-width:6px;}
+.pay-opt .pt{font-family:'Kanit',sans-serif;font-weight:700;font-size:15px;color:var(--text-dark);}
+.pay-opt .pd{font-size:12.5px;color:var(--text-muted);margin-top:2px;}
+.pay-opt .pa{font-family:'Kanit',sans-serif;font-weight:800;font-size:18px;color:var(--accent-trail);margin-left:auto;white-space:nowrap;}
+.dep-pills{display:flex;gap:10px;margin:12px 0 4px;}
+.dep-pill{flex:1;border:2px solid #E6DCC6;border-radius:10px;padding:9px 10px;text-align:center;background:#fff;cursor:pointer;transition:.15s;}
+.dep-pill.on{border-color:var(--accent-trail);}
+.dep-pill .dpl{font-family:'Kanit',sans-serif;font-weight:700;font-size:14px;color:var(--text-dark);}
+.dep-pill.on .dpl{color:var(--accent-trail);}
+.dep-pill .dps{font-size:10.5px;color:var(--text-muted);margin-top:2px;}
+.dep-remain{background:#FBF3E7;border:1px dashed var(--accent-gold);border-radius:10px;padding:10px 13px;font-size:12.5px;color:#7A6A4A;margin-top:8px;}
+.dep-remain b{color:var(--text-dark);}
+
+/* ── LINE GROUP ── */
+.line-box{display:flex;gap:14px;align-items:center;background:#F3FAF1;border:1.5px solid #CDE8C6;border-radius:12px;padding:14px 16px;margin-top:16px;text-align:left;}
+.line-qr{width:92px;height:92px;border-radius:10px;background:#fff;border:1px solid #E6DCC6;display:flex;align-items:center;justify-content:center;flex:0 0 auto;position:relative;}
+.line-qr.locked{filter:grayscale(1);opacity:.55;}
+.line-qr .lock{position:absolute;font-size:26px;}
+.line-box h4{font-size:14px;color:#2E7D32;margin-bottom:3px;}
+.line-box p{font-size:12px;color:#5A6E55;line-height:1.5;}
+.line-badge{display:inline-block;background:#E4F3DF;color:#2E7D32;font-family:'Kanit',sans-serif;font-weight:700;font-size:10.5px;padding:2px 9px;border-radius:12px;margin-bottom:5px;}
 </style>
 </head>
 <body>
@@ -237,18 +287,19 @@ canvas#qrCanvas{display:block;}
 
       <div class="panel" style="margin-top:16px;">
         <div class="panel-head">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg>
-          <h3>จำนวนที่นั่ง</h3>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="8" width="18" height="11" rx="2"/><path d="M3 12h18"/><path d="M7 8V6a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2"/></svg>
+          <h3>เลือกที่นั่งในรถตู้</h3>
         </div>
         <div class="panel-body">
-          <div style="display:flex;align-items:center;gap:0 16px;flex-wrap:wrap;gap:12px;">
-            <div class="seat-stepper">
-              <button class="seat-btn" onclick="changeSeat(-1)">−</button>
-              <div class="seat-val" id="seatVal">1</div>
-              <button class="seat-btn" onclick="changeSeat(1)">+</button>
-            </div>
-            <span class="seat-label" id="seatLabel">ที่นั่ง</span>
+          <p style="font-size:12.5px;color:var(--text-muted);margin-bottom:14px;">รถตู้ 1 คัน = 9 ที่นั่งผู้โดยสาร · คนขับและ Staff นั่งด้านหน้า</p>
+          <div class="van-tabs" id="vanTabs"></div>
+          <div id="vanMap"></div>
+          <div class="van-legend">
+            <span><i style="background:#fff;border:2px solid var(--accent-trail);"></i> ว่าง</span>
+            <span><i style="background:var(--accent-trail);"></i> ที่คุณเลือก</span>
+            <span><i style="background:#E7DDC8;"></i> จองแล้ว</span>
           </div>
+          <div class="seat-picked" id="seatPicked">ยังไม่ได้เลือกที่นั่ง</div>
           <div class="info-note" style="margin-top:14px;" id="seatNote"></div>
           <div class="terms-check">
             <input type="checkbox" id="termsCheck">
@@ -280,6 +331,9 @@ canvas#qrCanvas{display:block;}
           <div class="divider"></div>
           <div class="eyebrow" style="margin-top:16px;">สรุปยอดชำระ</div>
           <div id="confirm-total"></div>
+          <div class="divider"></div>
+          <div class="eyebrow" style="margin-top:16px;">รูปแบบการชำระเงิน</div>
+          <div id="payOptions"></div>
           <div class="info-note" style="margin-top:14px;">
             <b>นโยบายคืนเงิน:</b> ยกเลิกก่อน 14 วัน คืน 100% · ก่อน 7 วัน คืน 50% · ก่อน 3 วัน คืน 25% · น้อยกว่า 3 วัน ไม่คืนเงิน
           </div>
@@ -357,6 +411,7 @@ canvas#qrCanvas{display:block;}
             <div class="success-title">ขอบคุณสำหรับการจอง!</div>
             <div class="success-sub">เราจะส่งรายละเอียดและยืนยันการจองไปที่อีเมลของคุณ</div>
             <div class="success-detail" id="successDetail"></div>
+            <div id="lineGroupBox"></div>
 
             <div class="btn-row" style="margin-top:0;">
               <a class="btn btn-primary" href="my-trips.html">
@@ -419,7 +474,11 @@ const SEED_TRIPS=[
   {id:'t6',name:{th:'ดอยอินทนนท์ กิ่วแม่ปาน'},org:'ไกด์ล้านนา',region:'north',prov:'เชียงใหม่',date:'2026-08-09',cap:16,booked:6,price:2200,status:'open',badge:'Verified Pro',rating:4.8,scene:'peak',orgPhone:'082-345-6789',orgLine:'@lannaguide'},
 ];
 
-let TRIPS=[], trip=null, seats=1, currentStep=1, bookingRef='', timerInterval=null;
+let TRIPS=[], trip=null, seats=0, currentStep=1, bookingRef='', timerInterval=null;
+// van seat map + payment state
+const SEATS_PER_VAN=9;
+let VANS=[], selectedSeats=[], activeVan=0;
+let payType='full', depositMode='50';
 
 function loadTrips(){
   try{ const r=localStorage.getItem('safesummit:trips'); TRIPS=r?JSON.parse(r):JSON.parse(JSON.stringify(SEED_TRIPS)); }
@@ -453,7 +512,7 @@ async function loadTripFromDB(id){
     trip = TRIPS.find(t => t.id === tripId) || null;
   }
   renderSummary();
-  changeSeat(0);
+  initSeatMap();
   if(!trip){
     document.getElementById('tripSummaryBody').innerHTML='<p style="color:#C0552F;font-size:14px;padding:8px 0;">ไม่พบทริปที่ระบุ — <a href="index.html" style="color:var(--accent-trail)">กลับหน้าแรก</a></p>';
   } else if(!['open'].includes(trip.status)){
@@ -494,17 +553,128 @@ function renderSummary(){
   document.getElementById('seatNote').innerHTML=`<b>ที่นั่งว่าง:</b> ${avail} ที่นั่ง — สามารถจองได้สูงสุด ${Math.min(avail,6)} ที่นั่ง`;
 }
 
-// ===== SEAT CONTROL =====
-function changeSeat(d){
-  if(!trip) return;
-  const avail=trip.cap-trip.booked;
-  const max=Math.min(avail,6);
-  seats=Math.max(1,Math.min(max,seats+d));
-  document.getElementById('seatVal').textContent=seats;
-  document.getElementById('seatLabel').textContent=`ที่นั่ง (สูงสุด ${max})`;
-  document.getElementById('sumSeats').textContent=seats+' คน';
-  document.getElementById('sumTotal').textContent=fmtMoney(trip.price*seats);
+// ===== VAN SEAT MAP =====
+function seatLabel(id){ const m=id.match(/^v(\d+)-(\d+)$/); return m?`คันที่ ${m[1]} #${m[2]}`:id; }
+function seatMax(){ if(!trip) return 0; return Math.min(trip.cap-trip.booked,6); }
+
+function buildVans(){
+  if(!trip){ VANS=[]; return; }
+  const cap=trip.cap, booked=trip.booked||0;
+  const vanCount=Math.max(1,Math.ceil(cap/SEATS_PER_VAN));
+  VANS=[]; let g=0;
+  for(let v=0; v<vanCount; v++){
+    const inVan=Math.min(SEATS_PER_VAN, cap - v*SEATS_PER_VAN);
+    const arr=[];
+    for(let s=0; s<inVan; s++){ g++; arr.push({ n:s+1, id:`v${v+1}-${s+1}`, taken: g<=booked }); }
+    VANS.push({ van:v+1, seats:arr });
+  }
+  activeVan=VANS.findIndex(vn=>vn.seats.some(s=>!s.taken));
+  if(activeVan<0) activeVan=0;
 }
+
+function initSeatMap(){
+  if(!trip) return;
+  selectedSeats=[]; seats=0;
+  buildVans();
+  renderVanTabs(); renderVanMap(); refreshSeatUI();
+}
+
+function renderVanTabs(){
+  const el=document.getElementById('vanTabs'); if(!el) return;
+  if(VANS.length<=1){ el.innerHTML=''; return; }
+  el.innerHTML=VANS.map((vn,i)=>{
+    const free=vn.seats.filter(s=>!s.taken && !selectedSeats.includes(s.id)).length;
+    const allTaken=vn.seats.every(s=>s.taken);
+    const cls='vtab'+(i===activeVan?' on':'')+(allTaken?' full':'');
+    const label=allTaken?`คันที่ ${vn.van} · เต็ม`:`คันที่ ${vn.van} · ว่าง ${free}`;
+    return `<div class="${cls}" onclick="selectVan(${i})">${label}</div>`;
+  }).join('');
+}
+
+function renderVanMap(){
+  const el=document.getElementById('vanMap'); if(!el) return;
+  const vn=VANS[activeVan]; if(!vn){ el.innerHTML=''; return; }
+  const grid=vn.seats.map(s=>{
+    let cls='vseat p ';
+    if(s.taken) cls+='taken';
+    else if(selectedSeats.includes(s.id)) cls+='sel';
+    else cls+='free';
+    const click=s.taken?'':`onclick="toggleSeat('${s.id}')"`;
+    return `<div class="${cls}" ${click}>${s.n}</div>`;
+  }).join('');
+  el.innerHTML=`
+    <div class="van">
+      <div class="van-front">
+        <div class="vseat crew"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.4"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg><small>คนขับ</small></div>
+        <div class="vseat crew"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg><small>Staff</small></div>
+      </div>
+      <div class="van-grid">${grid}</div>
+    </div>`;
+}
+
+function selectVan(i){ activeVan=i; renderVanTabs(); renderVanMap(); }
+
+function toggleSeat(id){
+  if(!trip) return;
+  const idx=selectedSeats.indexOf(id);
+  if(idx>=0){ selectedSeats.splice(idx,1); }
+  else {
+    if(selectedSeats.length>=seatMax()){ toast(`เลือกได้สูงสุด ${seatMax()} ที่นั่ง`); return; }
+    selectedSeats.push(id);
+  }
+  seats=selectedSeats.length;
+  renderVanTabs(); renderVanMap(); refreshSeatUI();
+}
+
+function refreshSeatUI(){
+  const picked=document.getElementById('seatPicked');
+  if(picked){
+    if(!selectedSeats.length) picked.innerHTML='ยังไม่ได้เลือกที่นั่ง';
+    else picked.innerHTML=`เลือกแล้ว <b>${selectedSeats.length} ที่นั่ง</b> — ${selectedSeats.map(seatLabel).join(', ')} (สูงสุด ${seatMax()})`;
+  }
+  const ss=document.getElementById('sumSeats'); if(ss) ss.textContent=(seats||0)+' คน';
+  const st=document.getElementById('sumTotal'); if(st) st.textContent=fmtMoney(trip.price*(seats||0));
+}
+
+// ===== PAYMENT TYPE =====
+function depositAmount(total){
+  return depositMode==='1000' ? Math.min(1000*seats, total) : Math.round(total*0.5);
+}
+function remainDueDate(){
+  if(!trip||!trip.date) return '';
+  const d=new Date(trip.date+'T00:00:00'); d.setDate(d.getDate()-7);
+  return d.toLocaleDateString('th-TH',{day:'numeric',month:'long',year:'numeric'});
+}
+function renderPayOptions(){
+  const el=document.getElementById('payOptions'); if(!el) return;
+  const total=trip.price*seats;
+  const dep=depositAmount(total);
+  const remain=total-dep;
+  el.innerHTML=`
+    <div class="pay-opt ${payType==='full'?'on':''}" onclick="setPayType('full')">
+      <div class="pay-opt-head">
+        <div class="pay-radio"></div>
+        <div><div class="pt">จ่ายเต็มจำนวน</div><div class="pd">ยืนยันที่นั่งทันที ไม่มีค้างชำระ</div></div>
+        <div class="pa">${fmtMoney(total)}</div>
+      </div>
+    </div>
+    <div class="pay-opt ${payType==='deposit'?'on':''}" onclick="setPayType('deposit')">
+      <div class="pay-opt-head">
+        <div class="pay-radio"></div>
+        <div style="flex:1;"><div class="pt">จ่ายมัดจำก่อน</div><div class="pd">จองที่นั่งด้วยมัดจำ จ่ายส่วนที่เหลือก่อนเดินทาง</div></div>
+        <div class="pa">${fmtMoney(dep)}</div>
+      </div>
+      ${payType==='deposit'?`
+      <div class="dep-pills">
+        <div class="dep-pill ${depositMode==='1000'?'on':''}" onclick="event.stopPropagation();setDeposit('1000')"><div class="dpl">฿1,000/คน</div><div class="dps">มัดจำขั้นต่ำ</div></div>
+        <div class="dep-pill ${depositMode==='50'?'on':''}" onclick="event.stopPropagation();setDeposit('50')"><div class="dpl">50% · ${fmtMoney(Math.round(total*0.5))}</div><div class="dps">ครึ่งหนึ่งของค่าทริป</div></div>
+      </div>
+      <div class="dep-remain">ส่วนที่เหลือ <b>${fmtMoney(remain)}</b> ชำระภายใน <b>1 สัปดาห์ก่อนเดินทาง</b> (ภายใน ${remainDueDate()})</div>
+      `:''}
+    </div>`;
+}
+function setPayType(t){ payType=t; renderPayOptions(); }
+function setDeposit(m){ depositMode=m; renderPayOptions(); }
 
 // ===== STEP NAVIGATION =====
 function goStep(n){
@@ -536,6 +706,7 @@ function goStep2(){
   if(!fname||!lname){ toast('กรุณากรอกชื่อและนามสกุล'); return; }
   if(!email||!email.includes('@')){ toast('กรุณากรอกอีเมลให้ถูกต้อง'); return; }
   if(!phone||phone.length<9){ toast('กรุณากรอกเบอร์โทรศัพท์ให้ครบ'); return; }
+  if(!selectedSeats.length){ toast('กรุณาเลือกที่นั่งในรถตู้อย่างน้อย 1 ที่'); return; }
   if(!document.getElementById('termsCheck').checked){ toast('กรุณายอมรับข้อกำหนดก่อน'); return; }
 
   // fill confirm
@@ -552,7 +723,8 @@ function goStep2(){
       <div class="order-row"><span class="muted">ผู้จัด</span><span>${trip.org}</span></div>
       <div class="order-row"><span class="muted">วันเดินทาง</span><span>${fmtDate(trip.date)}</span></div>
       <div class="order-row"><span class="muted">จังหวัด</span><span>${trip.prov}</span></div>
-      <div class="order-row"><span class="muted">จำนวนที่นั่ง</span><span>${seats} คน</span></div>
+      <div class="order-row"><span class="muted">จำนวนที่นั่ง</span><span>${seats} ที่นั่ง</span></div>
+      <div class="order-row"><span class="muted">ที่นั่งที่เลือก</span><span><b>${selectedSeats.map(seatLabel).join(', ')}</b></span></div>
     </div>`;
   const total=trip.price*seats;
   document.getElementById('confirm-total').innerHTML=`
@@ -560,16 +732,21 @@ function goStep2(){
       <div class="order-row"><span class="muted">ราคา ${fmtMoney(trip.price)} × ${seats}</span><span style="font-family:'Bai Jamjuree',monospace">${fmtMoney(total)}</span></div>
       <div class="order-row total"><span>ยอดสุทธิ</span><span class="val">${fmtMoney(total)}</span></div>
     </div>`;
+  renderPayOptions();
   goStep(2);
 }
 
 function goStep3(){
   bookingRef=genRef();
   const total=trip.price*seats;
+  const pay = payType==='deposit' ? depositAmount(total) : total;
 
-  document.getElementById('qrAmount').textContent=fmtMoney(total);
+  document.getElementById('qrAmount').textContent=fmtMoney(pay);
+  document.querySelector('.qr-amount-sub').textContent = payType==='deposit'
+    ? `ยอดมัดจำ · คงเหลือ ${fmtMoney(total-pay)} จ่ายก่อนเดินทาง`
+    : 'ยอดชำระทั้งหมด';
   document.getElementById('payRef').textContent=bookingRef;
-  drawQR(document.getElementById('qrCanvas'), total, bookingRef);
+  drawQR(document.getElementById('qrCanvas'), pay, bookingRef);
   startTimer(10*60);
   goStep(3);
 }
@@ -585,10 +762,17 @@ async function mockPaymentDone(){
 async function saveBooking(){
   try {
     const note = document.getElementById('f-note').value.trim();
+    const total = trip.price*seats;
+    const pay = payType==='deposit' ? depositAmount(total) : total;
+    const seatStr = selectedSeats.map(seatLabel).join(', ');
+    const payStr = payType==='deposit'
+      ? `มัดจำ ${fmtMoney(pay)} (คงเหลือ ${fmtMoney(total-pay)} ภายใน ${remainDueDate()})`
+      : `จ่ายเต็ม ${fmtMoney(total)}`;
+    const fullNote = `${note}${note?' · ':''}[ที่นั่ง: ${seatStr}] [ชำระ: ${payStr}]`;
     const result = await Bookings.create({
       tripId: trip.id,
       seats: seats,
-      note: note
+      note: fullNote
     });
     bookingRef = result.booking_ref;
   } catch(e) {
@@ -600,13 +784,36 @@ async function saveBooking(){
 function fillSuccess(){
   document.getElementById('successRef').textContent=bookingRef;
   const total=trip.price*seats;
+  const pay = payType==='deposit' ? depositAmount(total) : total;
   document.getElementById('successDetail').innerHTML=`
     <div class="srow"><span class="label">ทริป</span><span class="val">${trip.name.th||trip.name}</span></div>
     <div class="srow"><span class="label">ผู้จัด</span><span class="val">${trip.org}</span></div>
     <div class="srow"><span class="label">วันเดินทาง</span><span class="val">${fmtDate(trip.date)} · ${trip.prov}</span></div>
-    <div class="srow"><span class="label">จำนวนที่นั่ง</span><span class="val">${seats} คน</span></div>
+    <div class="srow"><span class="label">ที่นั่ง</span><span class="val">${selectedSeats.map(seatLabel).join(', ')}</span></div>
     <div class="srow"><span class="label">ผู้จอง</span><span class="val">${document.getElementById('f-fname').value} ${document.getElementById('f-lname').value}</span></div>
-    <div class="srow"><span class="label">ยอดชำระ</span><span class="val" style="color:var(--accent-trail)">${fmtMoney(total)}</span></div>`;
+    <div class="srow"><span class="label">ชำระแล้ว (${payType==='deposit'?'มัดจำ':'เต็มจำนวน'})</span><span class="val" style="color:var(--accent-trail)">${fmtMoney(pay)}</span></div>
+    ${payType==='deposit'?`<div class="srow"><span class="label">คงเหลือ (ก่อนเดินทาง)</span><span class="val">${fmtMoney(total-pay)} · ภายใน ${remainDueDate()}</span></div>`:''}`;
+  fillLineBox();
+}
+
+function fillLineBox(){
+  const box=document.getElementById('lineGroupBox'); if(!box) return;
+  const totalBooked=(trip.booked||0)+seats;
+  if(totalBooked>=3){
+    box.innerHTML=`<div class="line-box">
+      <div class="line-qr"><canvas id="lineQr" width="80" height="80"></canvas></div>
+      <div><span class="line-badge">กลุ่มพร้อมแล้ว</span>
+      <h4>สแกนเพื่อเข้ากลุ่มไลน์ทริป</h4>
+      <p>เปิด LINE แล้วสแกน QR นี้เพื่อเข้ากลุ่มพูดคุยกับผู้จัดและเพื่อนร่วมทริป</p></div></div>`;
+    const c=document.getElementById('lineQr'); if(c) drawQR(c,'LINE',bookingRef);
+  } else {
+    const need=3-totalBooked;
+    box.innerHTML=`<div class="line-box">
+      <div class="line-qr locked"><span class="lock">🔒</span></div>
+      <div><span class="line-badge">รอเปิดกลุ่ม</span>
+      <h4>กลุ่มไลน์จะเปิดเมื่อมีผู้จองครบ 3 คน</h4>
+      <p>ขณะนี้มีผู้จอง ${totalBooked} คน — อีก ${need} คนกลุ่มจะถูกสร้างโดยแอดมิน<br>เราจะส่ง QR เข้ากลุ่มให้ทางอีเมลเมื่อกลุ่มพร้อม</p></div></div>`;
+  }
 }
 
 // ===== QR CODE GENERATOR =====
@@ -693,10 +900,12 @@ function drawQR(canvas, amount, ref){
   drawFinder((M-7)*mod,0);
   drawFinder(0,(M-7)*mod);
 
-  // logo area (white square center)
-  const lc=S/2, ls=40;
-  ctx.fillStyle='#ffffff';
-  ctx.beginPath(); roundRect(ctx,lc-ls/2-3,lc-ls/2-3,ls+6,ls+6,4); ctx.fill();
+  // logo area (white square center) — only on the large payment QR
+  if(S>=140){
+    const lc=S/2, ls=40;
+    ctx.fillStyle='#ffffff';
+    ctx.beginPath(); roundRect(ctx,lc-ls/2-3,lc-ls/2-3,ls+6,ls+6,4); ctx.fill();
+  }
 }
 
 // ===== TIMER =====
