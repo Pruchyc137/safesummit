@@ -207,11 +207,23 @@ section.block{padding:88px 0;background:var(--bg-light);}
 .book-btn:hover{filter:brightness(1.08);}
 .book-btn-full{background:#D5C8AE;color:#9B8E7A;cursor:not-allowed;}
 .trip-seats-left{
-  position:absolute;bottom:10px;right:10px;
+  position:absolute;bottom:10px;left:10px;
   background:rgba(255,255,255,.9);
   font-family:'Bai Jamjuree',monospace;font-size:10.5px;font-weight:600;
   color:var(--accent-trail);padding:3px 9px;border-radius:20px;
 }
+.trip-date-pill{
+  position:absolute;top:12px;right:12px;background:var(--accent-trail);color:#fff;
+  border-radius:12px;padding:6px 11px;text-align:center;z-index:1;line-height:1.06;
+  box-shadow:0 6px 16px rgba(226,103,43,.35);
+}
+.trip-date-pill .dd{font-family:'Kanit','Sarabun',sans-serif;font-weight:800;font-size:15px;display:block;white-space:nowrap;}
+.trip-date-pill .mm{font-family:'Sarabun',sans-serif;font-weight:600;font-size:10px;white-space:nowrap;}
+.trip-verified{display:inline-flex;align-items:center;gap:3px;background:#EAF6EE;color:#1E8A46;
+  font-family:'Sarabun',sans-serif;font-weight:700;font-size:10.5px;padding:2px 8px;border-radius:20px;
+  vertical-align:middle;white-space:nowrap;margin-left:5px;position:relative;top:-1px;}
+.trip-verified svg{width:10px;height:10px;}
+.trip-verified.basic{background:#FBF1D9;color:#A9812A;}
 
 /* organizer value cards */
 .org-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-bottom:48px;}
@@ -949,6 +961,17 @@ function fmtTripDates(t){
   return sameMonth ? `${s} – ${e}` : `${s} ${TH_MONTHS[d0.getMonth()]} – ${e}`;
 }
 
+function fmtDatePill(t){
+  if(!t.date) return null;
+  const days=tripDayCount(t.name.th);
+  const d0=new Date(t.date+'T00:00:00');
+  const be=(d0.getFullYear()+543).toString().slice(-2);
+  if(days<=1){ return {dd:`${d0.getDate()}`, mm:`${TH_MONTHS[d0.getMonth()]} ${be}`}; }
+  const d1=new Date(d0); d1.setDate(d0.getDate()+days-1);
+  if(d0.getMonth()===d1.getMonth()){ return {dd:`${d0.getDate()}–${d1.getDate()}`, mm:`${TH_MONTHS[d1.getMonth()]} ${be}`}; }
+  return {dd:`${d0.getDate()} ${TH_MONTHS[d0.getMonth()]}`, mm:`–${d1.getDate()} ${TH_MONTHS[d1.getMonth()]} ${be}`};
+}
+
 function renderTripCards(region='all', price='all', query=''){
   const lang = curLang();
   const grid = document.getElementById('tripGrid');
@@ -966,19 +989,20 @@ function renderTripCards(region='all', price='all', query=''){
     const bookBtn = isFull
       ? `<button class="book-btn book-btn-full" disabled data-th="เต็มแล้ว" data-en="Full">${lang==='en'?'Full':'เต็มแล้ว'}</button>`
       : `<a class="book-btn" href="trip.html?id=${t.id}" data-th="จองทริป" data-en="Book now">${lang==='en'?'Book now':'จองทริป'}</a>`;
+    const dp = fmtDatePill(t);
+    const isBasic = /basic/i.test(t.badge||'');
     return `<div class="trip-card">
       <div class="trip-img">
         <div class="trip-img-inner">${sceneFor(t)}</div>
-        <div class="trip-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>${t.badge}</div>
+        ${dp?`<div class="trip-date-pill"><span class="dd">${dp.dd}</span><span class="mm">${dp.mm}</span></div>`:''}
         ${!isFull ? `<div class="trip-seats-left">${avail} ${lang==='en'?'seats left':'ที่นั่งว่าง'}</div>` : ''}
       </div>
       <div class="trip-body">
         <div class="trip-title-row">
-          <h4>${(t.name[lang]||t.name.th).replace(/\s*\d+\s*วัน.*$/,'').replace(/\s*\d+D\d+N\s*$/,'').trim()}</h4>
+          <h4>${(t.name[lang]||t.name.th).replace(/\s*\d+\s*วัน.*$/,'').replace(/\s*\d+D\d+N\s*$/,'').trim()}<span class="trip-verified${isBasic?' basic':''}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>${t.badge}</span></h4>
           <span class="trip-rating">★ ${t.rating||'–'}</span>
         </div>
         <div class="trip-duration">${(()=>{const m=(t.name.th||'').match(/(\d+\s*วัน(?:\s*\d+\s*คืน)?)/);return m?m[1]:'';})()}</div>
-        ${t.date?`<div class="trip-date-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>${fmtTripDates(t)}</div>`:''}
         <div class="trip-meta">${meta}</div>
         <div class="trip-divider"></div>
         <div class="trip-foot">
