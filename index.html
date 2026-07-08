@@ -214,11 +214,11 @@ section.block{padding:88px 0;background:var(--bg-light);}
 }
 .trip-date-pill{
   position:absolute;top:12px;right:12px;background:var(--accent-trail);color:#fff;
-  border-radius:12px;padding:6px 11px;text-align:center;z-index:1;line-height:1.06;
-  box-shadow:0 6px 16px rgba(226,103,43,.35);
+  border-radius:20px;padding:6px 13px;z-index:1;white-space:nowrap;
+  box-shadow:0 5px 14px rgba(226,103,43,.34);
 }
-.trip-date-pill .dd{font-family:'Kanit','Sarabun',sans-serif;font-weight:800;font-size:15px;display:block;white-space:nowrap;}
-.trip-date-pill .mm{font-family:'Sarabun',sans-serif;font-weight:600;font-size:10px;white-space:nowrap;}
+.trip-date-pill .dd{font-family:'Kanit','Sarabun',sans-serif;font-weight:700;font-size:13.5px;}
+.trip-date-pill .mm{font-family:'Sarabun',sans-serif;font-weight:400;font-size:11.5px;opacity:.92;margin-left:4px;}
 .trip-verified{display:inline-flex;align-items:center;gap:3px;background:#EAF6EE;color:#1E8A46;
   font-family:'Sarabun',sans-serif;font-weight:700;font-size:10.5px;padding:2px 8px;border-radius:20px;
   vertical-align:middle;white-space:nowrap;margin-left:5px;position:relative;top:-1px;}
@@ -961,15 +961,18 @@ function fmtTripDates(t){
   return sameMonth ? `${s} – ${e}` : `${s} ${TH_MONTHS[d0.getMonth()]} – ${e}`;
 }
 
-function fmtDatePill(t){
+const EN_MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function fmtDatePill(t, lang){
   if(!t.date) return null;
+  const en = lang==='en';
+  const mon = i => en ? EN_MONTHS[i] : TH_MONTHS[i];
   const days=tripDayCount(t.name.th);
   const d0=new Date(t.date+'T00:00:00');
-  const be=(d0.getFullYear()+543).toString().slice(-2);
-  if(days<=1){ return {dd:`${d0.getDate()}`, mm:`${TH_MONTHS[d0.getMonth()]} ${be}`}; }
+  const yr = en ? String(d0.getFullYear()) : (d0.getFullYear()+543).toString().slice(-2);
+  if(days<=1){ return {dd:`${d0.getDate()}`, mm:`${mon(d0.getMonth())} ${yr}`}; }
   const d1=new Date(d0); d1.setDate(d0.getDate()+days-1);
-  if(d0.getMonth()===d1.getMonth()){ return {dd:`${d0.getDate()}–${d1.getDate()}`, mm:`${TH_MONTHS[d1.getMonth()]} ${be}`}; }
-  return {dd:`${d0.getDate()} ${TH_MONTHS[d0.getMonth()]}`, mm:`–${d1.getDate()} ${TH_MONTHS[d1.getMonth()]} ${be}`};
+  if(d0.getMonth()===d1.getMonth()){ return {dd:`${d0.getDate()}–${d1.getDate()}`, mm:`${mon(d1.getMonth())} ${yr}`}; }
+  return {dd:`${d0.getDate()} ${mon(d0.getMonth())}`, mm:`–${d1.getDate()} ${mon(d1.getMonth())} ${yr}`};
 }
 
 function renderTripCards(region='all', price='all', query=''){
@@ -989,7 +992,7 @@ function renderTripCards(region='all', price='all', query=''){
     const bookBtn = isFull
       ? `<button class="book-btn book-btn-full" disabled data-th="เต็มแล้ว" data-en="Full">${lang==='en'?'Full':'เต็มแล้ว'}</button>`
       : `<a class="book-btn" href="trip.html?id=${t.id}" data-th="จองทริป" data-en="Book now">${lang==='en'?'Book now':'จองทริป'}</a>`;
-    const dp = fmtDatePill(t);
+    const dp = fmtDatePill(t, lang);
     const isBasic = /basic/i.test(t.badge||'');
     return `<div class="trip-card">
       <div class="trip-img">
