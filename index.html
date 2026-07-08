@@ -280,17 +280,29 @@ footer{background:var(--bg-deep);color:var(--line-muted);padding:54px 0 30px;bor
 .login-wrap.open .user-chip .chev{transform:rotate(180deg);}
 @media (max-width:760px){.user-chip .uname{max-width:80px;font-size:13px;}}
 
-/* filter moved to hero-top band — Sunrise Ridge theme */
-.filter-band{background:linear-gradient(180deg,#2A2118 0%,#4E3320 45%,#9A5328 74%,#B86A38 100%);padding:54px 0 60px;position:relative;overflow:hidden;border-bottom:1px solid rgba(181,154,110,.25);}
-.filter-band .topo{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;}
-.filter-band .inner{position:relative;z-index:2;}
-.filter-band .eyebrow{color:#E0B468;letter-spacing:.22em;text-transform:uppercase;}
-.filter-band h1{font-family:'Kanit',sans-serif;font-weight:800;font-size:clamp(30px,4.6vw,52px);line-height:1.12;color:var(--cream,#FAF6EA);margin-bottom:14px;text-shadow:0 2px 14px rgba(0,0,0,.45);}
-.filter-band h1 em{font-style:normal;color:var(--accent-gold);}
-.filter-band p.lede{color:#E4D6BF;opacity:1;font-size:15.5px;max-width:520px;margin-bottom:30px;text-shadow:0 1px 6px rgba(0,0,0,.4);}
-.filter-band .hero-stats{margin-top:26px;}
-.vpill{display:inline-flex;align-items:center;gap:7px;padding:7px 14px;border-radius:30px;font-family:'Bai Jamjuree',monospace;font-size:12px;font-weight:600;background:rgba(62,125,90,.28);border:1px solid #6FA587;color:#CDEBD8;margin-bottom:14px;}
-.vpill svg{width:14px;height:14px;}
+/* Hero — Travel theme (photo + green 50% split) */
+.filter-band{background:var(--bg-light);padding:24px 0 46px;position:relative;}
+.filter-band .inner{position:relative;}
+.tv-hero{position:relative;border-radius:22px;overflow:hidden;height:440px;margin-bottom:26px;background:#241B12 url('images/Hero/hero1.jpg') center/cover no-repeat;box-shadow:0 16px 40px rgba(40,28,18,.14);}
+.tv-hero .tv-panel{position:absolute;top:0;left:0;bottom:0;width:44%;background:rgba(22,32,22,.5);display:flex;flex-direction:column;justify-content:center;padding:0 46px;}
+.tv-hero .eyebrow{color:#EE9A56;letter-spacing:.2em;text-transform:uppercase;font-size:13px;font-weight:600;margin-bottom:10px;}
+.tv-hero h1{font-family:'Kanit',sans-serif;font-weight:800;font-size:clamp(30px,3.4vw,50px);line-height:1.1;color:#F7F4EC;margin-bottom:16px;text-shadow:0 2px 12px rgba(0,0,0,.35);}
+.tv-hero h1 em{font-style:normal;color:var(--accent-trail);}
+.tv-hero p.lede{color:#E6E1D2;font-size:15px;max-width:330px;line-height:1.55;margin-bottom:24px;text-shadow:0 1px 6px rgba(0,0,0,.35);}
+.tv-hero .tv-cta{align-self:flex-start;background:var(--accent-trail);color:#fff;border:none;border-radius:30px;padding:14px 34px;font-family:'Kanit',sans-serif;font-weight:700;font-size:15px;cursor:pointer;}
+.tv-hero .tv-cta:hover{filter:brightness(1.06);transform:translateY(-1px);}
+.tv-hero .vpill{align-self:flex-start;}
+.filter-band .hero-stats{margin-top:6px;justify-content:center;}
+.filter-band .hero-stats .s{text-align:center;}
+.filter-band .hero-stats .s b{color:var(--accent-trail);font-size:26px;}
+.filter-band .hero-stats .s span{color:var(--text-muted);opacity:1;}
+.vpill{display:inline-flex;align-items:center;gap:7px;padding:6px 13px;border-radius:30px;font-family:'Bai Jamjuree',monospace;font-size:11.5px;font-weight:600;background:rgba(62,125,90,.35);border:1px solid #6FA587;color:#DCF0E2;margin-bottom:12px;}
+.vpill svg{width:13px;height:13px;}
+@media(max-width:760px){
+  .tv-hero{height:400px;}
+  .tv-hero .tv-panel{width:100%;background:rgba(22,32,22,.62);padding:0 26px;}
+  .tv-hero p.lede{max-width:100%;}
+}
 
 /* footer text contrast fix: brighten body copy so it doesn't blend */
 footer p.foot-blurb{color:var(--text-light);opacity:.92;}
@@ -499,28 +511,16 @@ footer .foot-grid li a:hover{opacity:1;color:var(--accent-gold);}
 
 <!-- FILTER BAND (top) -->
 <section class="filter-band">
-  <svg class="topo" viewBox="0 0 1120 470" preserveAspectRatio="xMidYMid slice">
-    <defs>
-      <radialGradient id="heroSun" cx="50%" cy="50%" r="50%">
-        <stop offset="0" stop-color="#F4DDB0" stop-opacity=".34"/>
-        <stop offset="1" stop-color="#F4DDB0" stop-opacity="0"/>
-      </radialGradient>
-    </defs>
-    <circle cx="800" cy="230" r="130" fill="url(#heroSun)"/>
-    <circle cx="800" cy="230" r="32" fill="#EBD6A8" opacity=".55"/>
-    <path d="M0,330 L150,278 L320,320 L500,262 L680,315 L900,262 L1120,315 L1120,470 L0,470 Z" fill="#7E5436" opacity=".62"/>
-    <path d="M0,378 L220,330 L470,382 L720,322 L1120,382 L1120,470 L0,470 Z" fill="#553923"/>
-    <g fill="#2F5A3E" opacity=".92">
-      <path d="M120,432 l9,-23 9,23 z"/><path d="M150,434 l8,-21 8,21 z"/><path d="M178,432 l10,-25 10,25 z"/>
-      <path d="M210,435 l8,-20 8,20 z"/><path d="M236,433 l9,-22 9,22 z"/>
-    </g>
-    <path d="M0,432 L300,398 L620,440 L920,396 L1120,430 L1120,470 L0,470 Z" fill="#241B12"/>
-  </svg>
   <div class="wrap inner">
-    <span class="vpill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg><span data-th="ผู้จัดผ่านการยืนยันตัวจริง" data-en="Verified real organizers">ผู้จัดผ่านการยืนยันตัวจริง</span></span>
-    <div class="eyebrow" data-th="ตัวกลางจองไกด์เดินป่า" data-en="Trekking Guide Booking">ตัวกลางจองไกด์เดินป่า</div>
-    <h1 data-th="มั่นใจทุกเส้นทาง<br>วางใจทุก<em>การจอง</em>" data-en="Confident on every trail,<br>trust every <em>booking</em>">มั่นใจทุกเส้นทาง<br>วางใจทุก<em>การจอง</em></h1>
-    <p class="lede" data-th="ผู้จัดยืนยันตัวจริง จ่ายผ่านระบบ เงินปลอดภัยจนกว่าจะได้ออกเดินทาง" data-en="Verified organizers, secure payment — your money stays safe until you set off.">ผู้จัดยืนยันตัวจริง จ่ายผ่านระบบ เงินปลอดภัยจนกว่าจะได้ออกเดินทาง</p>
+    <div class="tv-hero">
+      <div class="tv-panel">
+        <span class="vpill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg><span data-th="ผู้จัดผ่านการยืนยันตัวจริง" data-en="Verified real organizers">ผู้จัดผ่านการยืนยันตัวจริง</span></span>
+        <div class="eyebrow" data-th="ตัวกลางจองไกด์เดินป่า" data-en="Trekking Guide Booking">ตัวกลางจองไกด์เดินป่า</div>
+        <h1 data-th="มั่นใจ<br><em>ทุกเส้นทาง</em><br>วางใจทุกการจอง" data-en="Confident on<br><em>every trail</em><br>trust every booking">มั่นใจ<br><em>ทุกเส้นทาง</em><br>วางใจทุกการจอง</h1>
+        <p class="lede" data-th="ผู้จัดยืนยันตัวจริง จ่ายผ่านระบบ เงินปลอดภัยจนกว่าจะได้ออกเดินทาง" data-en="Verified organizers, secure payment — your money stays safe until you set off.">ผู้จัดยืนยันตัวจริง จ่ายผ่านระบบ เงินปลอดภัยจนกว่าจะได้ออกเดินทาง</p>
+        <button class="tv-cta" onclick="document.getElementById('travelers')?.scrollIntoView({behavior:'smooth'})" data-th="เริ่มออกเดินทาง →" data-en="Start exploring →">เริ่มออกเดินทาง →</button>
+      </div>
+    </div>
 
     <div class="search-mock">
       <div class="field field-search">
