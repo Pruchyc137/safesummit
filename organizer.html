@@ -606,9 +606,9 @@ h1,h2,h3,h4{font-family:'Kanit',sans-serif;}
               </div>
             </div>
             <div class="fld">
-              <label>จำนวนผู้ร่วมเดินทาง (คน)<span class="fld-req">*</span></label>
-              <input id="f-cap" type="number" placeholder="12" min="2" max="50" oninput="updatePreview()">
-              <div class="hint">กำหนดจำนวนสูงสุดที่รับได้</div>
+              <label>จำนวนรถตู้ (คันละ 9 ที่นั่ง)<span class="fld-req">*</span></label>
+              <input id="f-cap" type="number" placeholder="1" min="1" max="6" value="1" oninput="updateVanHint()">
+              <div class="hint" id="vanHint">รับได้สูงสุด <b>9 ที่นั่ง</b> (1 คัน × 9)</div>
             </div>
           </div>
         </div>
@@ -1223,7 +1223,7 @@ function openEditTrip(id){
   document.getElementById('et-name').value=t.name_th||'';
   document.getElementById('et-date').value=t.start_date||t.date||'';
   document.getElementById('et-price').value=t.price_per_person||t.price||'';
-  document.getElementById('et-cap').value=t.capacity||t.cap||'';
+  document.getElementById('et-cap').value=Math.max(1,Math.ceil((t.capacity||t.cap||9)/9));
   document.getElementById('et-desc').value=t.description||'';
   document.getElementById('et-reason').value='';
   document.getElementById('modalEditTrip').style.display='flex';
@@ -1236,7 +1236,7 @@ async function submitEditTrip(){
     name_th: document.getElementById('et-name').value.trim(),
     start_date: document.getElementById('et-date').value,
     price_per_person: parseInt(document.getElementById('et-price').value)||0,
-    capacity: parseInt(document.getElementById('et-cap').value)||0,
+    capacity: (parseInt(document.getElementById('et-cap').value)||1)*9,
     description: document.getElementById('et-desc').value.trim(),
     status: 'draft',
     note: '[ขอแก้ไข] '+reason,
@@ -1323,6 +1323,11 @@ function updatePreview(){
   if(price>0){ pp.style.display='flex'; ppB.textContent='฿'+price.toLocaleString('th-TH'); }
   else pp.style.display='none';
 }
+function updateVanHint(){
+  const vans=parseInt(v('f-cap'))||0;
+  const h=document.getElementById('vanHint');
+  if(h) h.innerHTML = vans>0 ? `รับได้สูงสุด <b>${vans*9} ที่นั่ง</b> (${vans} คัน × 9)` : 'กรอกจำนวนรถตู้';
+}
 
 let _tripImageFiles = [];
 function handleTripImages(input){
@@ -1351,6 +1356,7 @@ function clearForm(){
   ['f-name','f-region','f-prov','f-desc','f-date','f-days','f-price','f-cap','f-diff','f-img']
     .forEach(id=>setVal(id,''));
   setVal('f-days','3');
+  setVal('f-cap','1'); updateVanHint();
   _tripImageFiles=[];
   const grid=document.getElementById('imgPreviewGrid');
   if(grid){ grid.innerHTML=''; grid.style.display='none'; }
@@ -1368,13 +1374,14 @@ async function submitTrip(){
   const prov   = v('f-prov').trim();
   const date   = v('f-date');
   const price  = parseInt(v('f-price'));
-  const cap    = parseInt(v('f-cap'));
+  const vans   = parseInt(v('f-cap'));
+  const cap    = (vans||0) * 9;   // รถตู้ 1 คัน = 9 ที่นั่ง
   if(!name)            { toast('กรุณากรอกชื่อทริป'); return; }
   if(!region)          { toast('กรุณาเลือกภาค'); return; }
   if(!prov)            { toast('กรุณากรอกจังหวัด'); return; }
   if(!date)            { toast('กรุณาเลือกวันเดินทาง'); return; }
   if(!price||price<100){ toast('กรุณากรอกราคา (ขั้นต่ำ 100 บาท)'); return; }
-  if(!cap||cap<2)      { toast('กรุณากรอกจำนวนผู้ร่วมเดินทาง (ขั้นต่ำ 2 คน)'); return; }
+  if(!vans||vans<1)    { toast('กรุณากรอกจำนวนรถตู้ (อย่างน้อย 1 คัน)'); return; }
   if(!_orgProfile)     { toast('ไม่พบข้อมูลผู้จัด'); return; }
 
   const days    = parseInt(v('f-days'))||3;
@@ -1460,7 +1467,7 @@ load().then(ok => { if(ok !== false) renderOverview(); });
       <div><label class="form-label">วันเดินทาง</label><input class="form-input" type="date" id="et-date"></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
         <div><label class="form-label">ราคา/คน (บาท)</label><input class="form-input" type="number" id="et-price"></div>
-        <div><label class="form-label">จำนวนที่นั่ง</label><input class="form-input" type="number" id="et-cap"></div>
+        <div><label class="form-label">จำนวนรถตู้ (คันละ 9 ที่นั่ง)</label><input class="form-input" type="number" min="1" max="6" id="et-cap"></div>
       </div>
       <div><label class="form-label">รายละเอียด</label><textarea class="form-input" id="et-desc" rows="3" style="resize:vertical;"></textarea></div>
       <div><label class="form-label">เหตุผลในการแก้ไข *</label><input class="form-input" id="et-reason" placeholder="ระบุเหตุผล เช่น เปลี่ยนวันเดินทาง..."></div>

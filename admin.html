@@ -591,7 +591,7 @@ h1,h2,h3{font-family:'Kanit',sans-serif;}
         <div class="fld"><label>ราคา/คน (฿)</label><input id="tf-price" type="number" value="2900"></div>
       </div>
       <div class="fld-row">
-        <div class="fld"><label>ที่นั่งทั้งหมด</label><input id="tf-cap" type="number" value="12"></div>
+        <div class="fld"><label>จำนวนรถตู้ (คันละ 9 ที่นั่ง)</label><input id="tf-cap" type="number" min="1" max="6" value="1"></div>
         <div class="fld"><label>จองแล้ว</label><input id="tf-booked" type="number" value="0"></div>
       </div>
       <div class="fld"><label>สถานะ</label>
@@ -1039,7 +1039,7 @@ function openAddTrip(){
   document.getElementById('tripModalTitle').textContent='เพิ่มทริปใหม่';
   ['tf-name','tf-prov'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('tf-region').value='north';
-  document.getElementById('tf-cap').value=12;
+  document.getElementById('tf-cap').value=1;
   document.getElementById('tf-booked').value=0;
   document.getElementById('tf-price').value=2900;
   document.getElementById('tf-status').value='open';
@@ -1053,7 +1053,7 @@ function openEditTrip(id){
   document.getElementById('tf-region').value=t.region||'north';
   document.getElementById('tf-prov').value=t.prov||'';
   document.getElementById('tf-date').value=t.date||'';
-  document.getElementById('tf-cap').value=t.cap||0;
+  document.getElementById('tf-cap').value=Math.max(1,Math.ceil((t.cap||9)/9));
   document.getElementById('tf-booked').value=t.booked||0;
   document.getElementById('tf-price').value=t.price||0;
   document.getElementById('tf-status').value=t.status||'open';
@@ -1091,7 +1091,7 @@ async function saveTrip(){
     region:document.getElementById('tf-region').value,
     prov:document.getElementById('tf-prov').value.trim()||'–',
     date:document.getElementById('tf-date').value,
-    cap:+document.getElementById('tf-cap').value||0,
+    cap:(+document.getElementById('tf-cap').value||1)*9,
     booked:+document.getElementById('tf-booked').value||0,
     price:+document.getElementById('tf-price').value||0,
     status:document.getElementById('tf-status').value,

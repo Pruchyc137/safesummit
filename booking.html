@@ -533,7 +533,8 @@ function genRef(){ return 'SS-'+new Date().getFullYear().toString().slice(-2)+(n
 // ===== RENDER TRIP SUMMARY =====
 function renderSummary(){
   if(!trip){ document.getElementById('tripSummaryBody').innerHTML='<p style="color:var(--text-muted);font-size:14px;">ไม่พบข้อมูลทริป</p>'; return; }
-  const avail=trip.cap-trip.booked;
+  const total=vanCountOf(trip.cap)*SEATS_PER_VAN;
+  const avail=total-(trip.booked||0);
   const scene=SCENES[trip.scene]||SCENES.peak;
   document.getElementById('tripSummaryBody').innerHTML=`
     <div class="trip-thumb">${scene}<div class="trip-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>${trip.badge}</div></div>
@@ -543,7 +544,7 @@ function renderSummary(){
       <div class="trip-sum-meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17.657 16.243L13.414 20.485a2 2 0 0 1-2.828 0L6.343 16.243a8 8 0 1 1 11.314 0z"/><circle cx="12" cy="11" r="3"/></svg>${trip.prov}</div>
       <div class="trip-sum-meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 17l-6 3 1-7-5-5h7l3-7 3 7h7l-5 5 1 7z"/></svg>★ ${trip.rating}</div>
     </div>
-    <div class="seats-left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg>ที่นั่งว่าง <b>${avail} ที่นั่ง</b> จาก ${trip.cap}</div>
+    <div class="seats-left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg>ที่นั่งว่าง <b>${avail} ที่นั่ง</b> จาก ${total}</div>
     <div class="order-box">
       <div class="order-row"><span class="muted">ราคาต่อคน</span><span style="font-family:'Bai Jamjuree',monospace">${fmtMoney(trip.price)}</span></div>
       <div class="order-row"><span class="muted">จำนวน</span><span id="sumSeats" style="font-family:'Bai Jamjuree',monospace">${seats} คน</span></div>
@@ -555,17 +556,20 @@ function renderSummary(){
 
 // ===== VAN SEAT MAP =====
 function seatLabel(id){ const m=id.match(/^v(\d+)-(\d+)$/); return m?`คันที่ ${m[1]} #${m[2]}`:id; }
-function seatMax(){ if(!trip) return 0; return Math.min(trip.cap-trip.booked,6); }
+function vanCountOf(cap){ return Math.max(1,Math.ceil((cap||SEATS_PER_VAN)/SEATS_PER_VAN)); }
+function totalSeats(){ return trip ? vanCountOf(trip.cap)*SEATS_PER_VAN : 0; }
+function availSeats(){ return trip ? totalSeats()-(trip.booked||0) : 0; }
+function seatMax(){ return Math.min(availSeats(),6); }
 
 function buildVans(){
   if(!trip){ VANS=[]; return; }
-  const cap=trip.cap, booked=trip.booked||0;
-  const vanCount=Math.max(1,Math.ceil(cap/SEATS_PER_VAN));
+  const booked=trip.booked||0;
+  const vanCount=vanCountOf(trip.cap);
   VANS=[]; let g=0;
   for(let v=0; v<vanCount; v++){
-    const inVan=Math.min(SEATS_PER_VAN, cap - v*SEATS_PER_VAN);
     const arr=[];
-    for(let s=0; s<inVan; s++){ g++; arr.push({ n:s+1, id:`v${v+1}-${s+1}`, taken: g<=booked }); }
+    // ทุกคันมี 9 ที่นั่งเสมอ (รถตู้ 1 คัน = 9 ผู้โดยสาร)
+    for(let s=0; s<SEATS_PER_VAN; s++){ g++; arr.push({ n:s+1, id:`v${v+1}-${s+1}`, taken: g<=booked }); }
     VANS.push({ van:v+1, seats:arr });
   }
   activeVan=VANS.findIndex(vn=>vn.seats.some(s=>!s.taken));
