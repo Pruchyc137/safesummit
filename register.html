@@ -109,6 +109,11 @@ h1,h2,h3{font-family:'Kanit',sans-serif;}
           <input id="r-name" type="text" placeholder="ชื่อ นามสกุล">
         </div>
         <div class="field">
+          <label>ชื่อเล่น <span class="req">*</span></label>
+          <input id="r-nickname" type="text" placeholder="ชื่อที่ใช้เรียกในทริป">
+          <div class="hint">ใช้แสดงในแผนผังที่นั่ง/รายชื่อผู้ร่วมทริป</div>
+        </div>
+        <div class="field">
           <label>เบอร์โทรศัพท์ <span class="req">*</span></label>
           <input id="r-phone" type="tel" placeholder="08X-XXX-XXXX">
         </div>
@@ -234,6 +239,7 @@ async function doRegister(){
   const pw    = document.getElementById('r-pw').value;
   const pw2   = document.getElementById('r-pw2').value;
   const name  = val('r-name');
+  const nickname = val('r-nickname');
   const phone = val('r-phone');
   let idcard= val('r-idcard');
   const nationality = val('r-nationality');
@@ -247,6 +253,7 @@ async function doRegister(){
   if(pw.length < 6){ showErr('รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร'); return; }
   if(pw !== pw2){ showErr('รหัสผ่านทั้งสองช่องไม่ตรงกัน'); return; }
   if(!name){ showErr('กรุณากรอกชื่อ-นามสกุล'); return; }
+  if(!nickname){ showErr('กรุณากรอกชื่อเล่น'); return; }
   if(!phone || phone.length < 9){ showErr('กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง'); return; }
   if(!idcard){ showErr('กรุณากรอกเลขบัตรประชาชน / พาสปอร์ต'); return; }
   // ตรวจเลขบัตร: ถ้าเป็นตัวเลขล้วน = บัตรไทย ต้อง 13 หลัก + checksum ถูก; ถ้ามีตัวอักษร = พาสปอร์ต
@@ -270,7 +277,7 @@ async function doRegister(){
     // 1. สร้าง auth user (Supabase เก็บรหัสผ่านแบบ hash อย่างปลอดภัย)
     const { data: signUpData, error: signUpErr } = await db.auth.signUp({
       email, password: pw,
-      options: { data: { full_name: name, phone } }
+      options: { data: { full_name: name, nickname, phone } }
     });
     if(signUpErr) throw signUpErr;
     const uid = signUpData?.user?.id;
@@ -282,6 +289,7 @@ async function doRegister(){
       email,
       password_hash: '-',            // Supabase Auth จัดการรหัสผ่านจริง
       full_name: name,
+      nickname: nickname,
       phone,
       role: 'customer',
       status: 'pending',

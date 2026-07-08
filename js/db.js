@@ -91,6 +91,16 @@ const Bookings = {
     `).order('booked_at', { ascending: false });
     if (error) throw error;
     return data;
+  },
+
+  // ผู้จัดดูรายชื่อผู้จองของทริปตัวเอง (พร้อมชื่อเล่น เพื่อทำแผนผังที่นั่ง)
+  async getByTrip(tripId) {
+    const { data, error } = await db.from('bookings').select(`
+      id, booking_ref, seats, note, status, pay_status, total_price, booked_at,
+      users ( full_name, nickname, phone )
+    `).eq('trip_id', tripId).order('booked_at', { ascending: true });
+    if (error) throw error;
+    return data;
   }
 };
 

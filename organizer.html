@@ -1204,6 +1204,7 @@ function renderMyTrips(){
       <td><span class="d-money">${fmtMoney((t.booked_count||t.booked||0)*(t.price_per_person||t.price||0))}</span></td>
       <td><span class="pill ${STATUS_CLASS[t.status]||'open'}">${STATUS_TH[t.status]||t.status}</span></td>
       <td class="row-acts">
+        <button class="icon-btn" style="background:#E2672B;color:#fff;border-color:#E2672B;" onclick="openManifest('${t.id}')">ผู้จอง</button>
         <button class="icon-btn" onclick="openTripDetail('${t.id}')">ดู</button>
         <button class="icon-btn" onclick="openEditTrip('${t.id}')">แก้ไข</button>
         <button class="icon-btn danger" onclick="openCancelTrip('${t.id}')">ยกเลิก</button>
@@ -1492,6 +1493,147 @@ load().then(ok => { if(ok !== false) renderOverview(); });
     </div>
   </div>
 </div>
+
+<!-- MODAL: ผู้จอง (แผนผังรถตู้ + รายชื่อ) -->
+<div id="modalManifest" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:950;align-items:flex-start;justify-content:center;padding:24px;overflow:auto;">
+  <div style="background:#fff;border-radius:18px;padding:26px 28px;width:100%;max-width:1080px;margin:auto;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
+      <div>
+        <div id="mf-title" style="font-family:'Kanit',sans-serif;font-weight:800;font-size:21px;color:#2B2118;">–</div>
+        <div id="mf-meta" style="font-size:13px;color:#8B7E6B;margin-top:4px;">–</div>
+      </div>
+      <button class="btn btn-ghost" onclick="document.getElementById('modalManifest').style.display='none'">✕ ปิด</button>
+    </div>
+    <div id="mf-stat" style="display:flex;gap:22px;margin:14px 0 20px;padding:14px 18px;background:#FBF7EE;border:1px solid #EEE3CD;border-radius:12px;flex-wrap:wrap;"></div>
+    <div id="mf-body" style="display:grid;grid-template-columns:400px 1fr;gap:24px;align-items:start;">
+      <div id="mf-van"></div>
+      <div id="mf-tbl"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const MF_PER_VAN=9;
+let _mfBookings=[], _mfSeatMap={}, _mfActiveVan=0, _mfVanCount=1;
+
+function mfDisplayName(u){ return (u && (u.nickname||u.full_name)) || 'ไม่ระบุ'; }
+
+async function openManifest(tripId){
+  const t=TRIPS.find(x=>x.id===tripId); if(!t) return;
+  const cap=t.capacity||t.cap||9;
+  _mfVanCount=Math.max(1,Math.ceil(cap/MF_PER_VAN));
+  _mfActiveVan=0; _mfSeatMap={}; _mfBookings=[];
+  document.getElementById('mf-title').textContent=t.name_th||t.name?.th||t.name||'ทริป';
+  document.getElementById('mf-meta').textContent=`${fmtDate(t.start_date||t.date)} · ${t.province||t.prov||''} · รถตู้ ${_mfVanCount} คัน (${_mfVanCount*9} ที่นั่ง)`;
+  document.getElementById('modalManifest').style.display='flex';
+  document.getElementById('mf-tbl').innerHTML='<div style="padding:30px;text-align:center;color:#8B7E6B;">กำลังโหลดรายชื่อ...</div>';
+  document.getElementById('mf-van').innerHTML='';
+  document.getElementById('mf-stat').innerHTML='';
+
+  try {
+    _mfBookings = await Bookings.getByTrip(tripId);
+  } catch(e){
+    console.error('manifest load', e);
+    document.getElementById('mf-tbl').innerHTML='<div style="padding:24px;color:#C0392B;">โหลดรายชื่อไม่สำเร็จ: '+(e.message||e)+'</div>';
+    return;
+  }
+
+  // แจกที่นั่งตามลำดับการจอง (booking แต่ละรายการกินที่นั่งเท่ากับ seats) + parse label จาก note ถ้ามี
+  let g=0;
+  _mfSeatMap={};
+  _mfBookings.forEach(b=>{
+    const n=b.seats||1;
+    for(let i=0;i<n;i++){
+      g++;
+      const vi=Math.floor((g-1)/MF_PER_VAN);
+      const sn=((g-1)%MF_PER_VAN)+1;
+      _mfSeatMap[`${vi}-${sn}`]={ booking:b, seatNo:sn, van:vi };
+    }
+  });
+
+  renderMfStat(t);
+  renderMfVan();
+  renderMfTable();
+}
+
+function renderMfStat(t){
+  const paid=_mfBookings.filter(b=>b.pay_status==='paid').reduce((s,b)=>s+(+b.total_price||0),0);
+  const seatsBooked=_mfBookings.reduce((s,b)=>s+(b.seats||0),0);
+  const totalSeats=_mfVanCount*9;
+  document.getElementById('mf-stat').innerHTML=`
+    <div><div style="font-family:'Kanit';font-weight:800;font-size:22px;color:#E2672B;">${seatsBooked}</div><div style="font-size:11.5px;color:#8B7E6B;">จองแล้ว (ที่นั่ง)</div></div>
+    <div><div style="font-family:'Kanit';font-weight:800;font-size:22px;color:#E2672B;">${totalSeats-seatsBooked}</div><div style="font-size:11.5px;color:#8B7E6B;">ที่นั่งว่าง</div></div>
+    <div><div style="font-family:'Kanit';font-weight:800;font-size:22px;color:#5C8A5A;">${_mfBookings.length}</div><div style="font-size:11.5px;color:#8B7E6B;">รายการจอง</div></div>
+    <div><div style="font-family:'Kanit';font-weight:800;font-size:22px;color:#E2672B;">${fmtMoney(paid)}</div><div style="font-size:11.5px;color:#8B7E6B;">ยอดชำระแล้ว</div></div>`;
+}
+
+function renderMfVan(){
+  const tabs=[];
+  for(let v=0;v<_mfVanCount;v++){
+    const cnt=Object.keys(_mfSeatMap).filter(k=>_mfSeatMap[k].van===v).length;
+    tabs.push(`<span onclick="_mfActiveVan=${v};renderMfVan();" style="cursor:pointer;font-family:'Kanit';font-weight:700;font-size:12.5px;padding:6px 14px;border-radius:18px;border:1.5px solid ${v===_mfActiveVan?'#2B2118':'#E6DCC6'};background:${v===_mfActiveVan?'#2B2118':'#fff'};color:${v===_mfActiveVan?'#fff':'#8B7E6B'};">คันที่ ${v+1} · ${cnt}/9</span>`);
+  }
+  let grid='';
+  for(let s=1;s<=9;s++){
+    const cell=_mfSeatMap[`${_mfActiveVan}-${s}`];
+    if(cell){
+      const nm=mfDisplayName(cell.booking.users);
+      grid+=`<div style="width:100%;height:60px;border-radius:11px;background:#E2672B;border:2px solid #E2672B;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Kanit';font-weight:700;font-size:15px;">${s}<span style="font-family:'Sarabun';font-weight:600;font-size:9px;max-width:88px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${nm}</span></div>`;
+    } else {
+      grid+=`<div style="width:100%;height:60px;border-radius:11px;background:#fff;border:2px dashed #CBBE9F;color:#BEB197;display:flex;align-items:center;justify-content:center;font-family:'Kanit';font-weight:700;font-size:15px;">${s}</div>`;
+    }
+  }
+  document.getElementById('mf-van').innerHTML=`
+    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">${tabs.join('')}</div>
+    <div style="background:#F7F1E4;border:2px solid #E2D6BC;border-radius:22px 22px 16px 16px;padding:16px 20px 20px;">
+      <div style="display:flex;justify-content:space-between;padding:6px 2px 14px;border-bottom:2px dashed #DDD0B4;margin-bottom:14px;">
+        <div style="width:78px;height:54px;border-radius:11px;background:#EDE4D2;color:#9B8E7A;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Kanit';font-weight:700;font-size:12px;">🛞<span style="font-size:8.5px;">คนขับ</span></div>
+        <div style="width:78px;height:54px;border-radius:11px;background:#EDE4D2;color:#9B8E7A;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Kanit';font-weight:700;font-size:12px;">👤<span style="font-size:8.5px;">Staff</span></div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px 12px;">${grid}</div>
+    </div>
+    <div style="display:flex;gap:18px;justify-content:center;margin-top:16px;font-size:12px;color:#2B2118;">
+      <span style="display:flex;align-items:center;gap:6px;"><i style="width:14px;height:14px;border-radius:5px;background:#E2672B;display:inline-block;"></i> มีผู้จอง</span>
+      <span style="display:flex;align-items:center;gap:6px;"><i style="width:14px;height:14px;border-radius:5px;background:#fff;border:2px dashed #CBBE9F;display:inline-block;"></i> ว่าง</span>
+    </div>`;
+}
+
+function renderMfTable(){
+  if(!_mfBookings.length){
+    document.getElementById('mf-tbl').innerHTML='<div style="padding:30px;text-align:center;color:#8B7E6B;">ยังไม่มีผู้จองทริปนี้</div>';
+    return;
+  }
+  // สร้างแถวตามที่นั่ง (เรียงตามคัน→เลขที่นั่ง)
+  const rows=Object.keys(_mfSeatMap).sort((a,b)=>{
+    const [va,sa]=a.split('-').map(Number), [vb,sb]=b.split('-').map(Number);
+    return va-vb || sa-sb;
+  }).map(k=>{
+    const c=_mfSeatMap[k]; const b=c.booking; const u=b.users||{};
+    const pay = b.pay_status==='paid'
+      ? '<span style="background:#EAF4EA;color:#2E7D32;font-family:\'Kanit\';font-weight:700;font-size:10.5px;padding:2px 8px;border-radius:10px;">ชำระแล้ว</span>'
+      : '<span style="background:#FBF0E2;color:#B26A16;font-family:\'Kanit\';font-weight:700;font-size:10.5px;padding:2px 8px;border-radius:10px;">รอชำระ/มัดจำ</span>';
+    const vbg = c.van===0?'#E2672B':'#B4611F';
+    return `<tr>
+      <td style="padding:10px;border-bottom:1px solid #F0E9D8;"><span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:7px;background:${vbg};color:#fff;font-family:'Kanit';font-weight:800;font-size:12px;">${c.seatNo}</span> <span style="font-size:10px;color:#A99B85;">ค${c.van+1}</span></td>
+      <td style="padding:10px;border-bottom:1px solid #F0E9D8;font-weight:600;font-size:13px;color:#2B2118;">${mfDisplayName(u)}</td>
+      <td style="padding:10px;border-bottom:1px solid #F0E9D8;font-size:12px;color:#8B7E6B;">${u.phone||'–'}</td>
+      <td style="padding:10px;border-bottom:1px solid #F0E9D8;">${pay}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('mf-tbl').innerHTML=`
+    <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:16px;color:#2B2118;margin-bottom:12px;">👥 รายชื่อผู้จอง (${_mfBookings.reduce((s,b)=>s+(b.seats||0),0)} ที่นั่ง)</div>
+    <table style="width:100%;border-collapse:collapse;">
+      <thead><tr>
+        <th style="text-align:left;font-family:'Kanit';font-weight:700;font-size:12px;color:#8B7E6B;padding:9px 10px;border-bottom:2px solid #EEE3CD;">ที่นั่ง</th>
+        <th style="text-align:left;font-family:'Kanit';font-weight:700;font-size:12px;color:#8B7E6B;padding:9px 10px;border-bottom:2px solid #EEE3CD;">ชื่อเล่น</th>
+        <th style="text-align:left;font-family:'Kanit';font-weight:700;font-size:12px;color:#8B7E6B;padding:9px 10px;border-bottom:2px solid #EEE3CD;">เบอร์โทร</th>
+        <th style="text-align:left;font-family:'Kanit';font-weight:700;font-size:12px;color:#8B7E6B;padding:9px 10px;border-bottom:2px solid #EEE3CD;">การชำระ</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div style="margin-top:14px;font-size:12px;color:#8B7E6B;">* แสดง "ชื่อเล่น" เพื่อความเป็นส่วนตัว — ชื่อจริงเก็บในระบบสำหรับลงทะเบียนเข้าอุทยาน</div>`;
+}
+</script>
 
 </body>
 </html>

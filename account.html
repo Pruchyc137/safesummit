@@ -128,6 +128,11 @@ h1,h2,h3{font-family:'Kanit',sans-serif;}
         <input id="fName" type="text" placeholder="กรอกชื่อ-นามสกุล">
       </div>
       <div class="field">
+        <label>ชื่อเล่น</label>
+        <input id="fNickname" type="text" placeholder="ชื่อที่ใช้เรียกในทริป">
+        <div class="hint">ใช้แสดงในแผนผังที่นั่ง/รายชื่อผู้ร่วมทริป — หากเว้นว่างจะใช้ชื่อจริงแทน</div>
+      </div>
+      <div class="field">
         <label>เบอร์โทรศัพท์</label>
         <input id="fPhone" type="tel" placeholder="08X-XXX-XXXX">
       </div>
@@ -169,7 +174,7 @@ async function init(){
   // load profile from users table
   let prof = {};
   try {
-    const { data } = await db.from('users').select('full_name,phone,email').eq('id', user.id).single();
+    const { data } = await db.from('users').select('full_name,nickname,phone,email').eq('id', user.id).single();
     if(data) prof = data;
   } catch(e){}
 
@@ -179,6 +184,7 @@ async function init(){
   document.getElementById('displayEmail').textContent = email;
   document.getElementById('avatar').textContent = (name||'?').trim().charAt(0).toUpperCase();
   document.getElementById('fName').value = prof.full_name || '';
+  document.getElementById('fNickname').value = prof.nickname || '';
   document.getElementById('fPhone').value = prof.phone || '';
   document.getElementById('fEmail').value = email;
 
@@ -189,11 +195,12 @@ async function init(){
 async function saveProfile(){
   const btn = document.getElementById('saveBtn');
   const fullName = document.getElementById('fName').value.trim();
+  const nickname = document.getElementById('fNickname').value.trim();
   const phone = document.getElementById('fPhone').value.trim();
   if(!fullName){ toast('กรุณากรอกชื่อ-นามสกุล', true); return; }
   btn.disabled = true; btn.textContent = 'กำลังบันทึก...';
   try {
-    const { error } = await db.from('users').update({ full_name: fullName, phone }).eq('id', CURRENT_USER.id);
+    const { error } = await db.from('users').update({ full_name: fullName, nickname: nickname||null, phone }).eq('id', CURRENT_USER.id);
     if(error) throw error;
     document.getElementById('displayName').textContent = fullName;
     document.getElementById('avatar').textContent = fullName.charAt(0).toUpperCase();
