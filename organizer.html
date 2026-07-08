@@ -1538,16 +1538,25 @@ async function openManifest(tripId){
     return;
   }
 
-  // แจกที่นั่งตามลำดับการจอง (booking แต่ละรายการกินที่นั่งเท่ากับ seats) + parse label จาก note ถ้ามี
-  let g=0;
+  // วางที่นั่ง: ใช้เลขที่นั่งจริงที่ลูกค้าเลือก (seat_numbers) ถ้ามี ไม่งั้นไล่ตามลำดับการจอง
   _mfSeatMap={};
+  let g=0;
   _mfBookings.forEach(b=>{
-    const n=b.seats||1;
-    for(let i=0;i<n;i++){
-      g++;
-      const vi=Math.floor((g-1)/MF_PER_VAN);
-      const sn=((g-1)%MF_PER_VAN)+1;
-      _mfSeatMap[`${vi}-${sn}`]={ booking:b, seatNo:sn, van:vi };
+    const sel = Array.isArray(b.seat_numbers) ? b.seat_numbers : null;
+    if(sel && sel.length){
+      // รูปแบบ "v{คัน}-{ที่นั่ง}" (คัน 1-based) → key "{vanIndex}-{seat}" (vanIndex 0-based)
+      sel.forEach(id=>{
+        const m=String(id).match(/^v(\d+)-(\d+)$/);
+        if(m){ const vi=parseInt(m[1])-1, sn=parseInt(m[2]); _mfSeatMap[`${vi}-${sn}`]={ booking:b, seatNo:sn, van:vi }; }
+      });
+    } else {
+      // fallback: ไล่ที่นั่งว่างถัดไปตามลำดับ (สำหรับการจองเก่าที่ไม่มี seat_numbers)
+      const n=b.seats||1;
+      for(let i=0;i<n;i++){
+        let vi, sn;
+        do { vi=Math.floor(g/MF_PER_VAN); sn=(g%MF_PER_VAN)+1; g++; } while(_mfSeatMap[`${vi}-${sn}`]);
+        _mfSeatMap[`${vi}-${sn}`]={ booking:b, seatNo:sn, van:vi };
+      }
     }
   });
 
@@ -1587,8 +1596,8 @@ function renderMfVan(){
     <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">${tabs.join('')}</div>
     <div style="background:#F7F1E4;border:2px solid #E2D6BC;border-radius:22px 22px 16px 16px;padding:16px 20px 20px;">
       <div style="display:flex;justify-content:space-between;padding:6px 2px 14px;border-bottom:2px dashed #DDD0B4;margin-bottom:14px;">
-        <div style="width:78px;height:54px;border-radius:11px;background:#EDE4D2;color:#9B8E7A;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Kanit';font-weight:700;font-size:12px;">🛞<span style="font-size:8.5px;">คนขับ</span></div>
         <div style="width:78px;height:54px;border-radius:11px;background:#EDE4D2;color:#9B8E7A;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Kanit';font-weight:700;font-size:12px;">👤<span style="font-size:8.5px;">Staff</span></div>
+        <div style="width:78px;height:54px;border-radius:11px;background:#EDE4D2;color:#9B8E7A;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Kanit';font-weight:700;font-size:12px;">🛞<span style="font-size:8.5px;">คนขับ</span></div>
       </div>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px 12px;">${grid}</div>
     </div>

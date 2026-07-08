@@ -39,7 +39,7 @@ const Trips = {
 
 // ─── BOOKINGS ─────────────────────────────────────────────
 const Bookings = {
-  async create({ tripId, seats, name, phone, note }) {
+  async create({ tripId, seats, name, phone, note, seatNumbers }) {
     // 1. ดึงข้อมูลทริป
     const { data: trip, error: tErr } = await db
       .from('trips').select('price_per_person, capacity, booked_count, name_th, start_date')
@@ -66,7 +66,8 @@ const Bookings = {
       total_price: trip.price_per_person * seats,
       status: 'pending',
       pay_status: 'unpaid',
-      note: note || null
+      note: note || null,
+      seat_numbers: (seatNumbers && seatNumbers.length) ? seatNumbers : null
     }).select().single();
     if (error) throw error;
 
@@ -96,7 +97,7 @@ const Bookings = {
   // ผู้จัดดูรายชื่อผู้จองของทริปตัวเอง (พร้อมชื่อเล่น เพื่อทำแผนผังที่นั่ง)
   async getByTrip(tripId) {
     const { data, error } = await db.from('bookings').select(`
-      id, booking_ref, seats, note, status, pay_status, total_price, booked_at,
+      id, booking_ref, seats, seat_numbers, note, status, pay_status, total_price, booked_at,
       users ( full_name, nickname, phone )
     `).eq('trip_id', tripId).order('booked_at', { ascending: true });
     if (error) throw error;

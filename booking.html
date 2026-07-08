@@ -609,8 +609,8 @@ function renderVanMap(){
   el.innerHTML=`
     <div class="van">
       <div class="van-front">
-        <div class="vseat crew"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.4"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg><small>คนขับ</small></div>
         <div class="vseat crew"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg><small>Staff</small></div>
+        <div class="vseat crew"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.4"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg><small>คนขับ</small></div>
       </div>
       <div class="van-grid">${grid}</div>
     </div>`;
@@ -776,7 +776,8 @@ async function saveBooking(){
     const result = await Bookings.create({
       tripId: trip.id,
       seats: seats,
-      note: fullNote
+      note: fullNote,
+      seatNumbers: selectedSeats.slice()
     });
     bookingRef = result.booking_ref;
   } catch(e) {
