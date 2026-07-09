@@ -901,7 +901,7 @@ async function load(){
         cap:  t.capacity,
         booked: t.booked_count,
         badge: t.badge_tier,
-        rating: t.avg_rating,
+        rating: t.rating_avg,
       }));
     } else {
       TRIPS = JSON.parse(JSON.stringify(SEED_TRIPS));

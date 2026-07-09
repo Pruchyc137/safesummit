@@ -548,7 +548,7 @@ function mapBooking(r){
     id: r.id,
     tripId: r.trip_id,
     tripName: { th: t.name_th || 'ทริป' },
-    org: t.organizer_name || '–',
+    org: t.organizers?.org_name || '–',
     prov: t.province || '',
     region: region,
     date: date,
@@ -557,7 +557,7 @@ function mapBooking(r){
     total: total,
     status: status,
     bookedAt: (r.booked_at||'').slice(0,10),
-    badge: t.organizer_badge || 'Verified Basic',
+    badge: (/pro/i.test(t.organizers?.badge_tier||'')?'Verified Pro':/basic/i.test(t.organizers?.badge_tier||'')?'Verified Basic':'Verified Basic'),
     scene: SCENE_BY_REGION[region] || 'peak',
     bookingRef: r.booking_ref || '',
     orgPhone: '', orgLine: '',
@@ -600,7 +600,7 @@ async function load(){
   // โหลดการจองจริงของลูกค้าคนนี้
   try{
     const { data, error } = await db.from('bookings')
-      .select('id,trip_id,booking_ref,seats,price_snapshot,total_price,declared_amount,paid_amount,admin_note,status,pay_status,note,booked_at, trips(name_th,start_date,duration_days,province,region,organizer_name,organizer_badge,payment_qr_url,organizers(payment_qr_url))')
+      .select('id,trip_id,booking_ref,seats,price_snapshot,total_price,declared_amount,paid_amount,admin_note,status,pay_status,note,booked_at, trips(name_th,start_date,duration_days,province,region,payment_qr_url,organizers(org_name,badge_tier,payment_qr_url))')
       .eq('user_id', user.id)
       .order('booked_at',{ascending:false});
     if(error) throw error;

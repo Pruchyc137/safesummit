@@ -525,7 +525,7 @@ function mapSupabaseTrip(r){
     price:parseFloat(r.price_per_person)||seed.price||0,
     status:r.status||seed.status||'open',
     badge:seed.badge||'Verified Basic',
-    rating:r.avg_rating||seed.rating||null,
+    rating:r.rating_avg||seed.rating||null,
     img:r.image_url||seed.img||null,
     scene:seed.scene||'peak',
     orgPhone:seed.orgPhone||'',

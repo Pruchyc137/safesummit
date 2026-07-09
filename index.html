@@ -876,10 +876,12 @@ function mapSupabaseTrip(r){
   const idx = isSeedFormat ? seedIdxFromUUID(r.id) : 0;
   const seed = isSeedFormat ? (SEED_TRIPS.find(s=>s.id===`t${idx}`) || {}) : {};
   const nameTh = r.name_th || seed.name?.th || '';
+  const bt = r.organizers?.badge_tier || '';
+  const badgeLabel = /pro/i.test(bt) ? 'Verified Pro' : /basic/i.test(bt) ? 'Verified Basic' : (seed.badge || 'Verified Basic');
   return {
     id: r.id,
     name: seed.name || {th: nameTh, en: r.name_en || nameTh},
-    org: r.organizer_name || seed.org || '',
+    org: r.organizers?.org_name || seed.org || '',
     region: r.region || seed.region || 'north',
     prov: r.province || seed.prov || '',
     date: r.start_date || seed.date || '',
@@ -887,8 +889,8 @@ function mapSupabaseTrip(r){
     booked: r.booked_count || seed.booked || 0,
     price: parseFloat(r.price_per_person) || seed.price || 0,
     status: r.status || seed.status || 'open',
-    badge: r.organizer_badge || seed.badge || 'Verified Basic',
-    rating: r.avg_rating || seed.rating || null,
+    badge: badgeLabel,
+    rating: r.rating_avg || seed.rating || null,
     img: r.image_url || seed.img || null,
     scene: seed.scene || ({north:'peak',northeast:'sunrise',south:'forest',west:'forest',east:'forest',central:'sunrise'}[r.region||'north']||'peak'),
   };
@@ -900,7 +902,7 @@ async function loadTrips(){
   if(typeof db !== 'undefined'){
     try{
       const { data, error } = await db.from('trips')
-        .select('id,name_th,name_en,price_per_person,capacity,booked_count,start_date,region,province,status,image_url,avg_rating,organizer_name,organizer_badge')
+        .select('id,name_th,name_en,price_per_person,capacity,booked_count,start_date,region,province,status,image_url,rating_avg,organizers(org_name,badge_tier)')
         .in('status',['open','full'])
         .order('start_date');
       if(!error && data && data.length>0){

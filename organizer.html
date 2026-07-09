@@ -1463,12 +1463,8 @@ async function submitTrip(){
       imageUrl = valid[0]||null;
     }
     if(btn) btn.textContent='กำลังบันทึก...';
-    const badgeLabel = /pro/i.test(_orgProfile.badge_tier||'') ? 'Verified Pro'
-                     : /basic/i.test(_orgProfile.badge_tier||'') ? 'Verified Basic' : 'Verified Basic';
     const { data, error } = await db.from('trips').insert({
       organizer_id:     _orgProfile.id,
-      organizer_name:   _orgProfile.org_name || null,
-      organizer_badge:  badgeLabel,
       name_th:          fullName,
       name_en:          name,
       region:           region,
