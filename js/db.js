@@ -29,9 +29,9 @@ const Trips = {
   async getById(id) {
     const { data, error } = await db.from('trips').select(`
       *,
-      organizers ( org_name, badge_tier, province ),
+      organizers ( org_name, badge_tier, province, payment_qr_url ),
       trip_itinerary ( * )
-    `).eq('id', id).single();
+    `).eq('id', id).maybeSingle();
     if (error) throw error;
     return data;
   }
@@ -90,6 +90,38 @@ const Bookings = {
       trips ( name_th, start_date, region ),
       users ( full_name, phone, email )
     `).order('booked_at', { ascending: false });
+    if (error) throw error;
+    return data;
+  },
+
+  // ลูกค้าอัปสลิป + แจ้งยอด + LINE ID → pay_status='pending_review'
+  async submitPaymentSlip(bookingId, { file, declaredAmount, lineId }) {
+    const { data: s } = await db.auth.getSession();
+    const uid = s?.session?.user?.id;
+    if (!uid) throw new Error('ยังไม่ได้เข้าสู่ระบบ');
+    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+    const path = `${uid}/${bookingId}.${ext}`;
+    const { error: upErr } = await db.storage.from('slips')
+      .upload(path, file, { upsert: true, contentType: file.type || 'image/jpeg' });
+    if (upErr) throw upErr;
+    const { error } = await db.from('bookings').update({
+      slip_url: path,                       // เก็บ path (bucket private) เปิดผ่าน signed URL เท่านั้น
+      slip_uploaded_at: new Date().toISOString(),
+      declared_amount: declaredAmount,
+      pay_status: 'pending_review',
+      admin_note: null
+    }).eq('id', bookingId);
+    if (error) throw error;
+    if (lineId) {
+      try { await db.from('users').update({ line_id: lineId }).eq('id', uid); } catch(_) {}
+    }
+    return true;
+  },
+
+  async getBookingPayment(bookingId) {
+    const { data, error } = await db.from('bookings')
+      .select('id, total_price, declared_amount, paid_amount, pay_status, slip_url, admin_note, seats')
+      .eq('id', bookingId).maybeSingle();
     if (error) throw error;
     return data;
   },

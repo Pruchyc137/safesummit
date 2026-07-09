@@ -359,75 +359,75 @@ canvas#qrCanvas{display:block;}
           <div class="qr-wrap">
             <div class="promptpay-badge">
               <div class="pp-logo">PROMPTPAY</div>
-              <span style="font-size:12px;color:var(--text-muted);">สแกนด้วยแอปธนาคาร</span>
+              <span style="font-size:12px;color:var(--text-muted);">สแกน QR แล้วโอนตามยอด</span>
             </div>
-            <div class="qr-canvas-wrap">
-              <canvas id="qrCanvas" width="220" height="220"></canvas>
-              <div class="qr-logo">
-                <img src="brand/safesummit-mark.png" alt="" style="height:26px;width:auto;display:block;">
-              </div>
+            <div class="qr-canvas-wrap" id="payQrWrap">
+              <img id="payQrImg" alt="QR รับเงินของผู้จัด" style="display:none;width:220px;height:220px;object-fit:contain;border-radius:8px;">
+              <div id="payQrMissing" style="display:none;width:220px;padding:30px 14px;text-align:center;font-size:13px;color:#C0552F;line-height:1.5;">ผู้จัดยังไม่ได้ตั้ง QR รับเงิน<br>กรุณาติดต่อผู้จัดก่อนโอน</div>
             </div>
             <div class="qr-amount" id="qrAmount"></div>
-            <div class="qr-amount-sub">ยอดชำระทั้งหมด</div>
+            <div class="qr-amount-sub" id="qrAmountSub">ยอดที่ต้องโอน</div>
           </div>
 
-          <div class="bank-info">
-            <div class="bank-row"><span class="label">ชื่อบัญชี</span><span class="val">บริษัท SafeSummit จำกัด</span></div>
-            <div class="bank-row"><span class="label">เลข PromptPay</span><span class="val copyable" onclick="copyText('0-2345-67890-1')" title="คลิกเพื่อคัดลอก">0-2345-67890-1 📋</span></div>
-            <div class="bank-row"><span class="label">ธนาคาร</span><span class="val">ไทยพาณิชย์ (SCB)</span></div>
-            <div class="bank-row"><span class="label">หมายเลขอ้างอิง</span><span class="val" id="payRef" style="color:var(--accent-trail)"></span></div>
+          <div class="info-note" id="payToInfo" style="margin-top:4px;"></div>
+
+          <div class="divider"></div>
+          <div class="eyebrow">อัปโหลดสลิป + แจ้งยอด</div>
+
+          <div class="fld" style="margin-top:12px;">
+            <label>สลิปการโอนเงิน <span style="color:#C0552F">*</span></label>
+            <input type="file" id="slipFile" accept="image/*" onchange="previewSlip(this)">
+            <div id="slipPreviewWrap" style="display:none;margin-top:10px;">
+              <img id="slipPreviewImg" alt="สลิป" style="max-width:180px;border-radius:10px;border:1px solid #E6DCC6;display:block;">
+            </div>
           </div>
 
-          <div class="timer-wrap" id="timerWrap">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-            QR หมดอายุใน <span id="timerDisplay">10:00</span>
+          <div class="fld">
+            <label>จำนวนที่โอน (บาท) <span style="color:#C0552F">*</span></label>
+            <input type="number" id="declaredAmt" min="1" inputmode="numeric">
+            <div class="hint">ระบุยอดที่คุณโอนจริง (เต็มจำนวน หรือมัดจำ)</div>
+          </div>
+
+          <div class="fld" id="lineIdField">
+            <label>LINE ID <span style="color:#C0552F">*</span></label>
+            <input type="text" id="lineIdInput" placeholder="เช่น @yourline หรือ lineid123">
+            <div class="hint">ใช้เชิญเข้ากลุ่มไลน์ทริปเมื่อยืนยันการชำระแล้ว</div>
           </div>
 
           <div class="btn-row">
-            <button class="btn btn-green" onclick="mockPaymentDone()">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
-              จ่ายเงินแล้ว — ยืนยันการชำระ
+            <button class="btn btn-green" id="submitSlipBtn" onclick="submitSlip()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+              ส่งสลิป — รอแอดมินตรวจสอบ
             </button>
             <button class="btn btn-ghost" style="font-size:13px;" onclick="goStep(2)">← กลับ</button>
           </div>
-          <p style="text-align:center;font-size:12px;color:var(--text-muted);margin-top:12px;">ระบบจะตรวจสอบการชำระเงินอัตโนมัติหลังสแกน QR</p>
+          <p style="text-align:center;font-size:12px;color:var(--text-muted);margin-top:12px;">⚠️ แอดมินจะตรวจสอบยอดเงินกับบัญชีจริงก่อนยืนยันการจอง</p>
         </div>
       </div>
     </div>
 
-    <!-- STEP 4: SUCCESS -->
+    <!-- STEP 4: SUBMITTED / PENDING REVIEW -->
     <div class="step-content" id="sc4">
       <div class="panel">
         <div class="panel-head">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="color:#5C8A5A"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>
-          <h3>การจองสำเร็จแล้ว!</h3>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="color:var(--accent-gold)"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+          <h3>ส่งสลิปแล้ว — รอตรวจสอบ</h3>
         </div>
         <div class="panel-body">
           <div class="success-wrap">
-            <div class="success-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg>
+            <div class="success-icon" style="background:rgba(201,162,75,.14);">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="color:var(--accent-gold)"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
             </div>
             <div class="success-ref">เลขที่การจอง: <b id="successRef"></b></div>
-            <div class="success-title">ขอบคุณสำหรับการจอง!</div>
-            <div class="success-sub">เราจะส่งรายละเอียดและยืนยันการจองไปที่อีเมลของคุณ</div>
+            <div class="success-title">รอแอดมินตรวจสอบการชำระเงิน</div>
+            <div class="success-sub">แอดมินจะเทียบยอดกับบัญชีจริงแล้วยืนยันการจองของคุณ ติดตามสถานะได้ที่ "ทริปของฉัน"</div>
             <div class="success-detail" id="successDetail"></div>
             <div id="lineGroupBox"></div>
 
             <div class="btn-row" style="margin-top:0;">
               <a class="btn btn-primary" href="my-trips.html">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg>
-                ดูทริปของฉัน
-              </a>
-            </div>
-
-            <div class="admin-link-box" id="adminLinkBox">
-              <div>
-                <b>การจองนี้บันทึกในระบบแล้ว</b>
-                <p>แอดมินสามารถดูและจัดการการจองนี้ได้จาก Dashboard</p>
-              </div>
-              <a href="admin.html" class="btn btn-gold btn-sm" style="white-space:nowrap;width:auto;">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
-                Admin Dashboard
+                ดูสถานะใน "ทริปของฉัน"
               </a>
             </div>
           </div>
@@ -503,7 +503,9 @@ async function loadTripFromDB(id){
       badge: data.badge_tier,
       rating: data.avg_rating || 0,
       scene: 'peak',
-      days: data.duration_days
+      days: data.duration_days,
+      payment_qr_url: data.payment_qr_url || null,           // QR เฉพาะทริป (ถ้ามี)
+      orgQr: data.organizers?.payment_qr_url || null          // QR ผู้จัด (fallback)
     };
   } catch(e) {
     console.warn('Supabase trip load failed, using local seed', e);
@@ -741,84 +743,107 @@ function goStep2(){
 }
 
 function goStep3(){
-  bookingRef=genRef();
   const total=trip.price*seats;
   const pay = payType==='deposit' ? depositAmount(total) : total;
 
+  // แสดง QR ของผู้จัด (ทริปก่อน ไม่งั้น fallback ผู้จัด)
+  const qrUrl = trip.payment_qr_url || trip.orgQr;
+  const img=document.getElementById('payQrImg'), miss=document.getElementById('payQrMissing');
+  if(qrUrl){ img.src=qrUrl; img.style.display='block'; miss.style.display='none'; }
+  else { img.style.display='none'; miss.style.display='block'; }
+
   document.getElementById('qrAmount').textContent=fmtMoney(pay);
-  document.querySelector('.qr-amount-sub').textContent = payType==='deposit'
+  document.getElementById('qrAmountSub').textContent = payType==='deposit'
     ? `ยอดมัดจำ · คงเหลือ ${fmtMoney(total-pay)} จ่ายก่อนเดินทาง`
-    : 'ยอดชำระทั้งหมด';
-  document.getElementById('payRef').textContent=bookingRef;
-  drawQR(document.getElementById('qrCanvas'), pay, bookingRef);
-  startTimer(10*60);
+    : 'ยอดที่ต้องโอน (เต็มจำนวน)';
+  document.getElementById('payToInfo').innerHTML = `โอนเข้า <b>QR พร้อมเพย์ของผู้จัด ${trip.org}</b> ตามยอดด้านบน แล้วแนบสลิป`;
+  document.getElementById('declaredAmt').value = pay;
+
+  // LINE ID: ถ้ามีอยู่แล้วซ่อนช่อง, ถ้ายังไม่มีบังคับกรอก
+  const lf=document.getElementById('lineIdField'), li=document.getElementById('lineIdInput');
+  if(window._existingLineId){ li.value=window._existingLineId; lf.style.display='none'; }
+  else { li.value=''; lf.style.display=''; }
+
   goStep(3);
 }
 
-async function mockPaymentDone(){
-  clearInterval(timerInterval);
-  await saveBooking();
-  goStep(4);
-  fillSuccess();
+function previewSlip(input){
+  const f=input.files && input.files[0];
+  const wrap=document.getElementById('slipPreviewWrap'), img=document.getElementById('slipPreviewImg');
+  if(f){ img.src=URL.createObjectURL(f); wrap.style.display='block'; }
+  else { wrap.style.display='none'; }
 }
 
-// ===== SAVE BOOKING (Supabase) =====
-async function saveBooking(){
+async function submitSlip(){
+  const fileEl=document.getElementById('slipFile');
+  const file=fileEl.files && fileEl.files[0];
+  if(!file){ toast('กรุณาแนบสลิปการโอนเงิน'); return; }
+  const declared=parseFloat(document.getElementById('declaredAmt').value);
+  if(!declared || declared<=0){ toast('กรุณาระบุจำนวนที่โอน'); return; }
+  const lineId=document.getElementById('lineIdInput').value.trim();
+  if(!window._existingLineId && !lineId){ toast('กรุณากรอก LINE ID'); return; }
+
+  const btn=document.getElementById('submitSlipBtn'); const old=btn.innerHTML;
+  btn.disabled=true; btn.textContent='กำลังส่ง...';
   try {
-    const note = document.getElementById('f-note').value.trim();
-    const total = trip.price*seats;
-    const pay = payType==='deposit' ? depositAmount(total) : total;
-    const seatStr = selectedSeats.map(seatLabel).join(', ');
-    const payStr = payType==='deposit'
-      ? `มัดจำ ${fmtMoney(pay)} (คงเหลือ ${fmtMoney(total-pay)} ภายใน ${remainDueDate()})`
-      : `จ่ายเต็ม ${fmtMoney(total)}`;
-    const fullNote = `${note}${note?' · ':''}[ที่นั่ง: ${seatStr}] [ชำระ: ${payStr}]`;
-    const result = await Bookings.create({
-      tripId: trip.id,
-      seats: seats,
-      note: fullNote,
-      seatNumbers: selectedSeats.slice()
-    });
-    bookingRef = result.booking_ref;
-  } catch(e) {
-    console.error('saveBooking error', e);
-    // fallback: ใช้ ref ที่ gen ไว้แล้ว
+    const row = await saveBooking();                 // สร้าง booking (pay_status=unpaid)
+    if(!row || !row.id) throw new Error('สร้างการจองไม่สำเร็จ');
+    await Bookings.submitPaymentSlip(row.id, { file, declaredAmount: declared, lineId: lineId||null });
+    window._declaredAmount = declared;
+    if(lineId) window._existingLineId = lineId;
+    goStep(4);
+    fillPending();
+  } catch(e){
+    console.error('submitSlip', e);
+    toast('ส่งสลิปไม่สำเร็จ: '+(e.message||e));
+    btn.disabled=false; btn.innerHTML=old;
   }
 }
 
-function fillSuccess(){
+// ===== SAVE BOOKING (Supabase) — คืน row ที่สร้าง =====
+async function saveBooking(){
+  const note = document.getElementById('f-note').value.trim();
+  const total = trip.price*seats;
+  const pay = payType==='deposit' ? depositAmount(total) : total;
+  const seatStr = selectedSeats.map(seatLabel).join(', ');
+  const payStr = payType==='deposit'
+    ? `มัดจำ ${fmtMoney(pay)} (คงเหลือ ${fmtMoney(total-pay)} ภายใน ${remainDueDate()})`
+    : `จ่ายเต็ม ${fmtMoney(total)}`;
+  const fullNote = `${note}${note?' · ':''}[ที่นั่ง: ${seatStr}] [ชำระ: ${payStr}]`;
+  const result = await Bookings.create({
+    tripId: trip.id,
+    seats: seats,
+    note: fullNote,
+    seatNumbers: selectedSeats.slice()
+  });
+  bookingRef = result.booking_ref;
+  window._bookingId = result.id;
+  return result;
+}
+
+function fillPending(){
   document.getElementById('successRef').textContent=bookingRef;
   const total=trip.price*seats;
   const pay = payType==='deposit' ? depositAmount(total) : total;
+  const declared = window._declaredAmount || pay;
   document.getElementById('successDetail').innerHTML=`
     <div class="srow"><span class="label">ทริป</span><span class="val">${trip.name.th||trip.name}</span></div>
     <div class="srow"><span class="label">ผู้จัด</span><span class="val">${trip.org}</span></div>
     <div class="srow"><span class="label">วันเดินทาง</span><span class="val">${fmtDate(trip.date)} · ${trip.prov}</span></div>
     <div class="srow"><span class="label">ที่นั่ง</span><span class="val">${selectedSeats.map(seatLabel).join(', ')}</span></div>
-    <div class="srow"><span class="label">ผู้จอง</span><span class="val">${document.getElementById('f-fname').value} ${document.getElementById('f-lname').value}</span></div>
-    <div class="srow"><span class="label">ชำระแล้ว (${payType==='deposit'?'มัดจำ':'เต็มจำนวน'})</span><span class="val" style="color:var(--accent-trail)">${fmtMoney(pay)}</span></div>
+    <div class="srow"><span class="label">ยอดที่แจ้งโอน</span><span class="val" style="color:var(--accent-trail)">${fmtMoney(declared)}</span></div>
+    <div class="srow"><span class="label">สถานะ</span><span class="val" style="color:var(--accent-gold)">⏳ รอแอดมินตรวจสอบ</span></div>
     ${payType==='deposit'?`<div class="srow"><span class="label">คงเหลือ (ก่อนเดินทาง)</span><span class="val">${fmtMoney(total-pay)} · ภายใน ${remainDueDate()}</span></div>`:''}`;
   fillLineBox();
 }
 
 function fillLineBox(){
   const box=document.getElementById('lineGroupBox'); if(!box) return;
-  const totalBooked=(trip.booked||0)+seats;
-  if(totalBooked>=3){
-    box.innerHTML=`<div class="line-box">
-      <div class="line-qr"><canvas id="lineQr" width="80" height="80"></canvas></div>
-      <div><span class="line-badge">กลุ่มพร้อมแล้ว</span>
-      <h4>สแกนเพื่อเข้ากลุ่มไลน์ทริป</h4>
-      <p>เปิด LINE แล้วสแกน QR นี้เพื่อเข้ากลุ่มพูดคุยกับผู้จัดและเพื่อนร่วมทริป</p></div></div>`;
-    const c=document.getElementById('lineQr'); if(c) drawQR(c,'LINE',bookingRef);
-  } else {
-    const need=3-totalBooked;
-    box.innerHTML=`<div class="line-box">
-      <div class="line-qr locked"><span class="lock">🔒</span></div>
-      <div><span class="line-badge">รอเปิดกลุ่ม</span>
-      <h4>กลุ่มไลน์จะเปิดเมื่อมีผู้จองครบ 3 คน</h4>
-      <p>ขณะนี้มีผู้จอง ${totalBooked} คน — อีก ${need} คนกลุ่มจะถูกสร้างโดยแอดมิน<br>เราจะส่ง QR เข้ากลุ่มให้ทางอีเมลเมื่อกลุ่มพร้อม</p></div></div>`;
-  }
+  box.innerHTML=`<div class="line-box">
+    <div class="line-qr locked"><span class="lock">🔒</span></div>
+    <div><span class="line-badge">รอเปิดกลุ่ม</span>
+    <h4>กลุ่มไลน์เปิดหลังยืนยันการชำระ + ครบ 3 คน</h4>
+    <p>เมื่อแอดมินยืนยันการชำระของคุณ และทริปมีผู้ยืนยันครบ 3 คน แอดมินจะสร้างกลุ่มไลน์แล้วเชิญคุณผ่าน LINE ID ที่ให้ไว้</p></div></div>`;
 }
 
 // ===== QR CODE GENERATOR =====
@@ -952,12 +977,13 @@ async function initBookingAuth(){
   if(BOOKING_USER){
     // prefill จากโปรไฟล์
     let prof = {};
-    try { const { data } = await db.from('users').select('full_name,phone,email').eq('id', BOOKING_USER.id).maybeSingle(); if(data) prof = data; } catch(e){}
+    try { const { data } = await db.from('users').select('full_name,phone,email,line_id').eq('id', BOOKING_USER.id).maybeSingle(); if(data) prof = data; } catch(e){}
     const parts = (prof.full_name||'').trim().split(/\s+/);
     if(parts[0]) document.getElementById('f-fname').value = parts[0];
     if(parts.length>1) document.getElementById('f-lname').value = parts.slice(1).join(' ');
     document.getElementById('f-email').value = prof.email || BOOKING_USER.email || '';
     if(prof.phone) document.getElementById('f-phone').value = prof.phone;
+    window._existingLineId = prof.line_id || null;   // มี LINE ID แล้วไม่ต้องกรอกซ้ำ
   } else {
     const b = document.getElementById('loginBanner');
     if(b) b.style.display = 'flex';
