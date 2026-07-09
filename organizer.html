@@ -745,6 +745,26 @@ h1,h2,h3,h4{font-family:'Kanit',sans-serif;}
           <div class="fld"><label>ประสบการณ์ (ปี)</label><input id="p-exp" type="number" placeholder="3" min="0"></div>
           <div class="fld"><label>แนะนำตัวสั้นๆ</label><textarea id="p-bio" placeholder="บอกเล่าประสบการณ์และความเชี่ยวชาญของคุณ..."></textarea></div>
         </div>
+
+        <div class="form-section">
+          <div class="form-section-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M20 14v.01M14 20v.01M20 20v.01M17 17h.01M20 17h.01M17 20h.01"/></svg>
+            QR พร้อมเพย์รับเงิน
+          </div>
+          <p style="font-size:13px;color:var(--text-muted);margin:0 0 14px;">อัปโหลด QR พร้อมเพย์ของคุณ — ลูกค้าจะเห็น QR นี้ตอนชำระเงินค่าทริป (ถ้าไม่ตั้งต่อทริป ระบบใช้ QR นี้เป็นค่าเริ่มต้น)</p>
+          <div style="display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap;">
+            <div style="width:150px;height:150px;border:2px dashed #E0D5BD;border-radius:12px;display:flex;align-items:center;justify-content:center;background:#FAF6EA;overflow:hidden;flex-shrink:0;">
+              <span id="qrPlaceholder" style="font-size:12px;color:#B59A6E;text-align:center;padding:10px;">ยังไม่มี QR</span>
+              <img id="qrPreviewImg" style="display:none;width:100%;height:100%;object-fit:contain;" alt="QR พร้อมเพย์">
+            </div>
+            <div style="flex:1;min-width:200px;">
+              <input type="file" id="qrFile" accept="image/*" style="display:none;" onchange="handleQRUpload(this)">
+              <button class="btn btn-ghost" type="button" onclick="document.getElementById('qrFile').click()">เลือกรูป QR พร้อมเพย์</button>
+              <div id="qrStatus" style="font-size:12.5px;color:var(--text-muted);margin-top:10px;line-height:1.5;">รองรับ .png .jpg — แคปหน้าจอ QR พร้อมเพย์จากแอปธนาคารได้เลย</div>
+            </div>
+          </div>
+        </div>
+
         <div class="form-foot">
           <button class="btn btn-primary" onclick="saveProfile()">บันทึกข้อมูล</button>
         </div>
@@ -1092,6 +1112,36 @@ async function loadProfile(){
   setVal('p-prov',  _orgProfile.province||'');
   setVal('p-exp',   _orgProfile.exp_years||'');
   setVal('p-bio',   _orgProfile.bio||'');
+  renderQRPreview(_orgProfile.payment_qr_url);
+}
+
+function renderQRPreview(url){
+  const img = document.getElementById('qrPreviewImg');
+  const ph  = document.getElementById('qrPlaceholder');
+  if(!img||!ph) return;
+  if(url){ img.src = url; img.style.display='block'; ph.style.display='none'; }
+  else { img.style.display='none'; ph.style.display='block'; }
+}
+
+async function handleQRUpload(input){
+  const file = input.files && input.files[0];
+  if(!file) return;
+  if(!_orgProfile){ toast('ไม่พบข้อมูลผู้จัด'); return; }
+  const status = document.getElementById('qrStatus');
+  if(status){ status.textContent = 'กำลังอัปโหลด...'; status.style.color='var(--text-muted)'; }
+  try {
+    const url = await Organizers.uploadQR(_orgProfile.id, file);
+    _orgProfile.payment_qr_url = url;
+    renderQRPreview(url);
+    if(status){ status.textContent = '✓ อัปโหลด QR สำเร็จ — ลูกค้าจะเห็น QR นี้ตอนชำระเงิน'; status.style.color='#5C8A5A'; }
+    toast('อัปโหลด QR พร้อมเพย์แล้ว');
+  } catch(e){
+    console.error('uploadQR', e);
+    if(status){ status.textContent = 'อัปโหลดไม่สำเร็จ: '+(e.message||e); status.style.color='#C0392B'; }
+    toast('อัปโหลดไม่สำเร็จ');
+  } finally {
+    input.value = '';
+  }
 }
 function getMyTrips(){ return TRIPS; }
 function getMyTripIds(){ return TRIPS.map(t=>t.id); }

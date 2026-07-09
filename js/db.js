@@ -133,6 +133,30 @@ const Organizers = {
     return data;
   },
 
+  // อัปโหลด QR พร้อมเพย์ → bucket payment-qr/{uid}/qr.ext → เซฟ URL ลง organizers.payment_qr_url
+  async uploadQR(organizerId, file) {
+    const { data: s } = await db.auth.getSession();
+    const uid = s?.session?.user?.id;
+    if (!uid) throw new Error('ยังไม่ได้เข้าสู่ระบบ');
+    const ext = (file.name.split('.').pop() || 'png').toLowerCase();
+    const path = `${uid}/qr.${ext}`;
+    const { error: upErr } = await db.storage.from('payment-qr')
+      .upload(path, file, { upsert: true, contentType: file.type || 'image/png' });
+    if (upErr) throw upErr;
+    const base = db.storage.from('payment-qr').getPublicUrl(path).data.publicUrl;
+    const url = base + '?t=' + Date.now();   // cache-bust ให้รูปใหม่ขึ้นทันที
+    const { error } = await db.from('organizers').update({ payment_qr_url: url }).eq('id', organizerId);
+    if (error) throw error;
+    return url;
+  },
+
+  async getQR(organizerId) {
+    const { data, error } = await db.from('organizers')
+      .select('payment_qr_url').eq('id', organizerId).maybeSingle();
+    if (error) throw error;
+    return data?.payment_qr_url || null;
+  },
+
   async getAll() {
     const { data, error } = await db.from('organizers').select(`
       *, users ( full_name, email )

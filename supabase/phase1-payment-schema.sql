@@ -4,6 +4,16 @@
 -- (ปลอดภัยต่อการรันซ้ำ ใช้ IF NOT EXISTS ทั้งหมด)
 -- ============================================================
 
+-- 1.0 เพิ่มค่าใหม่ให้ enum pay_status  ⚠️ ต้องรัน "แยก/ก่อน" ส่วนที่เหลือ
+--     (Postgres ห้ามเพิ่มค่า enum แล้วใช้ค่านั้นใน transaction เดียวกัน → view ด้านล่างจะใช้ค่านี้)
+--     รันบล็อกนี้ให้ Success ก่อน แล้วค่อยรันตั้งแต่ 1.1 ลงไป
+alter type pay_status add value if not exists 'pending_review';
+alter type pay_status add value if not exists 'verified';
+alter type pay_status add value if not exists 'partial';
+alter type pay_status add value if not exists 'rejected';
+
+-- ===== รันตั้งแต่บรรทัดนี้ลงไปเป็นรอบที่ 2 =====
+
 -- 1.1 QR พร้อมเพย์ของผู้จัด
 alter table organizers add column if not exists payment_qr_url text;
 
