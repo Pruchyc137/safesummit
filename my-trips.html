@@ -449,6 +449,29 @@ h1,h2,h3,h4{font-family:'Kanit',sans-serif;}
   </div>
 </div>
 
+<!-- ══ MODAL: RE-UPLOAD SLIP ══ -->
+<div class="modal-bg" id="modalReupload">
+  <div class="modal">
+    <div class="modal-h"><div><h3>อัปสลิปใหม่</h3><p id="reupTitle"></p></div><button class="modal-x" onclick="closeReupModal()">×</button></div>
+    <div class="modal-b">
+      <div class="warn-box" id="reupInfo" style="margin-bottom:14px;"></div>
+      <div style="text-align:center;margin-bottom:14px;">
+        <div id="reupQrWrap" style="display:inline-block;">
+          <img id="reupQrImg" alt="QR ผู้จัด" style="display:none;width:180px;height:180px;object-fit:contain;border-radius:10px;border:1px solid #E6DCC6;">
+          <div id="reupQrMissing" style="display:none;width:180px;padding:24px 12px;color:#C0552F;font-size:13px;">ผู้จัดยังไม่ได้ตั้ง QR</div>
+        </div>
+      </div>
+      <div class="fld"><label>แนบสลิปใหม่ *</label><input type="file" id="reupFile" accept="image/*" onchange="previewReup(this)"></div>
+      <div id="reupFileWrap" style="display:none;margin:6px 0 12px;"><img id="reupFileImg" style="max-width:160px;border-radius:8px;border:1px solid #E6DCC6;"></div>
+      <div class="fld"><label>จำนวนที่โอน (บาท) *</label><input type="number" id="reupAmt" min="1"></div>
+      <div class="modal-foot">
+        <button class="btn btn-ghost" onclick="closeReupModal()">ยกเลิก</button>
+        <button class="btn btn-primary" id="reupBtn" onclick="submitReupload()">ส่งสลิปใหม่</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ══ MODAL: REVIEW ══ -->
 <div class="modal-bg" id="modalReview">
   <div class="modal">
@@ -539,7 +562,12 @@ function mapBooking(r){
     bookingRef: r.booking_ref || '',
     orgPhone: '', orgLine: '',
     reviewed: false, rating: 0,
-    cancelReason: r.note || ''
+    cancelReason: r.note || '',
+    payStatus: r.pay_status || 'unpaid',
+    declaredAmount: r.declared_amount!=null ? parseFloat(r.declared_amount) : null,
+    paidAmount: r.paid_amount!=null ? parseFloat(r.paid_amount) : null,
+    adminNote: r.admin_note || '',
+    qrUrl: (t.payment_qr_url || t.organizers?.payment_qr_url) || null
   };
 }
 
@@ -572,7 +600,7 @@ async function load(){
   // โหลดการจองจริงของลูกค้าคนนี้
   try{
     const { data, error } = await db.from('bookings')
-      .select('id,trip_id,booking_ref,seats,price_snapshot,total_price,status,pay_status,note,booked_at, trips(name_th,start_date,duration_days,province,region,organizer_name,organizer_badge)')
+      .select('id,trip_id,booking_ref,seats,price_snapshot,total_price,declared_amount,paid_amount,admin_note,status,pay_status,note,booked_at, trips(name_th,start_date,duration_days,province,region,organizer_name,organizer_badge,payment_qr_url,organizers(payment_qr_url))')
       .eq('user_id', user.id)
       .order('booked_at',{ascending:false});
     if(error) throw error;
@@ -753,6 +781,64 @@ function renderList(tab){
   listEl.innerHTML=list.map(b=>bcardHTML(b)).join('');
 }
 
+function payStatusHTML(b){
+  const s=b.payStatus;
+  if(!s || s==='unpaid') return '';
+  const map={
+    pending_review:{t:'⏳ รอแอดมินตรวจสอบการชำระเงิน',c:'#B26A16',bg:'#FBF0E2'},
+    verified:{t:'✓ ชำระเงินครบแล้ว',c:'#2E7D32',bg:'#EAF6EE'},
+    partial:{t:'● จ่ายมัดจำแล้ว',c:'#B26A16',bg:'#FBF0E2'},
+    rejected:{t:'✕ การชำระถูกปฏิเสธ',c:'#C0392B',bg:'#FDEEEC'},
+  };
+  const m=map[s]; if(!m) return '';
+  let extra='';
+  if(s==='partial' && b.total!=null && b.paidAmount!=null){
+    extra=`<div style="font-size:12px;color:#8B7E6B;margin-top:3px;">จ่ายแล้ว ${fmtM(b.paidAmount)} · คงเหลือ <b style="color:#C0552F">${fmtM(b.total-b.paidAmount)}</b> จ่ายก่อนเดินทาง</div>`;
+  } else if(s==='rejected' && b.adminNote){
+    extra=`<div style="font-size:12px;color:#C0392B;margin-top:3px;">เหตุผล: ${b.adminNote}</div>`;
+  }
+  return `<div style="background:${m.bg};border-radius:8px;padding:8px 11px;margin-top:10px;"><span style="font-family:'Kanit',sans-serif;font-weight:700;font-size:12.5px;color:${m.c}">${m.t}</span>${extra}</div>`;
+}
+
+// ===== RE-UPLOAD SLIP (หลังถูกปฏิเสธ) =====
+let _reupBooking=null;
+function openReupload(id){
+  const b=BOOKINGS.find(x=>x.id===id); if(!b) return;
+  _reupBooking=b;
+  document.getElementById('reupTitle').textContent=bName(b);
+  const qw=document.getElementById('reupQrWrap'), qi=document.getElementById('reupQrImg'), qm=document.getElementById('reupQrMissing');
+  if(b.qrUrl){ qi.src=b.qrUrl; qi.style.display='block'; qm.style.display='none'; }
+  else { qi.style.display='none'; qm.style.display='block'; }
+  document.getElementById('reupAmt').value = b.declaredAmount || b.total || '';
+  document.getElementById('reupInfo').innerHTML = `ยอดที่ต้องจ่าย <b>${fmtM(b.total)}</b>${b.adminNote?` · เหตุผลที่ถูกปฏิเสธ: ${b.adminNote}`:''}`;
+  document.getElementById('reupFileWrap').style.display='none';
+  document.getElementById('reupFile').value='';
+  openModal('modalReupload');
+}
+function closeReupModal(){ closeModal('modalReupload'); }
+function previewReup(input){
+  const f=input.files&&input.files[0];
+  const w=document.getElementById('reupFileWrap'), img=document.getElementById('reupFileImg');
+  if(f){ img.src=URL.createObjectURL(f); w.style.display='block'; } else { w.style.display='none'; }
+}
+async function submitReupload(){
+  if(!_reupBooking) return;
+  const fileEl=document.getElementById('reupFile');
+  const file=fileEl.files&&fileEl.files[0];
+  if(!file){ alert('กรุณาแนบสลิปใหม่'); return; }
+  const declared=parseFloat(document.getElementById('reupAmt').value);
+  if(!declared||declared<=0){ alert('กรุณาระบุจำนวนที่โอน'); return; }
+  const btn=document.getElementById('reupBtn'); btn.disabled=true; btn.textContent='กำลังส่ง...';
+  try {
+    await Bookings.submitPaymentSlip(_reupBooking.id, { file, declaredAmount:declared, lineId:null });
+    closeReupModal();
+    await load(); refreshAll();
+  } catch(e){
+    alert('ส่งไม่สำเร็จ: '+(e.message||e));
+    btn.disabled=false; btn.textContent='ส่งสลิปใหม่';
+  }
+}
+
 function bcardHTML(b){
   const days=daysTill(b.date);
   const scene=SCENES[b.scene]||SCENES.peak;
@@ -774,6 +860,9 @@ function bcardHTML(b){
     acts+=`<button class="btn btn-ghost" onclick="openDetail('${b.id}')">รายละเอียด</button>`;
     if(b.refundStatus) acts+=`<span style="font-size:12px;color:#5C8A5A;font-weight:600;">✓ ${b.refundStatus}</span>`;
   }
+  if(b.payStatus==='rejected'){
+    acts+=`<button class="btn btn-primary" onclick="openReupload('${b.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>อัปสลิปใหม่</button>`;
+  }
 
   return `<div class="bcard">
     <div class="bcard-thumb" style="min-height:110px;position:relative;">${scene}</div>
@@ -785,6 +874,7 @@ function bcardHTML(b){
           ${chip}
         </div>
       </div>
+      ${payStatusHTML(b)}
       <div class="bcard-meta">
         <div class="bmeta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>${fmtDs(b.date)}</div>
         <div class="bmeta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17.657 16.243L13.414 20.485a2 2 0 0 1-2.828 0L6.343 16.243a8 8 0 1 1 11.314 0z"/><circle cx="12" cy="11" r="3"/></svg>${b.prov}</div>

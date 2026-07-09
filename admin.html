@@ -314,6 +314,11 @@ h1,h2,h3{font-family:'Kanit',sans-serif;}
       ตรวจการชำระเงิน
       <span class="badge" id="sidePayments"></span>
     </button>
+    <button class="nav-item" onclick="showPage('groups',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      กลุ่ม LINE
+      <span class="badge" id="sideGroups"></span>
+    </button>
     <button class="nav-item" onclick="showPage('finance',this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
       การเงิน
@@ -536,6 +541,27 @@ h1,h2,h3{font-family:'Kanit',sans-serif;}
             <tbody id="payRows"></tbody>
           </table>
           <div id="payEmpty" style="display:none;text-align:center;padding:40px;color:var(--text-muted);">ไม่มีรายการรอตรวจสอบ</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======== LINE GROUPS ======== -->
+    <div class="page" id="page-groups">
+      <div class="page-head">
+        <h1>กลุ่ม LINE</h1>
+        <p>ทริปที่มีผู้ยืนยันการชำระครบ 3 คน — รวบรวม LINE ID ให้แอดมินสร้างกลุ่มเอง</p>
+      </div>
+      <div class="panel" style="margin-top:20px;">
+        <div class="panel-head" style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-weight:700;font-size:15px;">ทริปที่พร้อม / สร้างกลุ่มแล้ว</span>
+          <button class="btn btn-sm" onclick="loadGroupReady(true)" style="background:var(--accent-gold);color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:12.5px;font-weight:700;cursor:pointer;">รีเฟรช</button>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="data-table">
+            <thead><tr><th>ทริป</th><th>ผู้ยืนยันแล้ว</th><th>สถานะกลุ่ม</th><th>จัดการ</th></tr></thead>
+            <tbody id="grpRows"></tbody>
+          </table>
+          <div id="grpEmpty" style="display:none;text-align:center;padding:40px;color:var(--text-muted);">ยังไม่มีทริปที่ครบ 3 คน</div>
         </div>
       </div>
     </div>
@@ -805,6 +831,27 @@ h1,h2,h3{font-family:'Kanit',sans-serif;}
   </div>
 </div>
 
+<!-- LINE GROUP MEMBERS -->
+<div class="modal-bg" id="modalGroup">
+  <div class="modal" style="max-width:520px;">
+    <div class="modal-h"><div><h3 id="grpTitle">สร้างกลุ่ม LINE</h3><p>รวบรวม LINE ID ของผู้ยืนยันแล้ว — สร้างกลุ่มใน LINE เองแล้วเชิญ</p></div><button class="modal-x" onclick="closeModal('modalGroup')">×</button></div>
+    <div class="modal-b">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:10px;">
+        <button class="btn btn-sm" onclick="copyAllLineIds()" style="background:#5C8A5A;color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:12.5px;font-weight:700;cursor:pointer;">📋 ก็อป LINE ID ทั้งหมด</button>
+      </div>
+      <div id="grpMembers" style="max-height:300px;overflow:auto;"></div>
+      <div class="fld" style="margin:16px 0 6px;">
+        <label style="display:block;font-size:12.5px;font-weight:600;margin-bottom:6px;">ลิงก์เชิญกลุ่ม / โน้ต (ถ้ามี)</label>
+        <input id="grpNote" type="text" placeholder="เช่น https://line.me/ti/g/..." style="width:100%;padding:11px 13px;border:1.5px solid #E0D5BD;border-radius:10px;font-family:'Sarabun';font-size:14px;background:#FCFAF3;outline:none;">
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-ghost" onclick="closeModal('modalGroup')">ปิด</button>
+        <button class="btn btn-primary" id="grpMarkBtn" onclick="doMarkGroupCreated()">สร้างกลุ่มแล้ว ✓</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/db.js"></script>
@@ -963,6 +1010,7 @@ function showPage(key, el){
   if(key==='finance') renderFinance();
   if(key==='bookings') loadBookings().then(renderBookings);
   if(key==='payments') loadPendingPayments();
+  if(key==='groups') loadGroupReady();
 }
 
 // ===== PAYMENTS REVIEW (Phase 5) =====
@@ -1070,6 +1118,98 @@ async function doRejectPayment(id){
     toast('ปฏิเสธการชำระแล้ว — ลูกค้าอัปสลิปใหม่ได้');
     loadPendingPayments(true);
   } catch(e){ toast('ไม่สำเร็จ: '+(e.message||e)); }
+}
+
+// ===== LINE GROUPS (Phase 6) =====
+let GROUP_TRIPS = [], _grpMembers = [], _grpTripId = null;
+
+async function loadGroupReady(force){
+  if(!getAdminKey()){ _afterKeyAction='groups'; openModal('modalAdminKey'); return; }
+  const rows=document.getElementById('grpRows');
+  rows.innerHTML='<tr><td colspan="4" style="text-align:center;padding:30px;color:var(--text-muted)">กำลังโหลด...</td></tr>';
+  try {
+    const { trips } = await adminApi('list_group_ready');
+    GROUP_TRIPS = trips||[];
+    renderGroupReady();
+  } catch(e){
+    if(e.code===401){ sessionStorage.removeItem('ss_admin_key'); _afterKeyAction='groups'; openModal('modalAdminKey'); return; }
+    rows.innerHTML='<tr><td colspan="4" style="text-align:center;padding:30px;color:#C0392B">โหลดไม่สำเร็จ: '+(e.message||e)+'</td></tr>';
+  }
+}
+
+function renderGroupReady(){
+  const rows=document.getElementById('grpRows'), empty=document.getElementById('grpEmpty');
+  const readyCount=GROUP_TRIPS.filter(t=>t.group_status==='ready').length;
+  const badge=document.getElementById('sideGroups');
+  if(badge){ badge.textContent=readyCount||''; badge.style.display=readyCount?'':'none'; }
+  if(!GROUP_TRIPS.length){ rows.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  rows.innerHTML=GROUP_TRIPS.map(t=>{
+    const created=t.group_status==='created';
+    const statusHtml=created
+      ? `<span class="pill" style="background:rgba(92,138,90,.15);color:#5C8A5A">✓ สร้างแล้ว ${t.group_created_at?fmtDate(t.group_created_at.slice(0,10)):''}</span>`
+      : `<span class="pill" style="background:rgba(226,103,43,.15);color:var(--accent-trail)">พร้อมสร้าง</span>`;
+    const actHtml=created
+      ? `<button class="icon-btn" onclick="openGroupModal('${t.id}')">ดูรายชื่อ</button>`
+      : `<button class="icon-btn approve" onclick="openGroupModal('${t.id}')">สร้างกลุ่ม LINE</button>`;
+    return `<tr>
+      <td>${t.name_th||'–'}${t.group_note?`<div style="font-size:11px;color:var(--text-muted)">${t.group_note}</div>`:''}</td>
+      <td><b style="color:var(--accent-trail)">${t.confirmed_count} คน</b></td>
+      <td>${statusHtml}</td>
+      <td>${actHtml}</td>
+    </tr>`;
+  }).join('');
+}
+
+async function openGroupModal(tripId){
+  _grpTripId=tripId;
+  const t=GROUP_TRIPS.find(x=>x.id===tripId);
+  document.getElementById('grpTitle').textContent = (t?.name_th||'ทริป');
+  document.getElementById('grpNote').value = t?.group_note||'';
+  document.getElementById('grpMembers').innerHTML='<div style="padding:20px;text-align:center;color:var(--text-muted)">กำลังโหลดรายชื่อ...</div>';
+  openModal('modalGroup');
+  try {
+    const { members } = await adminApi('trip_confirmed_members', tripId);
+    _grpMembers = members||[];
+    renderGroupMembers();
+  } catch(e){
+    document.getElementById('grpMembers').innerHTML='<div style="padding:20px;color:#C0392B">โหลดไม่สำเร็จ: '+(e.message||e)+'</div>';
+  }
+}
+
+function renderGroupMembers(){
+  const box=document.getElementById('grpMembers');
+  if(!_grpMembers.length){ box.innerHTML='<div style="padding:20px;text-align:center;color:var(--text-muted)">ยังไม่มีสมาชิกที่ยืนยัน</div>'; return; }
+  box.innerHTML=_grpMembers.map((m,i)=>{
+    const u=m.users||{};
+    const line=u.line_id||'(ไม่มี LINE ID)';
+    const nm=(u.nickname?u.nickname+' · ':'')+(u.full_name||'–');
+    return `<div style="display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid #F0E9D8;">
+      <span style="width:22px;height:22px;border-radius:6px;background:#5C8A5A;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">${i+1}</span>
+      <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">${nm}</div><div style="font-size:12px;color:var(--accent-trail);font-family:'Bai Jamjuree',monospace">${line}</div></div>
+      <button class="icon-btn" onclick="copyOne('${(u.line_id||'').replace(/'/g,"")}')" ${u.line_id?'':'disabled style="opacity:.4"'}>ก็อป</button>
+    </div>`;
+  }).join('');
+}
+
+function copyOne(v){ if(!v) return; navigator.clipboard.writeText(v).then(()=>toast('ก็อปแล้ว: '+v)).catch(()=>toast('ก็อปแล้ว')); }
+function copyAllLineIds(){
+  const ids=_grpMembers.map(m=>m.users?.line_id).filter(Boolean);
+  if(!ids.length){ toast('ไม่มี LINE ID ให้ก็อป'); return; }
+  navigator.clipboard.writeText(ids.join('\n')).then(()=>toast(`ก็อป ${ids.length} LINE ID แล้ว`)).catch(()=>toast('ก็อปแล้ว'));
+}
+
+async function doMarkGroupCreated(){
+  if(!_grpTripId) return;
+  const note=document.getElementById('grpNote').value.trim();
+  const btn=document.getElementById('grpMarkBtn'); btn.disabled=true; btn.textContent='กำลังบันทึก...';
+  try {
+    await adminApi('mark_group_created', _grpTripId, { note });
+    closeModal('modalGroup');
+    toast('บันทึกว่าสร้างกลุ่มแล้ว ✓');
+    loadGroupReady(true);
+  } catch(e){ toast('ไม่สำเร็จ: '+(e.message||e)); }
+  finally { btn.disabled=false; btn.textContent='สร้างกลุ่มแล้ว ✓'; }
 }
 
 // ===== OVERVIEW =====
