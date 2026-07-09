@@ -213,12 +213,14 @@ section.block{padding:88px 0;background:var(--bg-light);}
   color:var(--accent-trail);padding:3px 9px;border-radius:20px;
 }
 .trip-date-pill{
-  position:absolute;top:12px;right:12px;background:var(--accent-trail);color:#fff;
-  border-radius:20px;padding:5px 11px;z-index:1;white-space:nowrap;text-align:center;
-  box-shadow:0 5px 14px rgba(226,103,43,.34);
+  position:absolute;top:12px;right:12px;background:rgba(226,103,43,.85);color:#fff;
+  border-radius:14px;padding:4px 9px;z-index:1;white-space:nowrap;text-align:center;
+  box-shadow:0 3px 10px rgba(226,103,43,.22);
 }
 .trip-date-pill .dd{font-family:'Sarabun',sans-serif;font-weight:700;font-size:12.5px;}
-.trip-date-pill .mm{font-family:'Sarabun',sans-serif;font-weight:400;font-size:12px;opacity:.95;margin-left:4px;}
+.trip-date-pill .mm{font-family:'Sarabun',sans-serif;font-weight:400;font-size:12px;opacity:.95;margin-left:3px;}
+.trip-dur{font-family:'Sarabun',sans-serif;font-weight:400;font-size:12px;color:var(--text-muted);}
+.trip-org{display:flex;align-items:center;gap:5px;margin-top:5px;font-size:12.5px;color:var(--text-muted);}
 .trip-verified{display:inline-flex;align-items:center;gap:3px;background:#EAF6EE;color:#1E8A46;
   font-family:'Sarabun',sans-serif;font-weight:700;font-size:10.5px;padding:2px 8px;border-radius:20px;
   vertical-align:middle;white-space:nowrap;margin-left:5px;position:relative;top:-1px;}
@@ -999,6 +1001,10 @@ function renderTripCards(region='all', price='all', query=''){
       : `<a class="book-btn" href="trip.html?id=${t.id}" data-th="จองทริป" data-en="Book now">${lang==='en'?'Book now':'จองทริป'}</a>`;
     const dp = fmtDatePill(t, lang);
     const isBasic = /basic/i.test(t.badge||'');
+    const cleanName = (t.name[lang]||t.name.th).replace(/\s*\d+\s*วัน.*$/,'').replace(/\s*\d+D\d+N\s*$/,'').trim();
+    const durM = (t.name.th||'').match(/(\d+\s*วัน(?:\s*\d+\s*คืน)?)/);
+    const durEn = (t.name.en||'').match(/(\d+D\d+N)/);
+    const dur = lang==='en' ? (durEn?durEn[1]:'') : (durM?durM[1]:'');
     return `<div class="trip-card">
       <div class="trip-img">
         <div class="trip-img-inner">${sceneFor(t)}</div>
@@ -1007,10 +1013,10 @@ function renderTripCards(region='all', price='all', query=''){
       </div>
       <div class="trip-body">
         <div class="trip-title-row">
-          <h4>${(t.name[lang]||t.name.th).replace(/\s*\d+\s*วัน.*$/,'').replace(/\s*\d+D\d+N\s*$/,'').trim()}<span class="trip-verified${isBasic?' basic':''}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>${t.badge}</span></h4>
+          <h4>${cleanName}${dur?` <span class="trip-dur">· ${dur}</span>`:''}</h4>
           <span class="trip-rating">★ ${t.rating||'–'}</span>
         </div>
-        <div class="trip-duration">${(()=>{const m=(t.name.th||'').match(/(\d+\s*วัน(?:\s*\d+\s*คืน)?)/);return m?m[1]:'';})()}</div>
+        <div class="trip-org">${t.org||'–'}<span class="trip-verified${isBasic?' basic':''}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>${t.badge}</span></div>
         <div class="trip-meta">${meta}</div>
         <div class="trip-divider"></div>
         <div class="trip-foot">
