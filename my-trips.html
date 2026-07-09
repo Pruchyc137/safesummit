@@ -557,7 +557,7 @@ async function load(){
   // แสดงชื่อ/อีเมลจริงของลูกค้าที่ล็อกอิน
   try{
     let prof={};
-    try{ const { data } = await db.from('users').select('full_name,email,created_at').eq('id', user.id).single(); if(data) prof=data; }catch(e){}
+    try{ const { data } = await db.from('users').select('full_name,email,created_at').eq('id', user.id).maybeSingle(); if(data) prof=data; }catch(e){}
     const name = prof.full_name || user.email || 'ลูกค้า';
     const email = prof.email || user.email || '';
     document.getElementById('userName').textContent = name;

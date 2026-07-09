@@ -174,7 +174,7 @@ async function init(){
   // load profile from users table
   let prof = {};
   try {
-    const { data } = await db.from('users').select('full_name,nickname,phone,email').eq('id', user.id).single();
+    const { data } = await db.from('users').select('full_name,nickname,phone,email').eq('id', user.id).maybeSingle();
     if(data) prof = data;
   } catch(e){}
 

@@ -952,7 +952,7 @@ async function initBookingAuth(){
   if(BOOKING_USER){
     // prefill จากโปรไฟล์
     let prof = {};
-    try { const { data } = await db.from('users').select('full_name,phone,email').eq('id', BOOKING_USER.id).single(); if(data) prof = data; } catch(e){}
+    try { const { data } = await db.from('users').select('full_name,phone,email').eq('id', BOOKING_USER.id).maybeSingle(); if(data) prof = data; } catch(e){}
     const parts = (prof.full_name||'').trim().split(/\s+/);
     if(parts[0]) document.getElementById('f-fname').value = parts[0];
     if(parts.length>1) document.getElementById('f-lname').value = parts.slice(1).join(' ');

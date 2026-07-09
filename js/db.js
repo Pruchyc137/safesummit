@@ -128,7 +128,7 @@ const Organizers = {
     if (!session?.session) return null;
     const uid = session.session.user.id;
     const { data, error } = await db.from('organizers')
-      .select('*').eq('user_id', uid).single();
+      .select('*').eq('user_id', uid).maybeSingle();
     if (error) return null;
     return data;
   },

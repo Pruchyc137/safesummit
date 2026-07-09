@@ -180,7 +180,7 @@ async function doLogin(){
   if(currentRole === 'customer'){
     let status = 'approved';
     try {
-      const { data: prof } = await db.from('users').select('status,role').eq('id', data.user.id).single();
+      const { data: prof } = await db.from('users').select('status,role').eq('id', data.user.id).maybeSingle();
       if(prof && prof.status) status = prof.status;
     } catch(e){}
     if(status === 'pending'){

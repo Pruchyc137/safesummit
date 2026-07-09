@@ -1387,7 +1387,7 @@ async function renderAuthState(){
   }
   let name = user.email || 'ลูกค้า';
   try {
-    const { data: prof } = await db.from('users').select('full_name').eq('id', user.id).single();
+    const { data: prof } = await db.from('users').select('full_name').eq('id', user.id).maybeSingle();
     if(prof && prof.full_name) name = prof.full_name;
   } catch(e){}
   const initial = (name||'?').trim().charAt(0).toUpperCase();
