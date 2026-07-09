@@ -1433,6 +1433,7 @@ async function submitTrip(){
   if(!date)            { toast('กรุณาเลือกวันเดินทาง'); return; }
   if(!price||price<100){ toast('กรุณากรอกราคา (ขั้นต่ำ 100 บาท)'); return; }
   if(!vans||vans<1)    { toast('กรุณากรอกจำนวนรถตู้ (อย่างน้อย 1 คัน)'); return; }
+  if(!_tripImageFiles.length){ toast('กรุณาอัปโหลดรูปทริปอย่างน้อย 1 รูป (จำเป็นสำหรับแสดงบนหน้าเว็บ)'); return; }
   if(!_orgProfile)     { toast('ไม่พบข้อมูลผู้จัด'); return; }
 
   const days    = parseInt(v('f-days'))||3;
@@ -1462,8 +1463,12 @@ async function submitTrip(){
       imageUrl = valid[0]||null;
     }
     if(btn) btn.textContent='กำลังบันทึก...';
+    const badgeLabel = /pro/i.test(_orgProfile.badge_tier||'') ? 'Verified Pro'
+                     : /basic/i.test(_orgProfile.badge_tier||'') ? 'Verified Basic' : 'Verified Basic';
     const { data, error } = await db.from('trips').insert({
       organizer_id:     _orgProfile.id,
+      organizer_name:   _orgProfile.org_name || null,
+      organizer_badge:  badgeLabel,
       name_th:          fullName,
       name_en:          name,
       region:           region,
@@ -1472,7 +1477,7 @@ async function submitTrip(){
       duration_days:    days,
       price_per_person: price,
       capacity:         cap,
-      status:           'draft',
+      status:           'open',            // เผยแพร่ทันที (ผู้จัดผ่านการอนุมัติแล้ว)
       badge_tier:       _orgProfile.badge_tier||'basic',
       difficulty:       v('f-diff')||'medium',
       description:      v('f-desc')||null,
@@ -1482,7 +1487,7 @@ async function submitTrip(){
     if(error) throw error;
 
     TRIPS.unshift(data);
-    document.getElementById('addSuccessTitle').textContent='"'+fullName+'" รอการอนุมัติจาก Admin';
+    document.getElementById('addSuccessTitle').textContent='"'+fullName+'" เผยแพร่บนหน้าเว็บแล้ว ลูกค้าจองได้ทันที';
     document.getElementById('addTripForm').style.display='none';
     document.getElementById('addSuccess').style.display='flex';
     window.scrollTo({top:0,behavior:'smooth'});

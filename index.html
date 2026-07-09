@@ -814,6 +814,10 @@ const SCENES = {
   peak:`<svg class="scene" viewBox="0 0 300 160" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="s_b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3E5A6E"/><stop offset="0.5" stop-color="#7E8FA0"/><stop offset="1" stop-color="#C9A98A"/></linearGradient></defs><rect width="300" height="160" fill="url(#s_b)"/><circle cx="70" cy="48" r="20" fill="#F5E2C0" opacity="0.85"/><path d="M150,30 L210,120 L90,120 Z" fill="#2F3E4A"/><path d="M150,30 L172,63 L150,78 L132,58 Z" fill="#4A5A66" opacity="0.7"/><path d="M40,160 L40,118 L120,128 L300,112 L300,160 Z" fill="#24323C"/><rect x="0" y="120" width="300" height="20" fill="#E8E0D2" opacity="0.45"/></svg>`,
   forest:`<svg class="scene" viewBox="0 0 300 160" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="s_c" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#BFE0C8"/><stop offset="1" stop-color="#6FA37A"/></linearGradient></defs><rect width="300" height="160" fill="url(#s_c)"/><path d="M0,0 L300,0 L300,70 L210,60 L120,78 L0,64 Z" fill="#4E7E58" opacity="0.7"/><path d="M0,160 L0,72 L80,84 L160,70 L240,86 L300,74 L300,160 Z" fill="#2F5638"/><path d="M120,60 L132,60 L138,150 L114,150 Z" fill="#EAF4EC" opacity="0.9"/><path d="M150,160 L150,96 L230,108 L300,98 L300,160 Z" fill="#1F3B27" opacity="0.85"/></svg>`
 };
+// ทริปมี "รูปจริง" ไหม (รูปที่ผู้จัดอัป หรือจับคู่จากคลังรูป) — ไม่นับภาพวาด SVG
+function hasPhoto(t){
+  return !!(t.img || (typeof matchLocationImg==='function' && matchLocationImg(t)));
+}
 function sceneFor(t){
   const sceneSvg = t.scene ? (SCENES[t.scene]||SCENES.peak) : (({north:SCENES.peak,northeast:SCENES.sunrise,south:SCENES.forest})[t.region]||SCENES.peak);
   // 1) รูปที่ผู้จัดอัปโหลด  2) จับคู่ชื่อ/จังหวัดกับคลังรูป  3) ภาพวาด SVG
@@ -929,7 +933,7 @@ function updateRegionCounts(){
   const regions = ['north','northeast','central','east','west','south'];
   const lang = curLang();
   regions.forEach(r => {
-    const count = TRIPS.filter(t => ['open','full'].includes(t.status) && t.region===r).length;
+    const count = TRIPS.filter(t => ['open','full'].includes(t.status) && hasPhoto(t) && t.region===r).length;
     const el = document.getElementById('rc-'+r);
     if(el) el.textContent = count + (lang==='en' ? ' trips' : ' ทริป');
   });
@@ -981,6 +985,7 @@ function renderTripCards(region='all', price='all', query=''){
   if(!grid) return;
   const q = query.trim().toLowerCase();
   const list = TRIPS.filter(t => ['open','full'].includes(t.status))
+    .filter(t => hasPhoto(t))            // ซ่อนทริปที่ยังไม่มีรูปจริง
     .filter(t => region==='all' || t.region===region)
     .filter(t => priceMatch(t.price, price))
     .filter(t => !q || (t.name.th+t.name.en+t.prov).toLowerCase().includes(q));
