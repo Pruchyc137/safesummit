@@ -309,6 +309,11 @@ h1,h2,h3{font-family:'Kanit',sans-serif;}
       การจองลูกค้า
       <span class="badge" id="sideBookings"></span>
     </button>
+    <button class="nav-item" onclick="showPage('payments',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 15h4"/></svg>
+      ตรวจการชำระเงิน
+      <span class="badge" id="sidePayments"></span>
+    </button>
     <button class="nav-item" onclick="showPage('finance',this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
       การเงิน
@@ -507,6 +512,30 @@ h1,h2,h3{font-family:'Kanit',sans-serif;}
             <tbody id="bkRows"></tbody>
           </table>
           <div id="bkEmpty" style="display:none;text-align:center;padding:40px;color:var(--text-muted);">ยังไม่มีการจอง</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======== PAYMENTS REVIEW ======== -->
+    <div class="page" id="page-payments">
+      <div class="page-head">
+        <h1>ตรวจการชำระเงิน</h1>
+        <p>⚠️ เทียบยอดกับบัญชีจริงก่อนกดยืนยันเสมอ — ระบบไม่รู้เองว่าเงินเข้าจริงไหม</p>
+      </div>
+      <div class="panel" style="margin-top:20px;">
+        <div class="panel-head" style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-weight:700;font-size:15px;">รายการรอตรวจสอบ (<span id="payCount">0</span>)</span>
+          <button class="btn btn-sm" onclick="loadPendingPayments(true)" style="background:var(--accent-gold);color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:12.5px;font-weight:700;cursor:pointer;">รีเฟรช</button>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="data-table">
+            <thead><tr>
+              <th>เลขที่จอง</th><th>ทริป</th><th>ลูกค้า</th><th>ที่นั่ง</th>
+              <th>ยอดที่ต้องจ่าย</th><th>ยอดที่แจ้ง</th><th>สลิป</th><th>จัดการ</th>
+            </tr></thead>
+            <tbody id="payRows"></tbody>
+          </table>
+          <div id="payEmpty" style="display:none;text-align:center;padding:40px;color:var(--text-muted);">ไม่มีรายการรอตรวจสอบ</div>
         </div>
       </div>
     </div>
@@ -742,6 +771,40 @@ h1,h2,h3{font-family:'Kanit',sans-serif;}
   </div>
 </div>
 
+<!-- SLIP VIEWER -->
+<div class="modal-bg" id="modalSlip">
+  <div class="modal" style="max-width:520px;">
+    <div class="modal-h"><div><h3>สลิปการโอนเงิน</h3><p id="slipSub">เปิดผ่านลิงก์ปลอดภัย (หมดอายุใน 1 ชม.)</p></div><button class="modal-x" onclick="closeModal('modalSlip')">×</button></div>
+    <div class="modal-b" style="text-align:center;">
+      <div id="slipLoading" style="padding:40px;color:var(--text-muted);">กำลังโหลดสลิป...</div>
+      <img id="slipImg" style="display:none;max-width:100%;border-radius:12px;border:1px solid #E6DCC6;">
+    </div>
+  </div>
+</div>
+
+<!-- APPROVE PAYMENT -->
+<div class="modal-bg" id="modalApprove">
+  <div class="modal" style="max-width:440px;">
+    <div class="modal-h"><div><h3>ยืนยันการชำระเงิน</h3><p id="apSub">ระบุยอดจริงที่ได้รับเข้าบัญชี</p></div><button class="modal-x" onclick="closeModal('modalApprove')">×</button></div>
+    <div class="modal-b">
+      <div id="apInfo" style="background:#F5EFE0;border-radius:10px;padding:12px 14px;font-size:13px;margin-bottom:14px;line-height:1.7;"></div>
+      <div class="fld" style="margin-bottom:14px;">
+        <label style="display:block;font-size:12.5px;font-weight:600;margin-bottom:6px;">ยอดจริงที่ได้รับ (บาท) <span style="color:#C0552F">*</span></label>
+        <input id="apPaid" type="number" min="0" style="width:100%;padding:11px 13px;border:1.5px solid #E0D5BD;border-radius:10px;font-family:'Sarabun';font-size:15px;background:#FCFAF3;outline:none;" oninput="apRecalc()">
+        <div id="apHint" style="font-size:12px;margin-top:6px;"></div>
+      </div>
+      <div class="fld" style="margin-bottom:16px;">
+        <label style="display:block;font-size:12.5px;font-weight:600;margin-bottom:6px;">โน้ต (ถ้ามี)</label>
+        <input id="apNote" type="text" placeholder="เช่น ยอดตรง โอนครบ" style="width:100%;padding:11px 13px;border:1.5px solid #E0D5BD;border-radius:10px;font-family:'Sarabun';font-size:14px;background:#FCFAF3;outline:none;">
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-ghost" onclick="closeModal('modalApprove')">ยกเลิก</button>
+        <button class="btn btn-primary" id="apOkBtn" onclick="doApprovePayment()">ยืนยันการชำระ</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/db.js"></script>
@@ -841,7 +904,7 @@ function mapCustomer(u){
 }
 
 function getAdminKey(){ return sessionStorage.getItem('ss_admin_key') || ''; }
-async function adminApi(action, id){
+async function adminApi(action, id, extra){
   const res = await fetch(ADMIN_FN_URL, {
     method:'POST',
     headers:{
@@ -850,7 +913,7 @@ async function adminApi(action, id){
       'Authorization': 'Bearer ' + SUPABASE_KEY,
       'x-admin-key': getAdminKey(),
     },
-    body: JSON.stringify({ action, id }),
+    body: JSON.stringify({ action, id, ...(extra||{}) }),
   });
   if(res.status === 401){ const e=new Error('unauthorized'); e.code=401; throw e; }
   if(!res.ok){ throw new Error('request failed: ' + res.status); }
@@ -899,6 +962,114 @@ function showPage(key, el){
   if(key==='customers') loadCustomersSecure();
   if(key==='finance') renderFinance();
   if(key==='bookings') loadBookings().then(renderBookings);
+  if(key==='payments') loadPendingPayments();
+}
+
+// ===== PAYMENTS REVIEW (Phase 5) =====
+let PENDING_PAY = [], _apBooking = null;
+
+async function loadPendingPayments(force){
+  if(!getAdminKey()){ _afterKeyAction='payments'; openModal('modalAdminKey'); return; }
+  const rows=document.getElementById('payRows');
+  rows.innerHTML='<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text-muted)">กำลังโหลด...</td></tr>';
+  try {
+    const { bookings } = await adminApi('list_pending_payments');
+    PENDING_PAY = bookings||[];
+    renderPendingPayments();
+  } catch(e){
+    if(e.code===401){ sessionStorage.removeItem('ss_admin_key'); _afterKeyAction='payments'; openModal('modalAdminKey'); return; }
+    rows.innerHTML='<tr><td colspan="8" style="text-align:center;padding:30px;color:#C0392B">โหลดไม่สำเร็จ: '+(e.message||e)+'</td></tr>';
+  }
+}
+
+function renderPendingPayments(){
+  const rows=document.getElementById('payRows');
+  const empty=document.getElementById('payEmpty');
+  document.getElementById('payCount').textContent=PENDING_PAY.length;
+  const badge=document.getElementById('sidePayments');
+  if(badge){ badge.textContent=PENDING_PAY.length||''; badge.style.display=PENDING_PAY.length?'':'none'; }
+  if(!PENDING_PAY.length){ rows.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  rows.innerHTML=PENDING_PAY.map(b=>{
+    const u=b.users||{}, t=b.trips||{};
+    const nm=(u.nickname?u.nickname+' · ':'')+(u.full_name||'–');
+    return `<tr>
+      <td style="font-family:'Bai Jamjuree',monospace;font-size:12px">${b.booking_ref||'–'}</td>
+      <td>${t.name_th||'–'}</td>
+      <td>${nm}<div style="font-size:11px;color:var(--text-muted)">${u.phone||''}</div></td>
+      <td>${b.seats||1}</td>
+      <td style="font-family:'Bai Jamjuree',monospace">${fmtMoney(b.total_price)}</td>
+      <td style="font-family:'Bai Jamjuree',monospace;color:var(--accent-trail)">${fmtMoney(b.declared_amount)}</td>
+      <td><button class="icon-btn" onclick="viewSlip('${b.id}')">ดูสลิป</button></td>
+      <td style="white-space:nowrap">
+        <button class="icon-btn approve" onclick="openApprovePayment('${b.id}')">✓ ยืนยัน</button>
+        <button class="icon-btn" style="border-color:rgba(192,57,43,.5);color:#C0392B" onclick="doRejectPayment('${b.id}')">✕ ปฏิเสธ</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function viewSlip(id){
+  openModal('modalSlip');
+  document.getElementById('slipLoading').style.display='block';
+  document.getElementById('slipImg').style.display='none';
+  try {
+    const { url } = await adminApi('slip_signed_url', id);
+    const img=document.getElementById('slipImg');
+    img.onload=()=>{ document.getElementById('slipLoading').style.display='none'; img.style.display='block'; };
+    img.onerror=()=>{ document.getElementById('slipLoading').textContent='เปิดสลิปไม่ได้'; };
+    img.src=url;
+  } catch(e){
+    document.getElementById('slipLoading').textContent='โหลดสลิปไม่สำเร็จ: '+(e.message||e);
+  }
+}
+
+function openApprovePayment(id){
+  _apBooking = PENDING_PAY.find(b=>b.id===id); if(!_apBooking) return;
+  const b=_apBooking, u=b.users||{}, t=b.trips||{};
+  document.getElementById('apInfo').innerHTML=
+    `<b>${t.name_th||'–'}</b> · ${u.nickname||u.full_name||'–'}<br>`+
+    `ยอดที่ต้องจ่าย: <b>${fmtMoney(b.total_price)}</b> · ลูกค้าแจ้งโอน: <b style="color:var(--accent-trail)">${fmtMoney(b.declared_amount)}</b>`;
+  document.getElementById('apPaid').value = b.declared_amount||b.total_price||0;
+  document.getElementById('apNote').value = '';
+  apRecalc();
+  openModal('modalApprove');
+}
+
+function apRecalc(){
+  if(!_apBooking) return;
+  const paid=parseFloat(document.getElementById('apPaid').value)||0;
+  const total=Number(_apBooking.total_price)||0;
+  const hint=document.getElementById('apHint');
+  if(paid<=0){ hint.textContent='กรอกยอดที่ได้รับจริง'; hint.style.color='var(--text-muted)'; }
+  else if(paid>=total){ hint.textContent='✓ จ่ายครบ → ยืนยันเต็ม (verified)'; hint.style.color='#2E7D32'; }
+  else { hint.innerHTML='● จ่ายบางส่วน (partial) · คงเหลือ <b>'+fmtMoney(total-paid)+'</b>'; hint.style.color='#B26A16'; }
+}
+
+async function doApprovePayment(){
+  if(!_apBooking) return;
+  const paid=parseFloat(document.getElementById('apPaid').value);
+  if(!(paid>0)){ toast('กรุณากรอกยอดที่ได้รับจริง'); return; }
+  const note=document.getElementById('apNote').value.trim();
+  const btn=document.getElementById('apOkBtn'); btn.disabled=true; btn.textContent='กำลังบันทึก...';
+  try {
+    const r=await adminApi('approve_payment', _apBooking.id, { paid_amount: paid, note });
+    closeModal('modalApprove');
+    toast(r.pay_status==='verified'?'ยืนยันการชำระครบแล้ว ✓':'บันทึกจ่ายบางส่วนแล้ว');
+    loadPendingPayments(true);
+  } catch(e){
+    toast('ไม่สำเร็จ: '+(e.message||e));
+  } finally { btn.disabled=false; btn.textContent='ยืนยันการชำระ'; }
+}
+
+async function doRejectPayment(id){
+  const note=prompt('เหตุผลที่ปฏิเสธ (ลูกค้าจะเห็นและอัปสลิปใหม่ได้):','');
+  if(note===null) return;
+  try {
+    await adminApi('reject_payment', id, { note: note.trim() });
+    toast('ปฏิเสธการชำระแล้ว — ลูกค้าอัปสลิปใหม่ได้');
+    loadPendingPayments(true);
+  } catch(e){ toast('ไม่สำเร็จ: '+(e.message||e)); }
 }
 
 // ===== OVERVIEW =====
@@ -1265,12 +1436,16 @@ function promptAdminKey(errMsg){
   openModal('modalAdminKey');
   setTimeout(()=>document.getElementById('akInput').focus(),100);
 }
+let _afterKeyAction = 'customers';
 async function submitAdminKey(){
   const key = (document.getElementById('akInput').value||'').trim();
   if(!key){ return; }
   sessionStorage.setItem('ss_admin_key', key);
   closeModal('modalAdminKey');
-  await loadCustomersSecure(true);
+  if(_afterKeyAction==='payments') await loadPendingPayments(true);
+  else if(_afterKeyAction==='groups') await loadGroupReady(true);
+  else await loadCustomersSecure(true);
+  _afterKeyAction='customers';
 }
 
 function renderCustomers(){

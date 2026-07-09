@@ -40,7 +40,7 @@ Deno.serve(async (req) => {
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
   );
 
-  let payload: { action?: string; id?: string };
+  let payload: { action?: string; id?: string; paid_amount?: number; note?: string; trip_id?: string };
   try { payload = await req.json(); } catch { return json({ error: 'bad json' }, 400); }
   const { action, id } = payload;
 
@@ -61,6 +61,107 @@ Deno.serve(async (req) => {
       const { error } = await supabase.from('users').update({ status }).eq('id', id);
       if (error) throw error;
       return json({ ok: true, id, status });
+    }
+
+    // ===== PHASE 5: ตรวจสลิป/อนุมัติการชำระเงิน =====
+    if (action === 'list_pending_payments') {
+      const { data, error } = await supabase
+        .from('bookings')
+        .select('id, booking_ref, seats, total_price, declared_amount, paid_amount, slip_url, slip_uploaded_at, note, trip_id, users ( full_name, nickname, line_id, phone ), trips ( name_th )')
+        .eq('pay_status', 'pending_review')
+        .order('slip_uploaded_at', { ascending: true });
+      if (error) throw error;
+      return json({ bookings: data });
+    }
+
+    if (action === 'slip_signed_url') {
+      if (!id) return json({ error: 'missing id' }, 400);
+      const { data: b, error: be } = await supabase.from('bookings').select('slip_url').eq('id', id).maybeSingle();
+      if (be) throw be;
+      if (!b?.slip_url) return json({ error: 'no slip' }, 404);
+      const { data: signed, error: se } = await supabase.storage.from('slips').createSignedUrl(b.slip_url, 3600);
+      if (se) throw se;
+      return json({ url: signed.signedUrl });
+    }
+
+    if (action === 'approve_payment') {
+      if (!id) return json({ error: 'missing id' }, 400);
+      const paid = Number(payload.paid_amount);
+      if (!(paid > 0)) return json({ error: 'paid_amount must be > 0' }, 400);
+      const { data: b, error: be } = await supabase.from('bookings').select('total_price, trip_id').eq('id', id).maybeSingle();
+      if (be) throw be;
+      if (!b) return json({ error: 'booking not found' }, 404);
+      const total = Number(b.total_price) || 0;
+      const status = paid >= total ? 'verified' : 'partial';
+      const { error: ue } = await supabase.from('bookings').update({
+        paid_amount: paid,
+        pay_status: status,
+        verified_at: new Date().toISOString(),
+        admin_note: payload.note || null,
+      }).eq('id', id);
+      if (ue) throw ue;
+      await supabase.from('payment_reviews').insert({
+        booking_id: id, action: status === 'verified' ? 'approve' : 'partial',
+        paid_amount: paid, note: payload.note || null,
+      });
+      // เช็คเงื่อนไข >=3 คน → ตั้ง group_status='ready'
+      const { count } = await supabase.from('bookings')
+        .select('id', { count: 'exact', head: true })
+        .eq('trip_id', b.trip_id).in('pay_status', ['verified', 'partial']);
+      if ((count || 0) >= 3) {
+        await supabase.from('trips').update({ group_status: 'ready' })
+          .eq('id', b.trip_id).eq('group_status', 'none');
+      }
+      return json({ ok: true, id, pay_status: status, confirmed_count: count || 0 });
+    }
+
+    if (action === 'reject_payment') {
+      if (!id) return json({ error: 'missing id' }, 400);
+      const { error: ue } = await supabase.from('bookings').update({
+        pay_status: 'rejected', admin_note: payload.note || null,
+      }).eq('id', id);
+      if (ue) throw ue;
+      await supabase.from('payment_reviews').insert({
+        booking_id: id, action: 'reject', paid_amount: null, note: payload.note || null,
+      });
+      return json({ ok: true, id, pay_status: 'rejected' });
+    }
+
+    // ===== PHASE 6: กลุ่ม LINE =====
+    if (action === 'list_group_ready') {
+      // ทริปที่มีผู้ยืนยัน >=3 พร้อม confirmed_count (สำหรับ badge/ปุ่มสร้างกลุ่ม)
+      const { data: trips, error: te } = await supabase
+        .from('trips').select('id, name_th, group_status, group_created_at, group_note')
+        .in('group_status', ['ready', 'created']).order('start_date', { ascending: true });
+      if (te) throw te;
+      const out = [];
+      for (const t of trips || []) {
+        const { count } = await supabase.from('bookings')
+          .select('id', { count: 'exact', head: true })
+          .eq('trip_id', t.id).in('pay_status', ['verified', 'partial']);
+        out.push({ ...t, confirmed_count: count || 0 });
+      }
+      return json({ trips: out });
+    }
+
+    if (action === 'trip_confirmed_members') {
+      if (!id) return json({ error: 'missing id' }, 400);
+      const { data, error } = await supabase.from('bookings')
+        .select('id, booking_ref, seats, pay_status, users ( full_name, nickname, line_id, phone )')
+        .eq('trip_id', id).in('pay_status', ['verified', 'partial'])
+        .order('booked_at', { ascending: true });
+      if (error) throw error;
+      return json({ members: data });
+    }
+
+    if (action === 'mark_group_created') {
+      if (!id) return json({ error: 'missing id' }, 400);
+      const { error } = await supabase.from('trips').update({
+        group_status: 'created', group_created_at: new Date().toISOString(),
+        group_note: payload.note || null,
+      }).eq('id', id);
+      if (error) throw error;
+      return json({ ok: true, id, group_status: 'created' });
     }
 
     return json({ error: 'unknown action' }, 400);
