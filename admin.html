@@ -969,12 +969,13 @@ async function adminApi(action, id, extra){
 
 async function saveTrips(t){
   if(!t?.id) return;
-  await db.from('trips').update({
+  // ผ่าน Edge Function (service_role) — anon เขียนตาราง trips ไม่ได้ (RLS)
+  await updateTripSecure(t.id, {
     status: t.status, name_th: t.name?.th||t.name_th,
     province: t.prov||t.province, start_date: t.date||t.start_date,
     capacity: t.cap||t.capacity, booked_count: t.booked||t.booked_count,
     price_per_person: t.price||t.price_per_person,
-  }).eq('id', t.id);
+  });
 }
 
 async function saveOrgs(){
@@ -1421,10 +1422,30 @@ async function saveTrip(){
   renderTrips(); renderOverview(); closeModal('modalTrip');
 }
 
+// เขียนตาราง trips ต้องผ่าน Edge Function (service_role) เพราะ RLS บล็อก anon
+async function updateTripSecure(id, fields){
+  if(!getAdminKey()){
+    _afterKeyAction='trips'; openModal('modalAdminKey');
+    toast('กรอก Admin Key ก่อน แล้วกดใหม่อีกครั้ง');
+    return null;
+  }
+  try {
+    return await adminApi('update_trip', id, { trip: fields });
+  } catch(e){
+    if(e.code===401){
+      sessionStorage.removeItem('ss_admin_key');
+      _afterKeyAction='trips'; openModal('modalAdminKey');
+      toast('Admin Key ไม่ถูกต้อง');
+      return null;
+    }
+    toast('บันทึกไม่สำเร็จ: '+(e.message||e));
+    return null;
+  }
+}
+
 async function approveTrip(id){
   if(!confirm('อนุมัติทริปนี้ให้เปิดรับจองใช่ไหม?')) return;
-  const { error } = await db.from('trips').update({ status:'open', note:null }).eq('id', id);
-  if(error){ toast('บันทึกไม่สำเร็จ'); return; }
+  if(!await updateTripSecure(id, { status:'open', note:null })) return;
   const t = TRIPS.find(x=>x.id===id);
   if(t){ t.status='open'; t.note=null; }
   renderTrips(); renderOverview();
@@ -1432,8 +1453,7 @@ async function approveTrip(id){
 }
 async function approveCancelTrip(id){
   if(!confirm('อนุมัติการยกเลิกทริปนี้ใช่ไหม? ทริปจะถูกยกเลิกถาวร')) return;
-  const { error } = await db.from('trips').update({ status:'cancelled' }).eq('id', id);
-  if(error){ toast('บันทึกไม่สำเร็จ'); return; }
+  if(!await updateTripSecure(id, { status:'cancelled' })) return;
   const t = TRIPS.find(x=>x.id===id);
   if(t) t.status='cancelled';
   renderTrips(); renderOverview();
@@ -1441,8 +1461,7 @@ async function approveCancelTrip(id){
 }
 async function rejectRequest(id){
   if(!confirm('ปฏิเสธคำขอนี้? ทริปจะกลับไปเปิดรับจองตามเดิม')) return;
-  const { error } = await db.from('trips').update({ status:'open', note:null }).eq('id', id);
-  if(error){ toast('บันทึกไม่สำเร็จ'); return; }
+  if(!await updateTripSecure(id, { status:'open', note:null })) return;
   const t = TRIPS.find(x=>x.id===id);
   if(t){ t.status='open'; t.note=null; }
   renderTrips(); renderOverview();
@@ -1584,6 +1603,7 @@ async function submitAdminKey(){
   closeModal('modalAdminKey');
   if(_afterKeyAction==='payments') await loadPendingPayments(true);
   else if(_afterKeyAction==='groups') await loadGroupReady(true);
+  else if(_afterKeyAction==='trips') renderTrips();
   else await loadCustomersSecure(true);
   _afterKeyAction='customers';
 }
