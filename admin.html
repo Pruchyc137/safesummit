@@ -527,20 +527,21 @@ h1,h2,h3{font-family:'Kanit',sans-serif;}
         <h1>ตรวจการชำระเงิน</h1>
         <p>⚠️ เทียบยอดกับบัญชีจริงก่อนกดยืนยันเสมอ — ระบบไม่รู้เองว่าเงินเข้าจริงไหม</p>
       </div>
-      <div class="panel" style="margin-top:20px;">
+      <div id="payTabs" style="display:flex;gap:8px;margin:16px 0 4px;flex-wrap:wrap;"></div>
+      <div class="panel" style="margin-top:12px;">
         <div class="panel-head" style="display:flex;justify-content:space-between;align-items:center;">
-          <span style="font-weight:700;font-size:15px;">รายการรอตรวจสอบ (<span id="payCount">0</span>)</span>
-          <button class="btn btn-sm" onclick="loadPendingPayments(true)" style="background:var(--accent-gold);color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:12.5px;font-weight:700;cursor:pointer;">รีเฟรช</button>
+          <span style="font-weight:700;font-size:15px;"><span id="payTabLabel">รอตรวจสอบ</span> (<span id="payCount">0</span>)</span>
+          <button class="btn btn-sm" onclick="loadPayments(true)" style="background:var(--accent-gold);color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:12.5px;font-weight:700;cursor:pointer;">รีเฟรช</button>
         </div>
         <div style="overflow-x:auto;">
           <table class="data-table">
             <thead><tr>
               <th>เลขที่จอง</th><th>ทริป</th><th>ลูกค้า</th><th>ที่นั่ง</th>
-              <th>ยอดที่ต้องจ่าย</th><th>ยอดที่แจ้ง</th><th>สลิป</th><th>จัดการ</th>
+              <th>ต้องจ่าย</th><th>แจ้งโอน</th><th>รับจริง</th><th>สถานะ</th><th>สลิป</th><th>จัดการ</th>
             </tr></thead>
             <tbody id="payRows"></tbody>
           </table>
-          <div id="payEmpty" style="display:none;text-align:center;padding:40px;color:var(--text-muted);">ไม่มีรายการรอตรวจสอบ</div>
+          <div id="payEmpty" style="display:none;text-align:center;padding:40px;color:var(--text-muted);">ไม่มีรายการ</div>
         </div>
       </div>
     </div>
@@ -808,6 +809,19 @@ h1,h2,h3{font-family:'Kanit',sans-serif;}
   </div>
 </div>
 
+<!-- SEAT MAP (van) -->
+<div class="modal-bg" id="modalSeatmap">
+  <div class="modal" style="max-width:900px;">
+    <div class="modal-h"><div><h3 id="smTitle">ผังที่นั่งรถตู้</h3><p id="smMeta">–</p></div><button class="modal-x" onclick="closeModal('modalSeatmap')">×</button></div>
+    <div class="modal-b">
+      <div id="smBody" style="display:grid;grid-template-columns:380px 1fr;gap:22px;align-items:start;">
+        <div id="smVan"></div>
+        <div id="smTable"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- APPROVE PAYMENT -->
 <div class="modal-bg" id="modalApprove">
   <div class="modal" style="max-width:440px;">
@@ -1004,38 +1018,77 @@ function showPage(key, el){
   if(key==='customers') loadCustomersSecure();
   if(key==='finance') renderFinance();
   if(key==='bookings') loadBookings().then(renderBookings);
-  if(key==='payments') loadPendingPayments();
+  if(key==='payments') loadPayments();
   if(key==='groups') loadGroupReady();
 }
 
 // ===== PAYMENTS REVIEW (Phase 5) =====
-let PENDING_PAY = [], _apBooking = null;
+let ALL_PAY = [], _apBooking = null, _payTab = 'pending_review';
+const PAY_TABS = [
+  {key:'pending_review', label:'รอตรวจสอบ'},
+  {key:'verified',       label:'ชำระครบ'},
+  {key:'partial',        label:'จ่ายมัดจำ'},
+  {key:'rejected',       label:'ปฏิเสธ'},
+  {key:'all',            label:'ทั้งหมด'},
+];
+const PAY_STATUS = {
+  pending_review:{t:'⏳ รอตรวจ', c:'#B26A16', bg:'#FBF0E2'},
+  verified:{t:'✓ ชำระครบ', c:'#2E7D32', bg:'#EAF6EE'},
+  partial:{t:'● มัดจำ', c:'#B26A16', bg:'#FBF0E2'},
+  rejected:{t:'✕ ปฏิเสธ', c:'#C0392B', bg:'#FDEEEC'},
+  unpaid:{t:'ยังไม่ชำระ', c:'#8B7E6B', bg:'#F0E9D8'},
+};
 
-async function loadPendingPayments(force){
+async function loadPayments(force){
   if(!getAdminKey()){ _afterKeyAction='payments'; openModal('modalAdminKey'); return; }
   const rows=document.getElementById('payRows');
-  rows.innerHTML='<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text-muted)">กำลังโหลด...</td></tr>';
+  rows.innerHTML='<tr><td colspan="10" style="text-align:center;padding:30px;color:var(--text-muted)">กำลังโหลด...</td></tr>';
   try {
-    const { bookings } = await adminApi('list_pending_payments');
-    PENDING_PAY = bookings||[];
-    renderPendingPayments();
+    const { bookings } = await adminApi('list_all_payments');
+    ALL_PAY = bookings||[];
+    renderPayTabs(); renderPayments();
   } catch(e){
     if(e.code===401){ sessionStorage.removeItem('ss_admin_key'); _afterKeyAction='payments'; openModal('modalAdminKey'); return; }
-    rows.innerHTML='<tr><td colspan="8" style="text-align:center;padding:30px;color:#C0392B">โหลดไม่สำเร็จ: '+(e.message||e)+'</td></tr>';
+    rows.innerHTML='<tr><td colspan="10" style="text-align:center;padding:30px;color:#C0392B">โหลดไม่สำเร็จ: '+(e.message||e)+'</td></tr>';
   }
 }
+// เผื่อโค้ดเก่าเรียก
+function loadPendingPayments(f){ return loadPayments(f); }
 
-function renderPendingPayments(){
-  const rows=document.getElementById('payRows');
-  const empty=document.getElementById('payEmpty');
-  document.getElementById('payCount').textContent=PENDING_PAY.length;
+function renderPayTabs(){
+  const el=document.getElementById('payTabs'); if(!el) return;
+  el.innerHTML=PAY_TABS.map(tab=>{
+    const n = tab.key==='all' ? ALL_PAY.length : ALL_PAY.filter(b=>b.pay_status===tab.key).length;
+    const on = _payTab===tab.key;
+    return `<button onclick="setPayTab('${tab.key}')" style="font-family:'Kanit',sans-serif;font-weight:700;font-size:12.5px;padding:7px 15px;border-radius:20px;border:1.5px solid ${on?'var(--accent-trail)':'#E6DCC6'};background:${on?'var(--accent-trail)':'#fff'};color:${on?'#fff':'var(--text-muted)'};cursor:pointer;">${tab.label} ${n}</button>`;
+  }).join('');
+}
+function setPayTab(k){ _payTab=k; renderPayTabs(); renderPayments(); }
+
+function currentPayList(){
+  return _payTab==='all' ? ALL_PAY : ALL_PAY.filter(b=>b.pay_status===_payTab);
+}
+
+function renderPayments(){
+  const rows=document.getElementById('payRows'), empty=document.getElementById('payEmpty');
+  const list=currentPayList();
+  document.getElementById('payCount').textContent=list.length;
+  document.getElementById('payTabLabel').textContent=(PAY_TABS.find(t=>t.key===_payTab)||{}).label||'';
+  // badge sidebar = เฉพาะที่รอตรวจ
+  const pend=ALL_PAY.filter(b=>b.pay_status==='pending_review').length;
   const badge=document.getElementById('sidePayments');
-  if(badge){ badge.textContent=PENDING_PAY.length||''; badge.style.display=PENDING_PAY.length?'':'none'; }
-  if(!PENDING_PAY.length){ rows.innerHTML=''; empty.style.display='block'; return; }
+  if(badge){ badge.textContent=pend||''; badge.style.display=pend?'':'none'; }
+  if(!list.length){ rows.innerHTML=''; empty.style.display='block'; return; }
   empty.style.display='none';
-  rows.innerHTML=PENDING_PAY.map(b=>{
+  rows.innerHTML=list.map(b=>{
     const u=b.users||{}, t=b.trips||{};
     const nm=(u.nickname?u.nickname+' · ':'')+(u.full_name||'–');
+    const st=PAY_STATUS[b.pay_status]||PAY_STATUS.unpaid;
+    const pending = b.pay_status==='pending_review';
+    const acts = pending
+      ? `<button class="icon-btn approve" onclick="openApprovePayment('${b.id}')">✓ ยืนยัน</button>
+         <button class="icon-btn" style="border-color:rgba(192,57,43,.5);color:#C0392B" onclick="doRejectPayment('${b.id}')">✕ ปฏิเสธ</button>`
+      : `<button class="icon-btn" onclick="openApprovePayment('${b.id}')">แก้ยอด</button>`;
     return `<tr>
       <td style="font-family:'Bai Jamjuree',monospace;font-size:12px">${b.booking_ref||'–'}</td>
       <td>${t.name_th||'–'}</td>
@@ -1043,11 +1096,10 @@ function renderPendingPayments(){
       <td>${b.seats||1}</td>
       <td style="font-family:'Bai Jamjuree',monospace">${fmtMoney(b.total_price)}</td>
       <td style="font-family:'Bai Jamjuree',monospace;color:var(--accent-trail)">${fmtMoney(b.declared_amount)}</td>
+      <td style="font-family:'Bai Jamjuree',monospace">${b.paid_amount!=null?fmtMoney(b.paid_amount):'–'}</td>
+      <td><span style="font-family:'Kanit',sans-serif;font-weight:700;font-size:11px;padding:2px 9px;border-radius:12px;background:${st.bg};color:${st.c};white-space:nowrap">${st.t}</span></td>
       <td><button class="icon-btn" onclick="viewSlip('${b.id}')">ดูสลิป</button></td>
-      <td style="white-space:nowrap">
-        <button class="icon-btn approve" onclick="openApprovePayment('${b.id}')">✓ ยืนยัน</button>
-        <button class="icon-btn" style="border-color:rgba(192,57,43,.5);color:#C0392B" onclick="doRejectPayment('${b.id}')">✕ ปฏิเสธ</button>
-      </td>
+      <td style="white-space:nowrap">${acts}</td>
     </tr>`;
   }).join('');
 }
@@ -1067,14 +1119,107 @@ async function viewSlip(id){
   }
 }
 
+// ===== VAN SEAT MAP (per trip) =====
+const SM_PER_VAN = 9;
+let _smSeats = {}, _smBookings = [], _smActiveVan = 0, _smVanCount = 1;
+function smName(u){ return (u && (u.nickname||u.full_name)) || 'ไม่ระบุ'; }
+
+async function openSeatmap(tripId, title){
+  document.getElementById('smTitle').textContent = title || 'ผังที่นั่งรถตู้';
+  document.getElementById('smMeta').textContent = 'กำลังโหลด...';
+  document.getElementById('smVan').innerHTML=''; document.getElementById('smTable').innerHTML='';
+  openModal('modalSeatmap');
+  if(!getAdminKey()){ _afterKeyAction='trips'; closeModal('modalSeatmap'); openModal('modalAdminKey'); return; }
+  try {
+    const { trip, bookings } = await adminApi('trip_seatmap', tripId);
+    _smBookings = bookings||[];
+    const cap = (trip && trip.capacity) || SM_PER_VAN;
+    _smVanCount = Math.max(1, Math.ceil(cap/SM_PER_VAN));
+    _smActiveVan = 0;
+    document.getElementById('smMeta').textContent =
+      `${trip?fmtDate(trip.start_date):''} · รถตู้ ${_smVanCount} คัน (${_smVanCount*9} ที่นั่ง) · จองแล้ว ${_smBookings.reduce((s,b)=>s+(b.seats||0),0)} ที่`;
+    smAssign(); smRenderVan(); smRenderTable();
+  } catch(e){
+    if(e.code===401){ sessionStorage.removeItem('ss_admin_key'); _afterKeyAction='trips'; closeModal('modalSeatmap'); openModal('modalAdminKey'); return; }
+    document.getElementById('smMeta').textContent = 'โหลดไม่สำเร็จ: '+(e.message||e);
+  }
+}
+
+function smAssign(){
+  _smSeats = {}; let g=0;
+  _smBookings.forEach(b=>{
+    const sel = Array.isArray(b.seat_numbers) ? b.seat_numbers : null;
+    if(sel && sel.length){
+      sel.forEach(id=>{ const m=String(id).match(/^v(\d+)-(\d+)$/); if(m){ const vi=+m[1]-1, sn=+m[2]; _smSeats[`${vi}-${sn}`]={booking:b,seatNo:sn,van:vi}; } });
+    } else {
+      const n=b.seats||1;
+      for(let i=0;i<n;i++){ let vi,sn; do{ vi=Math.floor(g/SM_PER_VAN); sn=(g%SM_PER_VAN)+1; g++; }while(_smSeats[`${vi}-${sn}`]); _smSeats[`${vi}-${sn}`]={booking:b,seatNo:sn,van:vi}; }
+    }
+  });
+}
+
+function smRenderVan(){
+  const tabs=[];
+  for(let v=0;v<_smVanCount;v++){
+    const cnt=Object.keys(_smSeats).filter(k=>_smSeats[k].van===v).length;
+    tabs.push(`<span onclick="_smActiveVan=${v};smRenderVan();" style="cursor:pointer;font-family:'Kanit',sans-serif;font-weight:700;font-size:12.5px;padding:6px 14px;border-radius:18px;border:1.5px solid ${v===_smActiveVan?'#2B2118':'#E6DCC6'};background:${v===_smActiveVan?'#2B2118':'#fff'};color:${v===_smActiveVan?'#fff':'#8B7E6B'};">คันที่ ${v+1} · ${cnt}/9</span>`);
+  }
+  let grid='';
+  for(let s=1;s<=9;s++){
+    const c=_smSeats[`${_smActiveVan}-${s}`];
+    if(c){
+      const paid = c.booking.pay_status==='verified';
+      const bg = paid ? '#E2672B' : '#E8B06A';   // ยืนยันแล้ว=ส้มเข้ม, รอตรวจ/มัดจำ=ส้มอ่อน
+      grid+=`<div style="height:60px;border-radius:11px;background:${bg};border:2px solid ${bg};color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Kanit',sans-serif;font-weight:700;font-size:15px;">${s}<span style="font-family:'Sarabun',sans-serif;font-weight:600;font-size:9px;max-width:96px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${smName(c.booking.users)}</span></div>`;
+    } else {
+      grid+=`<div style="height:60px;border-radius:11px;background:#fff;border:2px dashed #CBBE9F;color:#BEB197;display:flex;align-items:center;justify-content:center;font-family:'Kanit',sans-serif;font-weight:700;font-size:15px;">${s}</div>`;
+    }
+  }
+  document.getElementById('smVan').innerHTML=`
+    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">${tabs.join('')}</div>
+    <div style="background:#F7F1E4;border:2px solid #E2D6BC;border-radius:22px 22px 16px 16px;padding:16px 20px 20px;">
+      <div style="display:flex;justify-content:space-between;padding:6px 2px 14px;border-bottom:2px dashed #DDD0B4;margin-bottom:14px;">
+        <div style="width:78px;height:54px;border-radius:11px;background:#EDE4D2;color:#9B8E7A;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Kanit';font-weight:700;font-size:12px;">👤<span style="font-size:8.5px;">Staff</span></div>
+        <div style="width:78px;height:54px;border-radius:11px;background:#EDE4D2;color:#9B8E7A;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Kanit';font-weight:700;font-size:12px;">🛞<span style="font-size:8.5px;">คนขับ</span></div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px 12px;">${grid}</div>
+    </div>
+    <div style="display:flex;gap:16px;justify-content:center;margin-top:14px;font-size:12px;color:#2B2118;flex-wrap:wrap;">
+      <span style="display:flex;align-items:center;gap:6px;"><i style="width:14px;height:14px;border-radius:5px;background:#E2672B;display:inline-block;"></i> ยืนยันแล้ว</span>
+      <span style="display:flex;align-items:center;gap:6px;"><i style="width:14px;height:14px;border-radius:5px;background:#E8B06A;display:inline-block;"></i> รอตรวจ/มัดจำ</span>
+      <span style="display:flex;align-items:center;gap:6px;"><i style="width:14px;height:14px;border-radius:5px;background:#fff;border:2px dashed #CBBE9F;display:inline-block;"></i> ว่าง</span>
+    </div>`;
+}
+
+function smRenderTable(){
+  if(!_smBookings.length){ document.getElementById('smTable').innerHTML='<div style="padding:30px;text-align:center;color:var(--text-muted)">ยังไม่มีผู้จองทริปนี้</div>'; return; }
+  const rows=Object.keys(_smSeats).sort((a,b)=>{const[va,sa]=a.split('-').map(Number),[vb,sb]=b.split('-').map(Number);return va-vb||sa-sb;}).map(k=>{
+    const c=_smSeats[k], b=c.booking, u=b.users||{};
+    const st=PAY_STATUS[b.pay_status]||PAY_STATUS.unpaid;
+    const vbg=c.van===0?'#E2672B':'#B4611F';
+    return `<tr>
+      <td style="padding:9px 8px;border-bottom:1px solid #F0E9D8;"><span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:7px;background:${vbg};color:#fff;font-family:'Kanit';font-weight:800;font-size:11px;">${c.seatNo}</span> <span style="font-size:10px;color:#A99B85;">ค${c.van+1}</span></td>
+      <td style="padding:9px 8px;border-bottom:1px solid #F0E9D8;font-weight:600;font-size:13px;color:#2B2118;">${smName(u)}<div style="font-size:11px;color:var(--text-muted)">${u.phone||''}</div></td>
+      <td style="padding:9px 8px;border-bottom:1px solid #F0E9D8;"><span style="font-family:'Kanit';font-weight:700;font-size:10.5px;padding:2px 8px;border-radius:10px;background:${st.bg};color:${st.c};white-space:nowrap">${st.t}</span></td>
+      <td style="padding:9px 8px;border-bottom:1px solid #F0E9D8;"><button class="icon-btn" onclick="viewSlip('${b.id}')">สลิป</button></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('smTable').innerHTML=`
+    <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:15px;color:#2B2118;margin-bottom:10px;">👥 ผู้จอง (${_smBookings.reduce((s,b)=>s+(b.seats||0),0)} ที่นั่ง)</div>
+    <div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;">
+      <thead><tr>${['ที่นั่ง','ผู้จอง','สถานะ','สลิป'].map(h=>`<th style="text-align:left;font-family:'Kanit';font-weight:700;font-size:11.5px;color:#8B7E6B;padding:8px;border-bottom:2px solid #EEE3CD;">${h}</th>`).join('')}</tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>`;
+}
+
 function openApprovePayment(id){
-  _apBooking = PENDING_PAY.find(b=>b.id===id); if(!_apBooking) return;
+  _apBooking = ALL_PAY.find(b=>b.id===id); if(!_apBooking) return;
   const b=_apBooking, u=b.users||{}, t=b.trips||{};
   document.getElementById('apInfo').innerHTML=
     `<b>${t.name_th||'–'}</b> · ${u.nickname||u.full_name||'–'}<br>`+
     `ยอดที่ต้องจ่าย: <b>${fmtMoney(b.total_price)}</b> · ลูกค้าแจ้งโอน: <b style="color:var(--accent-trail)">${fmtMoney(b.declared_amount)}</b>`;
-  document.getElementById('apPaid').value = b.declared_amount||b.total_price||0;
-  document.getElementById('apNote').value = '';
+  document.getElementById('apPaid').value = (b.paid_amount!=null?b.paid_amount:(b.declared_amount||b.total_price||0));
+  document.getElementById('apNote').value = b.admin_note || '';
   apRecalc();
   openModal('modalApprove');
 }
@@ -1320,6 +1465,7 @@ function renderTrips(){
       }
     }
     if(t.status==='ongoing') acts += `<button class="icon-btn approve" onclick="openCloseTrip('${t.id}')">ปิดงาน</button>`;
+    acts += `<button class="icon-btn" onclick="openSeatmap('${t.id}','${(tripName(t)||'').replace(/'/g,'')}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="8" width="18" height="11" rx="2"/><path d="M3 12h18"/></svg>ที่นั่ง</button>`;
     acts += `<button class="icon-btn" onclick="openEditTrip('${t.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>แก้ไข</button>`;
     const orgName = t.org || t.organizer_name || '–';
     const badge = t.badge || t.badge_tier || '–';

@@ -74,6 +74,33 @@ Deno.serve(async (req) => {
       return json({ bookings: data });
     }
 
+    // รายการชำระเงินทั้งหมด (รวมที่อนุมัติ/ปฏิเสธแล้ว) — ดูย้อนหลังได้
+    if (action === 'list_all_payments') {
+      const { data, error } = await supabase
+        .from('bookings')
+        .select('id, booking_ref, seats, seat_numbers, total_price, declared_amount, paid_amount, slip_url, slip_uploaded_at, pay_status, verified_at, admin_note, note, trip_id, users ( full_name, nickname, line_id, phone ), trips ( name_th, start_date )')
+        .not('slip_url', 'is', null)
+        .order('slip_uploaded_at', { ascending: false });
+      if (error) throw error;
+      return json({ bookings: data });
+    }
+
+    // แผนผังที่นั่งรถตู้ต่อทริป: ผู้จองที่ยืนยัน/รอตรวจ + เลขที่นั่ง + สลิป
+    if (action === 'trip_seatmap') {
+      if (!id) return json({ error: 'missing id' }, 400);
+      const { data: trip, error: te } = await supabase
+        .from('trips').select('name_th, start_date, capacity, booked_count').eq('id', id).maybeSingle();
+      if (te) throw te;
+      const { data: bk, error: be } = await supabase
+        .from('bookings')
+        .select('id, booking_ref, seats, seat_numbers, pay_status, slip_url, total_price, paid_amount, users ( full_name, nickname, phone )')
+        .eq('trip_id', id)
+        .not('pay_status', 'in', '(rejected)')
+        .order('booked_at', { ascending: true });
+      if (be) throw be;
+      return json({ trip, bookings: bk });
+    }
+
     if (action === 'slip_signed_url') {
       if (!id) return json({ error: 'missing id' }, 400);
       const { data: b, error: be } = await supabase.from('bookings').select('slip_url').eq('id', id).maybeSingle();
