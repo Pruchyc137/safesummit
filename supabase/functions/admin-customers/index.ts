@@ -40,7 +40,7 @@ Deno.serve(async (req) => {
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
   );
 
-  let payload: { action?: string; id?: string; paid_amount?: number; note?: string; trip_id?: string; trip?: Record<string, unknown> };
+  let payload: { action?: string; id?: string; paid_amount?: number; note?: string; trip_id?: string; trip?: Record<string, unknown>; org?: Record<string, unknown> };
   try { payload = await req.json(); } catch { return json({ error: 'bad json' }, 400); }
   const { action, id } = payload;
 
@@ -149,6 +149,22 @@ Deno.serve(async (req) => {
         out.push({ ...o, full_name, email, phone });
       }
       return json({ organizers: out });
+    }
+
+    // ===== ADMIN: อนุมัติ/ระงับ/ให้ badge ผู้จัด (หลังล็อกดาวน์ anon เขียน organizers ไม่ได้แล้ว) =====
+    if (action === 'update_organizer') {
+      if (!id) return json({ error: 'missing id' }, 400);
+      const ALLOWED = [
+        'status', 'badge_tier', 'note', 'approved_at', 'suspended_at',
+        'org_name', 'province', 'exp_years', 'bio',
+      ];
+      const src = payload.org || {};
+      const patch: Record<string, unknown> = {};
+      for (const k of ALLOWED) if (k in src) patch[k] = src[k];
+      if (!Object.keys(patch).length) return json({ error: 'no allowed fields' }, 400);
+      const { error } = await supabase.from('organizers').update(patch).eq('id', id);
+      if (error) throw error;
+      return json({ ok: true, id, patch });
     }
 
     // ===== ADMIN: แก้ไข/อนุมัติทริป (RLS บล็อก anon → ต้องผ่าน service_role ที่นี่) =====

@@ -192,6 +192,14 @@ const Organizers = {
     const { data: session } = await db.auth.getSession();
     if (!session?.session) return null;
     const uid = session.session.user.id;
+
+    // ข้อมูลอ่อนไหว (เลขบัตร/บัญชีธนาคาร/ใบอนุญาต) ถูกปิดจาก anon+authenticated แล้ว
+    // ผู้จัดอ่าน "แถวของตัวเอง" แบบเต็มผ่าน RPC security-definer
+    try {
+      const { data: rows, error: rpcErr } = await db.rpc('get_my_organizer');
+      if (!rpcErr && Array.isArray(rows)) return rows[0] || null;
+    } catch (_) { /* RPC ยังไม่มี (ก่อนรัน SQL) → ใช้วิธีเดิม */ }
+
     const { data, error } = await db.from('organizers')
       .select('*').eq('user_id', uid).maybeSingle();
     if (error) return null;

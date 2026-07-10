@@ -957,12 +957,14 @@ async function submitRevisionUpdate(){
       license_type:document.getElementById('r-license-type').value||null, license_number:g('r-license-no')||null,
       license_expiry:g('r-license-exp')||null, line_id:g('r-line')||null, facebook_url:g('r-fb')||null,
       bank_name:document.getElementById('r-bank').value||null, bank_account:bankAcc, bank_account_name:bankAccName,
-      status:'pending', note:'[ส่งใหม่]',
+      // ไม่เขียน status/note ตรงๆ — ผู้จัดต้องไม่มีสิทธิ์อนุมัติตัวเอง (ใช้ RPC organizer_resubmit)
     };
     if(file){ try{ const url=await uploadToStorage(file,`licenses/${_orgProfile.user_id||'guest'}`); if(url) update.license_file_url=url; }catch(e){} }
     try{ await db.from('users').update({ full_name:(g('r-fname')+' '+g('r-lname')).trim(), phone:g('r-phone') }).eq('id', _orgProfile.user_id); }catch(e){}
     const { error } = await db.from('organizers').update(update).eq('id', _orgProfile.id);
     if(error) throw error;
+    const { error: rErr } = await db.rpc('organizer_resubmit', { msg: null });
+    if(rErr) throw rErr;
     _isRevision=false; _orgProfile.status='pending'; _orgProfile.note='[ส่งใหม่]';
     document.querySelectorAll('.gate').forEach(x=>x.classList.remove('show'));
     document.getElementById('gatePending').classList.add('show');
@@ -1116,17 +1118,21 @@ async function submitRevision(){
   const btn = document.getElementById('revSubmitBtn');
   btn.disabled = true; btn.textContent = 'กำลังส่ง...';
   try {
-    const update = { status:'pending', note: msg ? ('[ส่งใหม่] '+msg) : null };
+    const update = {};   // status/note เขียนผ่าน RPC เท่านั้น (กันผู้จัดอนุมัติตัวเอง)
     if(file){
       btn.textContent = 'กำลังอัปโหลดไฟล์...';
       try {
         const url = await uploadToStorage(file, `licenses/${_orgProfile.user_id||'guest'}`);
         if(url) update.license_file_url = url;
-      } catch(e){ console.warn('upload failed:', e.message); }
+      } catch(e){ console.error('upload failed:', e); toast('อัปโหลดไฟล์ไม่สำเร็จ'); }
     }
-    const { error } = await db.from('organizers').update(update).eq('id', _orgProfile.id);
-    if(error) throw error;
-    _orgProfile.note = update.note;
+    if(Object.keys(update).length){
+      const { error } = await db.from('organizers').update(update).eq('id', _orgProfile.id);
+      if(error) throw error;
+    }
+    const { error: rErr } = await db.rpc('organizer_resubmit', { msg: msg || null });
+    if(rErr) throw rErr;
+    _orgProfile.note = msg ? ('[ส่งใหม่] '+msg) : '[ส่งใหม่]';
     // แสดงหน้ารอตรวจสอบ
     document.querySelectorAll('.gate').forEach(g=>g.classList.remove('show'));
     document.getElementById('gatePending').classList.add('show');

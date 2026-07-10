@@ -1381,14 +1381,11 @@ async function handleRegister(){
     await Auth.signUp(email, password, fname+' '+lname, phone);
 
     if(_regRole === 'organizer' && org){
-      const ref = 'ORG-'+Math.random().toString(36).slice(2,8).toUpperCase();
-      localStorage.setItem('ss_org_pending', JSON.stringify({ ref, org, email }));
-      try {
-        await db.from('organizers').insert({
-          org_name: org, province: '', exp_years: 0,
-          reg_ref: ref, status: 'pending', badge_tier: 'unverified'
-        });
-      } catch(e){ console.warn('org insert skipped', e.message); }
+      // เดิม insert organizers ตรงนี้โดยไม่มี user_id → เกิดแถวผู้จัด "กำพร้า" ที่ผูกกับบัญชีไม่ได้
+      // ตอนนี้ส่งไปกรอกใบสมัครจริงที่ organizer.html (ผูก user_id + ใบอนุญาต + บัญชีธนาคาร)
+      closeAuth();
+      location.href = 'organizer.html?register=1';
+      return;
     }
 
     closeAuth();

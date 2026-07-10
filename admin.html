@@ -909,7 +909,11 @@ async function load(){
   } catch(e){ TRIPS = JSON.parse(JSON.stringify(SEED_TRIPS)); }
 
   try {
-    const { data: orgs, error: orgErr } = await db.from('organizers').select('*').order('created_at', { ascending:false });
+    // โหลดครั้งแรกด้วย anon = ขอเฉพาะคอลัมน์ที่ไม่ใช่ข้อมูลอ่อนไหว
+    // (ชื่อ/อีเมล/เบอร์/เลขบัตร/บัญชีธนาคาร ดึงผ่าน Edge Function ใน loadOrgsSecure())
+    const { data: orgs, error: orgErr } = await db.from('organizers')
+      .select('id,user_id,org_name,province,exp_years,bio,status,badge_tier,payment_qr_url,reg_ref,note,created_at,approved_at,suspended_at')
+      .order('created_at', { ascending:false });
     console.log('[admin] organizers fetch:', orgs, orgErr);
     if(orgs && orgs.length) {
       ORGS = orgs.map(mapOrg);
@@ -1427,6 +1431,27 @@ function mapOrg(o){
   };
 }
 
+// เขียนตาราง organizers ต้องผ่าน Edge Function (service_role) — anon ถูกล็อกดาวน์แล้ว
+async function updateOrgSecure(id, fields){
+  if(!getAdminKey()){
+    _afterKeyAction='organizers'; openModal('modalAdminKey');
+    toast('กรอก Admin Key ก่อน แล้วกดใหม่อีกครั้ง');
+    return null;
+  }
+  try {
+    return await adminApi('update_organizer', id, { org: fields });
+  } catch(e){
+    if(e.code===401){
+      sessionStorage.removeItem('ss_admin_key');
+      _afterKeyAction='organizers'; openModal('modalAdminKey');
+      toast('Admin Key ไม่ถูกต้อง');
+      return null;
+    }
+    toast('บันทึกไม่สำเร็จ: '+(e.message||e));
+    return null;
+  }
+}
+
 // ชื่อ/อีเมล/เบอร์ ของผู้จัดอยู่ใน auth ไม่ใช่ตาราง organizers → ต้องดึงผ่าน Edge Function (service_role)
 async function loadOrgsSecure(){
   if(!getAdminKey()){ _afterKeyAction='organizers'; openModal('modalAdminKey'); return; }
@@ -1568,12 +1593,12 @@ function setOrgTab(k){ orgTabKey=k; renderOrgs(); }
 
 async function approveOrg(id){
   const o=ORGS.find(x=>x.id===id); if(!o) return;
-  await db.from('organizers').update({ status:'approved', approved_at: new Date().toISOString() }).eq('id', id);
+  if(!await updateOrgSecure(id, { status:'approved', approved_at: new Date().toISOString() })) return;
   o.status='approved'; renderOrgs(); renderOverview(); toast('อนุมัติผู้จัดแล้ว');
 }
 async function suspendOrg(id){
   const o=ORGS.find(x=>x.id===id); if(!o) return;
-  await db.from('organizers').update({ status:'suspended' }).eq('id', id);
+  if(!await updateOrgSecure(id, { status:'suspended', suspended_at: new Date().toISOString() })) return;
   o.status='suspended'; renderOrgs(); renderOverview(); toast('ระงับบัญชีแล้ว');
 }
 
@@ -1787,7 +1812,7 @@ function openEditOrg(id){
 }
 async function quickApprove(){
   if(!editOrgId) return;
-  await db.from('organizers').update({ status:'approved', badge_tier:'unverified', approved_at:new Date().toISOString() }).eq('id',editOrgId);
+  if(!await updateOrgSecure(editOrgId, { status:'approved', badge_tier:'unverified', approved_at:new Date().toISOString() })) return;
   const o=ORGS.find(x=>x.id===editOrgId); if(o) o.status='approved';
   closeModal('modalOrg'); renderOrgs(); renderOverview(); toast('อนุมัติผู้จัดแล้ว ✓');
 }
@@ -1796,28 +1821,23 @@ async function quickRequestRevision(){
   let reason = (document.getElementById('of-note').value||'').trim().replace(/^\[(ต้องแก้ไข|ส่งใหม่)\]\s*/,'');
   if(!reason){ toast('กรุณากรอกเหตุผล/สิ่งที่ต้องแก้ในช่องหมายเหตุ'); document.getElementById('of-note').focus(); return; }
   const note='[ต้องแก้ไข] '+reason;
-  await db.from('organizers').update({ status:'pending', note }).eq('id',editOrgId);
+  if(!await updateOrgSecure(editOrgId, { status:'pending', note })) return;
   const o=ORGS.find(x=>x.id===editOrgId); if(o){ o.status='pending'; o.note=note; }
   closeModal('modalOrg'); renderOrgs(); renderOverview(); toast('ส่งกลับให้ผู้จัดแก้ไขแล้ว ✓');
 }
-function saveOrg(){
+async function saveOrg(){
   const name=document.getElementById('of-name').value.trim();
   if(!name){ toast('กรุณากรอกชื่อผู้จัด'); return; }
-  const data={
-    name,contact:document.getElementById('of-contact').value.trim(),
-    email:document.getElementById('of-email').value.trim(),
-    phone:document.getElementById('of-phone').value.trim(),
-    tier:document.getElementById('of-tier').value,
-    status:document.getElementById('of-status').value,
-    note:document.getElementById('of-note').value.trim(),
-  };
-  if(editOrgId){
-    Object.assign(ORGS.find(x=>x.id===editOrgId),data); toast('บันทึกการแก้ไขแล้ว');
-  } else {
-    ORGS.push(Object.assign({id:'o'+Date.now(),joinedAt:new Date().toISOString().slice(0,10)},data));
-    toast('เพิ่มผู้จัดแล้ว');
-  }
-  saveOrgs(); renderOrgs(); renderOverview(); closeModal('modalOrg');
+  if(!editOrgId){ toast('เพิ่มผู้จัดใหม่จากหน้านี้ไม่ได้ — ให้ผู้จัดสมัครเองที่หน้าสมัคร'); return; }
+  const tier   = document.getElementById('of-tier').value;
+  const status = document.getElementById('of-status').value;
+  const note   = document.getElementById('of-note').value.trim();
+  // ชื่อผู้ติดต่อ/อีเมล/เบอร์ เก็บใน auth ไม่ใช่ตาราง organizers → แก้ที่นี่ไม่ได้
+  if(!await updateOrgSecure(editOrgId, { org_name:name, badge_tier:tier, status, note })) return;
+  const o = ORGS.find(x=>x.id===editOrgId);
+  if(o){ o.org_name=name; o.name=name; o.badge_tier=tier; o.tier=tier; o.status=status; o.note=note; }
+  toast('บันทึกการแก้ไขแล้ว ✓');
+  renderOrgs(); renderOverview(); closeModal('modalOrg');
 }
 
 // confirm helper
