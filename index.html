@@ -897,6 +897,7 @@ function mapSupabaseTrip(r){
     price: parseFloat(r.price_per_person) || seed.price || 0,
     status: r.status || seed.status || 'open',
     badge: badgeLabel,
+    trip_type: r.trip_type || null,
     rating: r.rating_avg || seed.rating || null,
     img: r.image_url || seed.img || null,
     scene: seed.scene || ({north:'peak',northeast:'sunrise',south:'forest',west:'forest',east:'forest',central:'sunrise'}[r.region||'north']||'peak'),
@@ -909,7 +910,7 @@ async function loadTrips(){
   if(typeof db !== 'undefined'){
     try{
       const { data, error } = await db.from('trips')
-        .select('id,name_th,name_en,price_per_person,capacity,booked_count,start_date,region,province,status,image_url,rating_avg,organizers(org_name,badge_tier)')
+        .select('*, organizers(org_name,badge_tier)')
         .in('status',['open','full'])
         .order('start_date');
       if(!error && data && data.length>0){
@@ -995,10 +996,16 @@ function renderTripCards(region='all', price='all', query=''){
   const grid = document.getElementById('tripGrid');
   if(!grid) return;
   const q = query.trim().toLowerCase();
+  const dv = document.getElementById('dateSel')?.value || 'all';   // 'YYYY-MM'
+  const tv = document.getElementById('typeSel')?.value || 'all';   // allinclusive | transfer | meetup
+  // ถ้ายังไม่มีข้อมูล trip_type เลย (ยังไม่ได้รัน SQL) ให้ข้าม filter รูปแบบ แทนที่จะโชว์ 0 ทริป
+  const hasTypeData = TRIPS.some(t => t.trip_type);
   const list = TRIPS.filter(t => ['open','full'].includes(t.status))
     .filter(t => hasPhoto(t))            // ซ่อนทริปที่ยังไม่มีรูปจริง
     .filter(t => region==='all' || t.region===region)
     .filter(t => priceMatch(t.price, price))
+    .filter(t => dv==='all' || String(t.date||t.start_date||'').startsWith(dv))
+    .filter(t => tv==='all' || !hasTypeData || t.trip_type===tv)
     .filter(t => !q || (t.name.th+t.name.en+t.prov).toLowerCase().includes(q));
   grid.innerHTML = list.map(t => {
     const regLabel = (REGION_LABEL[t.region]||{})[lang]||'';

@@ -629,6 +629,15 @@ h1,h2,h3,h4{font-family:'Kanit',sans-serif;}
             </select>
           </div>
           <div class="fld">
+            <label>รูปแบบทริป</label>
+            <select id="f-type">
+              <option value="allinclusive">ครบวงจร — รถรับส่ง + อาหาร + อุปกรณ์</option>
+              <option value="transfer" selected>มีรถรับส่ง — รับส่งจากจุดนัดพบ</option>
+              <option value="meetup">นัดพบจุดนัด — ลูกค้าเดินทางเอง</option>
+            </select>
+            <div class="hint">ใช้กรองในหน้าค้นหาทริป</div>
+          </div>
+          <div class="fld">
             <label>สิ่งที่รวมอยู่ในราคา</label>
             <div class="inc-check-list">
               <label class="inc-check"><input type="checkbox" id="inc-guide" checked> ไกด์นำทาง</label>
@@ -1408,6 +1417,7 @@ function clearForm(){
     .forEach(id=>setVal(id,''));
   setVal('f-days','3');
   setVal('f-cap','1'); updateVanHint();
+  setVal('f-type','transfer');
   _tripImageFiles=[];
   const grid=document.getElementById('imgPreviewGrid');
   if(grid){ grid.innerHTML=''; grid.style.display='none'; }
@@ -1476,6 +1486,7 @@ async function submitTrip(){
       status:           'open',            // เผยแพร่ทันที (ผู้จัดผ่านการอนุมัติแล้ว)
       badge_tier:       _orgProfile.badge_tier||'basic',
       difficulty:       v('f-diff')||'medium',
+      trip_type:        v('f-type')||'transfer',
       description:      v('f-desc')||null,
       image_url:        imageUrl,
       includes:         includes,
