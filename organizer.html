@@ -1284,6 +1284,7 @@ function openEditTrip(id){
   document.getElementById('et-date').value=t.start_date||t.date||'';
   document.getElementById('et-price').value=t.price_per_person||t.price||'';
   document.getElementById('et-cap').value=Math.max(1,Math.ceil((t.capacity||t.cap||9)/9));
+  document.getElementById('et-type').value=t.trip_type||'transfer';
   document.getElementById('et-desc').value=t.description||'';
   document.getElementById('et-reason').value='';
   document.getElementById('modalEditTrip').style.display='flex';
@@ -1297,6 +1298,7 @@ async function submitEditTrip(){
     start_date: document.getElementById('et-date').value,
     price_per_person: parseInt(document.getElementById('et-price').value)||0,
     capacity: (parseInt(document.getElementById('et-cap').value)||1)*9,
+    trip_type: document.getElementById('et-type').value||'transfer',
     description: document.getElementById('et-desc').value.trim(),
     status: 'draft',
     note: '[ขอแก้ไข] '+reason,
@@ -1531,6 +1533,13 @@ load().then(ok => { if(ok !== false) renderOverview(); });
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
         <div><label class="form-label">ราคา/คน (บาท)</label><input class="form-input" type="number" id="et-price"></div>
         <div><label class="form-label">จำนวนรถตู้ (คันละ 9 ที่นั่ง)</label><input class="form-input" type="number" min="1" max="6" id="et-cap"></div>
+      </div>
+      <div><label class="form-label">รูปแบบทริป</label>
+        <select class="form-input" id="et-type">
+          <option value="allinclusive">ครบวงจร — รถรับส่ง + อาหาร + อุปกรณ์</option>
+          <option value="transfer">มีรถรับส่ง — รับส่งจากจุดนัดพบ</option>
+          <option value="meetup">นัดพบจุดนัด — ลูกค้าเดินทางเอง</option>
+        </select>
       </div>
       <div><label class="form-label">รายละเอียด</label><textarea class="form-input" id="et-desc" rows="3" style="resize:vertical;"></textarea></div>
       <div><label class="form-label">เหตุผลในการแก้ไข *</label><input class="form-input" id="et-reason" placeholder="ระบุเหตุผล เช่น เปลี่ยนวันเดินทาง..."></div>
