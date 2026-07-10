@@ -37,6 +37,35 @@ const Trips = {
   }
 };
 
+// ─── PROFILE SAFETY NET ───────────────────────────────────
+// บาง auth user ไม่มีแถวใน public.users (เช่น ตอนสมัคร insert พลาดแล้วถูกกลืน error)
+// ทำให้ bookings.user_id ชน foreign key (bookings_user_id_fkey) → สร้างแถวให้อัตโนมัติ
+async function ensureUserProfile(user) {
+  if (!user) return;
+  const { data: existing } = await db.from('users').select('id').eq('id', user.id).maybeSingle();
+  if (existing) return;
+
+  // ถ้าเป็นผู้จัด ให้ role ถูกต้อง
+  let role = 'customer';
+  try {
+    const { data: org } = await db.from('organizers').select('id').eq('user_id', user.id).maybeSingle();
+    if (org) role = 'organizer';
+  } catch (_) {}
+
+  const md = user.user_metadata || {};
+  const { error } = await db.from('users').insert({
+    id: user.id,
+    email: user.email,
+    password_hash: '-',              // Supabase Auth เก็บรหัสผ่านจริง (hash) ให้แล้ว
+    full_name: md.full_name || user.email,
+    nickname: md.nickname || null,
+    phone: md.phone || null,
+    role,
+    status: 'approved',              // ล็อกอินผ่านมาแล้ว = ถือว่าใช้งานได้ (ตรงกับ login.html ที่ default เป็น approved เมื่อไม่มีแถว)
+  });
+  if (error) throw error;
+}
+
 // ─── BOOKINGS ─────────────────────────────────────────────
 const Bookings = {
   async create({ tripId, seats, name, phone, note, seatNumbers }) {
@@ -55,7 +84,11 @@ const Bookings = {
 
     // 3. Insert booking (ใช้ user_id จาก session หรือ null สำหรับ guest)
     const { data: session } = await db.auth.getSession();
-    const userId = session?.session?.user?.id || null;
+    const authUser = session?.session?.user || null;
+    const userId = authUser?.id || null;
+
+    // กัน FK error: ถ้ายังไม่มีโปรไฟล์ใน public.users ให้สร้างให้ก่อน
+    await ensureUserProfile(authUser);
 
     const { data, error } = await db.from('bookings').insert({
       user_id: userId,
@@ -216,9 +249,9 @@ const Auth = {
     });
     if (error) throw error;
 
-    // insert into public.users
+    // insert into public.users — อย่ากลืน error ไม่งั้นได้บัญชี auth ที่ไม่มีโปรไฟล์ (ชน FK ตอนจอง)
     if (data.user) {
-      await db.from('users').insert({
+      const { error: insErr } = await db.from('users').insert({
         id: data.user.id,
         email,
         password_hash: '-',   // Supabase จัดการ auth เอง
@@ -226,6 +259,7 @@ const Auth = {
         phone,
         role: 'customer'
       });
+      if (insErr) console.error('users profile insert failed', insErr);
     }
     return data;
   },
