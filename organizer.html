@@ -757,6 +757,45 @@ h1,h2,h3,h4{font-family:'Kanit',sans-serif;}
 
         <div class="form-section">
           <div class="form-section-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>
+            ใบอนุญาต
+          </div>
+          <p style="font-size:13px;color:var(--text-muted);margin:0 0 14px;">แนบใบอนุญาตเพื่อขอสถานะ <b>Verified</b> — ถ้าสมัครไปแล้วโดยยังไม่ได้แนบ สามารถแนบเพิ่มที่นี่ได้</p>
+
+          <div id="licStatus" style="display:none;align-items:center;gap:10px;background:#EAF6EE;border:1px solid #CDE8C6;border-radius:10px;padding:10px 13px;margin-bottom:14px;font-size:13px;color:#2E7D32;">
+            <span>✓ มีไฟล์ใบอนุญาตแล้ว</span>
+            <a id="licLink" href="#" target="_blank" rel="noopener" style="color:#2E7D32;font-weight:700;text-decoration:underline;">เปิดดูไฟล์</a>
+          </div>
+          <div id="licMissing" style="display:none;background:#FDF6E3;border:1px solid rgba(201,162,75,.5);border-radius:10px;padding:10px 13px;margin-bottom:14px;font-size:13px;color:#8A6D1E;">
+            ⚠ ยังไม่ได้แนบไฟล์ใบอนุญาต — แนบแล้วแอดมินจะตรวจเพื่อปรับสถานะเป็น Verified
+          </div>
+
+          <div class="fld"><label>ประเภทใบอนุญาต</label>
+            <select id="p-license-type">
+              <option value="">-- เลือกประเภท --</option>
+              <option value="มัคคุเทศก์ทั่วไป">ใบอนุญาตมัคคุเทศก์ทั่วไป (กรมการท่องเที่ยว)</option>
+              <option value="มัคคุเทศก์เฉพาะพื้นที่">ใบอนุญาตมัคคุเทศก์เฉพาะพื้นที่</option>
+              <option value="นำเที่ยว TAT">ใบอนุญาตประกอบธุรกิจนำเที่ยว (TAT)</option>
+              <option value="อื่นๆ">อื่นๆ / ยังไม่มี (Basic)</option>
+            </select>
+          </div>
+          <div class="fld-row">
+            <div class="fld"><label>เลขที่ใบอนุญาต</label><input id="p-license-no" placeholder="เช่น 11/01234"></div>
+            <div class="fld"><label>วันหมดอายุ</label><input id="p-license-exp" type="date"></div>
+          </div>
+          <div class="fld">
+            <label>แนบไฟล์ใบอนุญาต <span style="color:var(--text-muted);font-weight:400;font-size:12px;">(PDF / JPG / PNG ไม่เกิน 5MB)</span></label>
+            <label class="upload-box" id="p-license-upload-label">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="28" height="28"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+              <span id="p-license-file-name">คลิกเพื่อเลือกไฟล์ หรือลากมาวาง</span>
+              <input id="p-license-file" type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" hidden onchange="handleFileSelect(this,'p-license-file-name','p-license-upload-label')">
+            </label>
+            <div class="hint">เลือกไฟล์ใหม่แล้วกด "บันทึกข้อมูล" ด้านล่างเพื่ออัปโหลด</div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="form-section-title">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M20 14v.01M14 20v.01M20 20v.01M17 17h.01M20 17h.01M17 20h.01"/></svg>
             QR พร้อมเพย์รับเงิน
           </div>
@@ -1100,9 +1139,39 @@ async function load(){
 
 async function saveProfile(){
   if(!_orgProfile) return;
-  const data = { org_name:v('p-org'), province:v('p-prov'), exp_years:parseInt(v('p-exp'))||0, bio:v('p-bio') };
+  const btn = document.querySelector('#page-profile .form-foot .btn-primary');
+  const data = {
+    org_name:v('p-org'), province:v('p-prov'), exp_years:parseInt(v('p-exp'))||0, bio:v('p-bio'),
+    line_id: v('p-line')||null,
+    license_type:   v('p-license-type')||null,
+    license_number: v('p-license-no')||null,
+    license_expiry: v('p-license-exp')||null,
+  };
+
+  // อัปโหลดไฟล์ใบอนุญาตใหม่ (ถ้าเลือกไว้)
+  const licFile = document.getElementById('p-license-file')?.files[0] || null;
+  if(licFile){
+    if(licFile.size > 5*1024*1024){ toast('ไฟล์ใหญ่เกิน 5MB'); return; }
+    if(btn){ btn.disabled=true; btn.textContent='กำลังอัปโหลดใบอนุญาต...'; }
+    try {
+      const url = await uploadToStorage(licFile, `licenses/${_orgProfile.user_id||'guest'}`);
+      if(url) data.license_file_url = url;
+    } catch(e){
+      console.error('license upload', e);
+      toast('อัปโหลดใบอนุญาตไม่สำเร็จ: '+(e.message||e));
+      if(btn){ btn.disabled=false; btn.textContent='บันทึกข้อมูล'; }
+      return;
+    }
+    if(btn){ btn.textContent='กำลังบันทึก...'; }
+  }
+
   const { error } = await db.from('organizers').update(data).eq('id', _orgProfile.id);
-  if(error){ toast('บันทึกไม่สำเร็จ'); return; }
+  if(btn){ btn.disabled=false; btn.textContent='บันทึกข้อมูล'; }
+  if(error){ toast('บันทึกไม่สำเร็จ: '+(error.message||'')); return; }
+  Object.assign(_orgProfile, data);
+  renderLicenseStatus(_orgProfile.license_file_url);
+  const fn = document.getElementById('p-license-file');
+  if(fn){ fn.value=''; document.getElementById('p-license-file-name').textContent='คลิกเพื่อเลือกไฟล์ หรือลากมาวาง'; }
   await db.from('users').update({ full_name:v('p-fname')+' '+v('p-lname'), phone:v('p-phone') })
     .eq('id', (await Auth.getUser()).id);
   MY_ORG = data.org_name || MY_ORG;
@@ -1121,7 +1190,21 @@ async function loadProfile(){
   setVal('p-prov',  _orgProfile.province||'');
   setVal('p-exp',   _orgProfile.exp_years||'');
   setVal('p-bio',   _orgProfile.bio||'');
+  setVal('p-line',  _orgProfile.line_id||'');
+  setVal('p-license-type', _orgProfile.license_type||'');
+  setVal('p-license-no',   _orgProfile.license_number||'');
+  setVal('p-license-exp',  _orgProfile.license_expiry||'');
+  renderLicenseStatus(_orgProfile.license_file_url);
   renderQRPreview(_orgProfile.payment_qr_url);
+}
+
+function renderLicenseStatus(url){
+  const ok = document.getElementById('licStatus');
+  const miss = document.getElementById('licMissing');
+  const link = document.getElementById('licLink');
+  if(!ok||!miss) return;
+  if(url){ link.href = url; ok.style.display='flex'; miss.style.display='none'; }
+  else { ok.style.display='none'; miss.style.display='block'; }
 }
 
 function renderQRPreview(url){
