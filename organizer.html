@@ -1019,6 +1019,8 @@ async function submitRegister(){
   const _existing = await Auth.getUser();
   if(_existing){
     userId = _existing.id;
+    // อัปเดตชื่อ/เบอร์ใน auth metadata ด้วย (Admin ดึงข้อมูลติดต่อจากตรงนี้)
+    try { await db.auth.updateUser({ data: { full_name: fname+' '+lname, phone } }); } catch(e){ console.warn('updateUser meta', e); }
   } else {
   const { data: signUpData, error: signUpErr } = await db.auth.signUp({
     email, password,

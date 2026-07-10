@@ -912,17 +912,7 @@ async function load(){
     const { data: orgs, error: orgErr } = await db.from('organizers').select('*').order('created_at', { ascending:false });
     console.log('[admin] organizers fetch:', orgs, orgErr);
     if(orgs && orgs.length) {
-      ORGS = orgs.map(o => ({
-        ...o,
-        name:     o.org_name || o.full_name || '–',
-        contact:  o.full_name || '–',
-        email:    o.email || '–',
-        phone:    o.phone || '–',
-        prov:     o.province,
-        tier:     o.badge_tier || 'Unverified',
-        joinedAt: o.created_at?.slice(0,10),
-        note:     o.note || '',
-      }));
+      ORGS = orgs.map(mapOrg);
     } else {
       console.warn('[admin] no organizers from Supabase, using seed. error:', orgErr);
       ORGS = JSON.parse(JSON.stringify(SEED_ORGS));
@@ -1006,7 +996,7 @@ function showPage(key, el){
   if(el) el.classList.add('active');
   if(key==='overview') renderOverview();
   if(key==='trips') renderTrips();
-  if(key==='organizers') renderOrgs();
+  if(key==='organizers'){ renderOrgs(); loadOrgsSecure(); }
   if(key==='customers') loadCustomersSecure();
   if(key==='finance') renderFinance();
   if(key==='bookings') loadBookings().then(renderBookings);
@@ -1422,6 +1412,33 @@ async function saveTrip(){
   renderTrips(); renderOverview(); closeModal('modalTrip');
 }
 
+// ===== ORGANIZERS =====
+function mapOrg(o){
+  return {
+    ...o,
+    name:     o.org_name || o.full_name || '–',
+    contact:  o.full_name || '–',
+    email:    o.email || '–',
+    phone:    o.phone || '–',
+    prov:     o.province,
+    tier:     o.badge_tier || 'Unverified',
+    joinedAt: o.created_at?.slice(0,10),
+    note:     o.note || '',
+  };
+}
+
+// ชื่อ/อีเมล/เบอร์ ของผู้จัดอยู่ใน auth ไม่ใช่ตาราง organizers → ต้องดึงผ่าน Edge Function (service_role)
+async function loadOrgsSecure(){
+  if(!getAdminKey()){ _afterKeyAction='organizers'; openModal('modalAdminKey'); return; }
+  try {
+    const { organizers } = await adminApi('list_organizers');
+    if(organizers && organizers.length){ ORGS = organizers.map(mapOrg); renderOrgs(); }
+  } catch(e){
+    if(e.code===401){ sessionStorage.removeItem('ss_admin_key'); _afterKeyAction='organizers'; openModal('modalAdminKey'); return; }
+    toast('โหลดข้อมูลผู้จัดไม่สำเร็จ: '+(e.message||e));
+  }
+}
+
 // เขียนตาราง trips ต้องผ่าน Edge Function (service_role) เพราะ RLS บล็อก anon
 async function updateTripSecure(id, fields){
   if(!getAdminKey()){
@@ -1604,6 +1621,7 @@ async function submitAdminKey(){
   if(_afterKeyAction==='payments') await loadPendingPayments(true);
   else if(_afterKeyAction==='groups') await loadGroupReady(true);
   else if(_afterKeyAction==='trips') renderTrips();
+  else if(_afterKeyAction==='organizers') await loadOrgsSecure();
   else await loadCustomersSecure(true);
   _afterKeyAction='customers';
 }

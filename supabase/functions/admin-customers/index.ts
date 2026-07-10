@@ -127,6 +127,30 @@ Deno.serve(async (req) => {
       return json({ ok: true, id, pay_status: 'rejected' });
     }
 
+    // ===== ADMIN: รายชื่อผู้จัด + ข้อมูลติดต่อจริง (ชื่อ/อีเมล/เบอร์ อยู่ใน auth ไม่ใช่ตาราง organizers) =====
+    if (action === 'list_organizers') {
+      const { data: orgs, error } = await supabase
+        .from('organizers').select('*').order('created_at', { ascending: false });
+      if (error) throw error;
+      const out = [];
+      for (const o of orgs || []) {
+        let full_name = null, email = null, phone = null;
+        if (o.user_id) {
+          try {
+            const { data: au } = await supabase.auth.admin.getUserById(o.user_id);
+            const u = au?.user;
+            if (u) {
+              email = u.email ?? null;
+              full_name = (u.user_metadata?.full_name as string) ?? null;
+              phone = (u.user_metadata?.phone as string) ?? u.phone ?? null;
+            }
+          } catch (_) { /* ผู้ใช้ถูกลบ/ไม่พบ → ปล่อยว่าง */ }
+        }
+        out.push({ ...o, full_name, email, phone });
+      }
+      return json({ organizers: out });
+    }
+
     // ===== ADMIN: แก้ไข/อนุมัติทริป (RLS บล็อก anon → ต้องผ่าน service_role ที่นี่) =====
     if (action === 'update_trip') {
       if (!id) return json({ error: 'missing id' }, 400);
