@@ -800,20 +800,36 @@ function payStatusHTML(b){
   return `<div style="background:${m.bg};border-radius:8px;padding:8px 11px;margin-top:10px;"><span style="font-family:'Kanit',sans-serif;font-weight:700;font-size:12.5px;color:${m.c}">${m.t}</span>${extra}</div>`;
 }
 
-// ===== RE-UPLOAD SLIP (หลังถูกปฏิเสธ) =====
-let _reupBooking=null;
-function openReupload(id){
-  const b=BOOKINGS.find(x=>x.id===id); if(!b) return;
+// ===== อัปสลิป: (ก) โดนปฏิเสธ อัปใหม่  (ข) จ่ายส่วนที่เหลือ (มัดจำ) =====
+let _reupBooking=null, _reupMode='reject';
+function prepReupModal(b){
   _reupBooking=b;
   document.getElementById('reupTitle').textContent=bName(b);
-  const qw=document.getElementById('reupQrWrap'), qi=document.getElementById('reupQrImg'), qm=document.getElementById('reupQrMissing');
+  const qi=document.getElementById('reupQrImg'), qm=document.getElementById('reupQrMissing');
   if(b.qrUrl){ qi.src=b.qrUrl; qi.style.display='block'; qm.style.display='none'; }
   else { qi.style.display='none'; qm.style.display='block'; }
-  document.getElementById('reupAmt').value = b.declaredAmount || b.total || '';
-  document.getElementById('reupInfo').innerHTML = `ยอดที่ต้องจ่าย <b>${fmtM(b.total)}</b>${b.adminNote?` · เหตุผลที่ถูกปฏิเสธ: ${b.adminNote}`:''}`;
   document.getElementById('reupFileWrap').style.display='none';
   document.getElementById('reupFile').value='';
   openModal('modalReupload');
+}
+function openReupload(id){
+  const b=BOOKINGS.find(x=>x.id===id); if(!b) return;
+  _reupMode='reject';
+  prepReupModal(b);
+  document.querySelector('#modalReupload h3').textContent='อัปสลิปใหม่';
+  document.getElementById('reupBtn').textContent='ส่งสลิปใหม่';
+  document.getElementById('reupAmt').value = b.declaredAmount || b.total || '';
+  document.getElementById('reupInfo').innerHTML = `ยอดที่ต้องจ่าย <b>${fmtM(b.total)}</b>${b.adminNote?` · เหตุผลที่ถูกปฏิเสธ: ${b.adminNote}`:''}`;
+}
+function openBalance(id){
+  const b=BOOKINGS.find(x=>x.id===id); if(!b) return;
+  _reupMode='balance';
+  const remain=(b.total||0)-(b.paidAmount||0);
+  prepReupModal(b);
+  document.querySelector('#modalReupload h3').textContent='จ่ายส่วนที่เหลือ';
+  document.getElementById('reupBtn').textContent='ส่งสลิปส่วนที่เหลือ';
+  document.getElementById('reupAmt').value = remain>0?remain:'';
+  document.getElementById('reupInfo').innerHTML = `จ่ายมัดจำแล้ว <b>${fmtM(b.paidAmount)}</b> · ยอดค้าง <b style="color:#C0552F">${fmtM(remain)}</b><br>โอนส่วนที่เหลือเข้า QR ผู้จัด แล้วแนบสลิป`;
 }
 function closeReupModal(){ closeModal('modalReupload'); }
 function previewReup(input){
@@ -823,19 +839,25 @@ function previewReup(input){
 }
 async function submitReupload(){
   if(!_reupBooking) return;
-  const fileEl=document.getElementById('reupFile');
-  const file=fileEl.files&&fileEl.files[0];
-  if(!file){ alert('กรุณาแนบสลิปใหม่'); return; }
-  const declared=parseFloat(document.getElementById('reupAmt').value);
-  if(!declared||declared<=0){ alert('กรุณาระบุจำนวนที่โอน'); return; }
-  const btn=document.getElementById('reupBtn'); btn.disabled=true; btn.textContent='กำลังส่ง...';
+  const b=_reupBooking;
+  const file=document.getElementById('reupFile').files[0];
+  if(!file){ alert('กรุณาแนบสลิป'); return; }
+  const amt=parseFloat(document.getElementById('reupAmt').value);
+  if(!amt||amt<=0){ alert('กรุณาระบุจำนวนที่โอน'); return; }
+  const btn=document.getElementById('reupBtn'); const old=btn.textContent; btn.disabled=true; btn.textContent='กำลังส่ง...';
   try {
-    await Bookings.submitPaymentSlip(_reupBooking.id, { file, declaredAmount:declared, lineId:null });
+    if(_reupMode==='balance'){
+      // declaredTotal = มัดจำเดิม + ยอดที่เพิ่งโอน (ยอดรวมที่แจ้งว่าจ่ายครบ)
+      const declaredTotal=(b.paidAmount||0)+amt;
+      await Bookings.submitBalanceSlip(b.id, { file, declaredTotal });
+    } else {
+      await Bookings.submitPaymentSlip(b.id, { file, declaredAmount:amt, lineId:null });
+    }
     closeReupModal();
     await load(); refreshAll();
   } catch(e){
     alert('ส่งไม่สำเร็จ: '+(e.message||e));
-    btn.disabled=false; btn.textContent='ส่งสลิปใหม่';
+    btn.disabled=false; btn.textContent=old;
   }
 }
 
@@ -862,6 +884,9 @@ function bcardHTML(b){
   }
   if(b.payStatus==='rejected'){
     acts+=`<button class="btn btn-primary" onclick="openReupload('${b.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>อัปสลิปใหม่</button>`;
+  }
+  if(b.payStatus==='partial' && (b.total||0)-(b.paidAmount||0) > 0 && b.status!=='cancelled'){
+    acts+=`<button class="btn btn-primary" onclick="openBalance('${b.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>จ่ายส่วนที่เหลือ</button>`;
   }
 
   return `<div class="bcard">

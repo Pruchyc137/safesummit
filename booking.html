@@ -477,7 +477,7 @@ const SEED_TRIPS=[
 let TRIPS=[], trip=null, seats=0, currentStep=1, bookingRef='', timerInterval=null;
 // van seat map + payment state
 const SEATS_PER_VAN=9;
-let VANS=[], selectedSeats=[], activeVan=0;
+let VANS=[], selectedSeats=[], activeVan=0, TAKEN_SEATS=new Set();
 let payType='full', depositMode='50';
 
 function loadTrips(){
@@ -536,7 +536,7 @@ function genRef(){ return 'SS-'+new Date().getFullYear().toString().slice(-2)+(n
 function renderSummary(){
   if(!trip){ document.getElementById('tripSummaryBody').innerHTML='<p style="color:var(--text-muted);font-size:14px;">ไม่พบข้อมูลทริป</p>'; return; }
   const total=vanCountOf(trip.cap)*SEATS_PER_VAN;
-  const avail=total-(trip.booked||0);
+  const avail=total-TAKEN_SEATS.size;
   const scene=SCENES[trip.scene]||SCENES.peak;
   document.getElementById('tripSummaryBody').innerHTML=`
     <div class="trip-thumb">${scene}<div class="trip-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>${trip.badge}</div></div>
@@ -560,27 +560,30 @@ function renderSummary(){
 function seatLabel(id){ const m=id.match(/^v(\d+)-(\d+)$/); return m?`คันที่ ${m[1]} #${m[2]}`:id; }
 function vanCountOf(cap){ return Math.max(1,Math.ceil((cap||SEATS_PER_VAN)/SEATS_PER_VAN)); }
 function totalSeats(){ return trip ? vanCountOf(trip.cap)*SEATS_PER_VAN : 0; }
-function availSeats(){ return trip ? totalSeats()-(trip.booked||0) : 0; }
+function availSeats(){ return trip ? totalSeats()-TAKEN_SEATS.size : 0; }
 function seatMax(){ return Math.min(availSeats(),6); }
 
 function buildVans(){
   if(!trip){ VANS=[]; return; }
-  const booked=trip.booked||0;
   const vanCount=vanCountOf(trip.cap);
-  VANS=[]; let g=0;
+  VANS=[];
   for(let v=0; v<vanCount; v++){
     const arr=[];
-    // ทุกคันมี 9 ที่นั่งเสมอ (รถตู้ 1 คัน = 9 ผู้โดยสาร)
-    for(let s=0; s<SEATS_PER_VAN; s++){ g++; arr.push({ n:s+1, id:`v${v+1}-${s+1}`, taken: g<=booked }); }
+    // ทุกคันมี 9 ที่นั่งเสมอ · ที่นั่งไหน "ถูกจองไปแล้วจริง" = taken (กันจองซ้ำ)
+    for(let s=0; s<SEATS_PER_VAN; s++){ const id=`v${v+1}-${s+1}`; arr.push({ n:s+1, id, taken: TAKEN_SEATS.has(id) }); }
     VANS.push({ van:v+1, seats:arr });
   }
   activeVan=VANS.findIndex(vn=>vn.seats.some(s=>!s.taken));
   if(activeVan<0) activeVan=0;
 }
 
-function initSeatMap(){
+async function initSeatMap(){
   if(!trip) return;
   selectedSeats=[]; seats=0;
+  // ดึงที่นั่งที่ถูกจองไปแล้ว (คนอื่น) มากันจองซ้ำ
+  try { const t=await Bookings.getTakenSeats(trip.id); TAKEN_SEATS=new Set(t||[]); }
+  catch(e){ TAKEN_SEATS=new Set(); }
+  renderSummary();                 // อัปเดต "ที่นั่งว่าง X จาก Y" ตามที่นั่งจริง
   buildVans();
   renderVanTabs(); renderVanMap(); refreshSeatUI();
 }
@@ -795,7 +798,13 @@ async function submitSlip(){
     fillPending();
   } catch(e){
     console.error('submitSlip', e);
-    toast('ส่งสลิปไม่สำเร็จ: '+(e.message||e));
+    if(e.code==='SEAT_TAKEN'){
+      toast(e.message||'ที่นั่งเพิ่งถูกจอง');
+      await initSeatMap();          // โหลดที่นั่งใหม่ + เคลียร์ที่เลือก
+      goStep(1);                    // กลับไปเลือกที่นั่งใหม่
+    } else {
+      toast('ส่งสลิปไม่สำเร็จ: '+(e.message||e));
+    }
     btn.disabled=false; btn.innerHTML=old;
   }
 }

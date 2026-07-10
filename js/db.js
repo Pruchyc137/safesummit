@@ -66,8 +66,36 @@ async function ensureUserProfile(user) {
   if (error) throw error;
 }
 
+// ตั้งสถานะ booking = pending_review ผ่าน RPC (ปลอดภัย) — fallback เป็น update ตรงถ้ายังไม่ได้รัน SQL RPC
+async function _setBookingPending(bookingId, declared, slipPath, isBalance) {
+  const { error } = await db.rpc('submit_booking_payment', {
+    p_booking_id: bookingId, p_declared: declared, p_slip_url: slipPath, p_is_balance: isBalance
+  });
+  if (!error) return;
+  // RPC ยังไม่มี (ก่อนรัน SQL Phase 8) → ใช้วิธีเดิมชั่วคราว
+  if (error.code === 'PGRST202' || /function .*submit_booking_payment/i.test(error.message||'')) {
+    const { error: uErr } = await db.from('bookings').update({
+      slip_url: slipPath, slip_uploaded_at: new Date().toISOString(),
+      declared_amount: declared, pay_status: 'pending_review',
+      admin_note: isBalance ? '[จ่ายส่วนที่เหลือ]' : null
+    }).eq('id', bookingId);
+    if (uErr) throw uErr;
+    return;
+  }
+  throw error;
+}
+
 // ─── BOOKINGS ─────────────────────────────────────────────
 const Bookings = {
+  // ที่นั่งที่ถูกจองไปแล้วของทริป (ลูกค้าอ่าน bookings คนอื่นไม่ได้ → ผ่าน RPC)
+  async getTakenSeats(tripId) {
+    try {
+      const { data, error } = await db.rpc('trip_taken_seats', { p_trip_id: tripId });
+      if (error) return [];
+      return Array.isArray(data) ? data : [];
+    } catch (_) { return []; }
+  },
+
   async create({ tripId, seats, name, phone, note, seatNumbers }) {
     // 1. ดึงข้อมูลทริป
     const { data: trip, error: tErr } = await db
@@ -77,6 +105,17 @@ const Bookings = {
 
     if (trip.booked_count + seats > trip.capacity)
       throw new Error('ที่นั่งไม่เพียงพอ');
+
+    // กันจองที่นั่งซ้ำ: เช็คอีกครั้ง ณ ตอนสร้างจริง (กันคนอื่นเพิ่งจองไปพร้อมกัน)
+    if (seatNumbers && seatNumbers.length) {
+      const taken = await this.getTakenSeats(tripId);
+      const clash = seatNumbers.filter(s => taken.includes(s));
+      if (clash.length) {
+        const e = new Error('ที่นั่ง ' + clash.join(', ') + ' เพิ่งถูกจองไปแล้ว กรุณาเลือกที่นั่งใหม่');
+        e.code = 'SEAT_TAKEN';
+        throw e;
+      }
+    }
 
     // 2. สร้าง booking_ref
     const now = new Date();
@@ -127,7 +166,7 @@ const Bookings = {
     return data;
   },
 
-  // ลูกค้าอัปสลิป + แจ้งยอด + LINE ID → pay_status='pending_review'
+  // ลูกค้าอัปสลิป + แจ้งยอด + LINE ID → pay_status='pending_review' (ผ่าน RPC กันตั้ง verified เอง)
   async submitPaymentSlip(bookingId, { file, declaredAmount, lineId }) {
     const { data: s } = await db.auth.getSession();
     const uid = s?.session?.user?.id;
@@ -137,17 +176,24 @@ const Bookings = {
     const { error: upErr } = await db.storage.from('slips')
       .upload(path, file, { upsert: true, contentType: file.type || 'image/jpeg' });
     if (upErr) throw upErr;
-    const { error } = await db.from('bookings').update({
-      slip_url: path,                       // เก็บ path (bucket private) เปิดผ่าน signed URL เท่านั้น
-      slip_uploaded_at: new Date().toISOString(),
-      declared_amount: declaredAmount,
-      pay_status: 'pending_review',
-      admin_note: null
-    }).eq('id', bookingId);
-    if (error) throw error;
+    await _setBookingPending(bookingId, declaredAmount, path, false);
     if (lineId) {
       try { await db.from('users').update({ line_id: lineId }).eq('id', uid); } catch(_) {}
     }
+    return true;
+  },
+
+  // จ่ายส่วนที่เหลือ (ลูกค้าที่จ่ายมัดจำไว้) → กลับไป pending_review ให้ Admin ตรวจอีกรอบ
+  async submitBalanceSlip(bookingId, { file, declaredTotal }) {
+    const { data: s } = await db.auth.getSession();
+    const uid = s?.session?.user?.id;
+    if (!uid) throw new Error('ยังไม่ได้เข้าสู่ระบบ');
+    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+    const path = `${uid}/${bookingId}-balance.${ext}`;
+    const { error: upErr } = await db.storage.from('slips')
+      .upload(path, file, { upsert: true, contentType: file.type || 'image/jpeg' });
+    if (upErr) throw upErr;
+    await _setBookingPending(bookingId, declaredTotal, path, true);
     return true;
   },
 

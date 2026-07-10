@@ -1215,11 +1215,16 @@ function smRenderTable(){
 function openApprovePayment(id){
   _apBooking = ALL_PAY.find(b=>b.id===id); if(!_apBooking) return;
   const b=_apBooking, u=b.users||{}, t=b.trips||{};
-  document.getElementById('apInfo').innerHTML=
-    `<b>${t.name_th||'–'}</b> · ${u.nickname||u.full_name||'–'}<br>`+
+  const isBalance = /ส่วนที่เหลือ/.test(b.admin_note||'') || (b.paid_amount>0 && b.pay_status==='pending_review');
+  let info = `<b>${t.name_th||'–'}</b> · ${u.nickname||u.full_name||'–'}<br>`+
     `ยอดที่ต้องจ่าย: <b>${fmtMoney(b.total_price)}</b> · ลูกค้าแจ้งโอน: <b style="color:var(--accent-trail)">${fmtMoney(b.declared_amount)}</b>`;
-  document.getElementById('apPaid').value = (b.paid_amount!=null?b.paid_amount:(b.declared_amount||b.total_price||0));
-  document.getElementById('apNote').value = b.admin_note || '';
+  if(isBalance){
+    info += `<br><span style="color:#B26A16;font-weight:700">🔄 จ่ายส่วนที่เหลือ</span> · มัดจำที่ยืนยันแล้ว <b>${fmtMoney(b.paid_amount)}</b> — กรอก "ยอดรวมที่ได้รับจริง"`;
+  }
+  document.getElementById('apInfo').innerHTML=info;
+  document.getElementById('apPaid').value = isBalance ? (b.total_price||0)
+    : (b.paid_amount!=null?b.paid_amount:(b.declared_amount||b.total_price||0));
+  document.getElementById('apNote').value = '';
   apRecalc();
   openModal('modalApprove');
 }
