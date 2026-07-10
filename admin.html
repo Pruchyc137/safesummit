@@ -571,7 +571,7 @@ h1,h2,h3{font-family:'Kanit',sans-serif;}
     <div class="page" id="page-finance">
       <div class="page-head">
         <h1>การเงิน</h1>
-        <p>สรุปรายได้ เงิน Escrow และการชำระเงินให้ผู้จัด</p>
+        <p>สรุปรายได้ ยอดจองที่ทริปยังไม่จบ และค่าคอมมิชชั่น</p>
       </div>
 
       <div class="fin-grid" id="finCards"></div>
@@ -2011,7 +2011,7 @@ function renderFinance(){
   document.getElementById('finCards').innerHTML=`
     <div class="fin-card"><div class="fc-label">รายได้ปิดงานรวม</div><div class="fc-val">${fmtMoney(totalRev)}</div><div class="fc-sub">จาก ${completed.length} ทริปที่จบ</div></div>
     <div class="fin-card"><div class="fc-label">ค่า Platform (8%)</div><div class="fc-val">${fmtMoney(commission)}</div><div class="fc-sub">หักจากยอดปิดงาน</div></div>
-    <div class="fin-card"><div class="fc-label">เงินใน Escrow</div><div class="fc-val">${fmtMoney(escrow)}</div><div class="fc-sub">รอทริปเดินทางเสร็จ</div><div class="escrow-bar"><i style="width:${Math.min(100,Math.round(escrow/(escrow+totalRev+1)*100))}%"></i></div></div>`;
+    <div class="fin-card"><div class="fc-label">ยอดจองที่ทริปยังไม่จบ</div><div class="fc-val">${fmtMoney(escrow)}</div><div class="fc-sub">จ่ายตรงเข้าผู้จัดแล้ว (ยังไม่ถึงวันเดินทาง)</div><div class="escrow-bar"><i style="width:${Math.min(100,Math.round(escrow/(escrow+totalRev+1)*100))}%"></i></div></div>`;
 
   const rows=completed.sort((a,b)=>(b.closedAt||'').localeCompare(a.closedAt||''));
   const empty=document.getElementById('finEmpty');
