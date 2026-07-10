@@ -1014,8 +1014,12 @@ async function submitRegister(){
   const ref = 'ORG-'+Math.random().toString(36).slice(2,8).toUpperCase();
   const licenseFile = document.getElementById('r-license-file')?.files[0] || null;
 
-  // 1. ได้ userId (สร้างใหม่ หรือ login ถ้ามีแล้ว)
+  // 1. ได้ userId — ถ้าล็อกอินอยู่แล้ว (เช่นถูกพามาจาก login เพราะยังไม่มีใบสมัคร) ใช้ session เดิมเลย
   let userId = null;
+  const _existing = await Auth.getUser();
+  if(_existing){
+    userId = _existing.id;
+  } else {
   const { data: signUpData, error: signUpErr } = await db.auth.signUp({
     email, password,
     options: { data: { full_name: fname+' '+lname, phone } }
@@ -1032,13 +1036,24 @@ async function submitRegister(){
   } else {
     userId = signUpData?.user?.id || null;
   }
+  }   // ปิด else ของ "ยังไม่ได้ล็อกอิน"
+
+  if(!userId){
+    toast('ไม่พบบัญชีผู้ใช้ — กรุณาเข้าสู่ระบบแล้วลองใหม่');
+    if(btn){ btn.disabled=false; btn.textContent='ส่งใบสมัคร'; }
+    return;
+  }
 
   // 2. upload ไฟล์ใบอนุญาต
   if(btn) btn.textContent = 'กำลังอัปโหลดไฟล์...';
   let licenseFileUrl = null;
   if(licenseFile){
     try { licenseFileUrl = await uploadToStorage(licenseFile, `licenses/${userId||'guest'}`); }
-    catch(e){ console.warn('upload failed:', e.message); }
+    catch(e){
+      // ไม่ล้มใบสมัครทั้งใบ แต่ต้องบอกให้รู้ (เดิมเงียบ → ใบอนุญาตหายไปเฉยๆ)
+      console.error('license upload failed:', e);
+      toast('อัปโหลดใบอนุญาตไม่สำเร็จ — ส่งใบสมัครต่อได้ แล้วแนบใหม่ที่หน้า "ข้อมูลผู้จัด"');
+    }
   }
 
   // 3. insert ลง organizers table
@@ -1064,8 +1079,17 @@ async function submitRegister(){
     license_file_url:  licenseFileUrl,
   });
 
-  // ถ้า insert fail ด้วยสาเหตุอื่น (ไม่ใช่ duplicate) แจ้งเตือนแต่ยังแสดง pending
-  if(insErr) console.warn('organizers insert:', insErr.code, insErr.message);
+  // ถ้าบันทึกใบสมัครไม่สำเร็จ ต้องแจ้งจริง ห้ามโชว์หน้า "รออนุมัติ" หลอก
+  // (เดิมกลืน error → ได้บัญชี auth ที่ไม่มีแถวผู้จัด → ล็อกอินฝั่งผู้จัดไม่ได้)
+  if(insErr){
+    const dup = insErr.code === '23505';   // สมัครซ้ำ = ถือว่ามีใบสมัครอยู่แล้ว
+    if(!dup){
+      console.error('organizers insert failed:', insErr);
+      toast('บันทึกใบสมัครไม่สำเร็จ: ' + (insErr.message || insErr.code || 'ลองใหม่อีกครั้ง'));
+      if(btn){ btn.disabled=false; btn.textContent='ส่งใบสมัคร'; }
+      return;
+    }
+  }
 
   // 3. บันทึก localStorage + แสดงหน้า pending
   localStorage.setItem('ss_org_pending', JSON.stringify({ ref, org, email }));

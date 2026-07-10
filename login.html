@@ -197,7 +197,7 @@ async function doLogin(){
     }
   }
 
-  // ผู้จัด: บัญชีต้องเป็นผู้จัดจริง (มีข้อมูลใน organizers) ไม่งั้นถือว่ารหัสไม่ถูกต้อง
+  // ผู้จัด: ต้องมีข้อมูลใน organizers
   if(currentRole === 'organizer'){
     let org = null;
     try {
@@ -205,9 +205,12 @@ async function doLogin(){
       org = o;
     } catch(e){}
     if(!org){
-      await db.auth.signOut();
-      err.textContent = 'อีเมลหรือรหัสผ่านไม่ถูกต้อง (บัญชีนี้ไม่ใช่ผู้จัดทริป)';
+      // รหัสผ่านถูกต้องแล้ว แต่ยังไม่มีใบสมัครผู้จัด (เช่น สมัครค้างไว้)
+      // อย่า signOut — คงเซสชันไว้เพื่อให้กรอกใบสมัครต่อได้ (และ insert ผ่าน RLS)
+      err.textContent = 'บัญชีนี้ยังไม่มีข้อมูลผู้จัดทริป — กำลังพาไปกรอกใบสมัคร...';
+      err.style.color = '#7A5E1A'; err.style.background = '#FDF6E3';
       err.style.display = 'block';
+      setTimeout(() => { location.href = 'organizer.html?register=1'; }, 1400);
       return;
     }
     if(org.status === 'suspended'){
