@@ -322,6 +322,23 @@ footer{background:var(--bg-deep);color:var(--line-muted);padding:54px 0 30px;bor
 .tv-sechead h2{font-family:'Kanit',sans-serif;font-weight:800;font-size:clamp(26px,3.4vw,38px);color:#1A1A1A;}
 .tv-sechead p{color:var(--text-muted);font-size:16px;margin-top:10px;}
 .tv-trust{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;}
+/* contact */
+.contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;max-width:900px;margin:0 auto;}
+.contact-card{background:var(--card-light);border:1px solid #EADFC9;border-radius:18px;padding:26px 26px 28px;box-shadow:0 10px 26px rgba(60,42,20,.06);}
+.contact-ic{width:50px;height:50px;border-radius:14px;display:flex;align-items:center;justify-content:center;margin-bottom:15px;}
+.contact-ic svg{width:25px;height:25px;}
+.contact-ic.mail{background:#FBEDE3;color:var(--accent-trail);}
+.contact-ic.line{background:#E6F9EE;}
+.contact-card h4{font-family:'Kanit',sans-serif;font-weight:700;font-size:18px;color:var(--text-dark);margin-bottom:5px;}
+.contact-desc{color:var(--text-muted);font-size:13.5px;line-height:1.6;margin-bottom:16px;}
+.contact-val{font-weight:700;font-size:16px;color:var(--text-dark);word-break:break-all;}
+.contact-btn{display:inline-flex;align-items:center;gap:8px;background:var(--accent-trail);color:#fff;font-family:'Kanit',sans-serif;font-weight:700;font-size:14px;padding:11px 22px;border-radius:24px;margin-top:15px;text-decoration:none;}
+.contact-btn svg{width:16px;height:16px;}
+.line-wrap{display:flex;gap:20px;align-items:center;}
+.line-qr{width:120px;height:120px;border-radius:14px;background:#fff;border:1px solid #E6DCC6;padding:7px;flex-shrink:0;box-shadow:0 4px 12px rgba(0,0,0,.05);}
+.line-qr img{width:100%;height:100%;object-fit:contain;}
+@media(max-width:760px){.contact-grid{grid-template-columns:1fr;}}
+@media(max-width:420px){.line-wrap{flex-direction:column;align-items:flex-start;}}
 .tv-tcard{background:#E4DAC2;border-radius:20px;padding:26px 22px;}
 .tv-tcard .ic{width:50px;height:50px;border-radius:14px;background:#F3EEE2;display:flex;align-items:center;justify-content:center;margin-bottom:14px;}
 .tv-tcard .ic svg{width:25px;height:25px;color:var(--accent-trail);}
@@ -774,6 +791,37 @@ footer .foot-grid li a:hover{opacity:1;color:var(--accent-gold);}
   </div>
 </section>
 
+<!-- CONTACT -->
+<section class="tv-sec" id="contact">
+  <div class="wrap">
+    <div class="tv-sechead">
+      <h2 data-th="มีคำถาม? ทักเราได้เลย" data-en="Questions? Reach out anytime">มีคำถาม? ทักเราได้เลย</h2>
+      <p data-th="ทีมงาน SafeSummit พร้อมช่วยเรื่องการจอง การชำระเงิน และการสมัครเป็นผู้จัด" data-en="Our team helps with bookings, payments, and becoming an organizer">ทีมงาน SafeSummit พร้อมช่วยเรื่องการจอง การชำระเงิน และการสมัครเป็นผู้จัด</p>
+    </div>
+    <div class="contact-grid">
+      <div class="contact-card">
+        <div class="contact-ic mail"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 6L2 7"/></svg></div>
+        <h4 data-th="อีเมล" data-en="Email">อีเมล</h4>
+        <p class="contact-desc" data-th="ส่งรายละเอียด แนบไฟล์ หรือสอบถามเรื่องทั่วไป · ตอบกลับภายใน 24 ชั่วโมง" data-en="Send details or files, or ask a general question · reply within 24 hours">ส่งรายละเอียด แนบไฟล์ หรือสอบถามเรื่องทั่วไป · ตอบกลับภายใน 24 ชั่วโมง</p>
+        <div class="contact-val">safesummit00admin@gmail.com</div>
+        <a class="contact-btn" href="mailto:safesummit00admin@gmail.com"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 6L2 7"/></svg><span data-th="ส่งอีเมล" data-en="Send email">ส่งอีเมล</span></a>
+      </div>
+      <div class="contact-card">
+        <div class="contact-ic line"><svg viewBox="0 0 24 24" fill="#06C755"><path d="M12 2C6.48 2 2 5.64 2 10.12c0 4.01 3.55 7.37 8.35 8 .32.07.77.21.88.49.1.25.07.63.03.88l-.14.85c-.04.25-.2.98.86.53s5.7-3.36 7.78-5.75C21.3 13.9 22 12.13 22 10.12 22 5.64 17.52 2 12 2z"/></svg></div>
+        <h4 data-th="LINE Official" data-en="LINE Official">LINE Official</h4>
+        <p class="contact-desc" data-th="แชทสอบถามแบบเรียลไทม์ · รับข่าวทริปใหม่" data-en="Chat with us in real time · get new-trip updates">แชทสอบถามแบบเรียลไทม์ · รับข่าวทริปใหม่</p>
+        <div class="line-wrap">
+          <div class="line-qr"><img src="brand/line-qr.png" alt="LINE QR SafeSummit"></div>
+          <div>
+            <div style="font-size:13px;color:var(--text-muted);margin-bottom:9px;" data-th="สแกน QR หรือกดปุ่มด้านล่าง" data-en="Scan the QR or tap the button">สแกน QR หรือกดปุ่มด้านล่าง</div>
+            <a href="https://lin.ee/n1cUCPx" target="_blank" rel="noopener"><img src="https://scdn.line-apps.com/n/line_add_friends/btn/th.png" alt="เพิ่มเพื่อน" height="40" style="border:0;"></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <footer class="tv-news">
   <div class="wrap">
     <h2 data-th="รับข่าวทริปใหม่ก่อนใคร" data-en="Get new trips first">รับข่าวทริปใหม่ก่อนใคร</h2>
@@ -787,10 +835,18 @@ footer .foot-grid li a:hover{opacity:1;color:var(--accent-gold);}
       <div class="about">
         <a href="#top" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;"><img src="brand/safesummit-full-cream.png" alt="SafeSummit"></a>
         <p data-th="ตัวกลางจองทริปเดินป่าที่ตรวจสอบผู้จัดจริง ก่อนให้เปิดขายทริป" data-en="A trekking marketplace that verifies every organizer before they can sell trips.">ตัวกลางจองทริปเดินป่าที่ตรวจสอบผู้จัดจริง ก่อนให้เปิดขายทริป</p>
+        <div style="margin-top:14px;display:flex;flex-direction:column;gap:8px;">
+          <a href="https://lin.ee/n1cUCPx" target="_blank" rel="noopener" style="display:inline-block;width:fit-content;">
+            <img src="https://scdn.line-apps.com/n/line_add_friends/btn/th.png" alt="เพิ่มเพื่อน LINE" height="38" style="border:0;">
+          </a>
+          <a href="mailto:safesummit00admin@gmail.com" style="font-size:13px;opacity:.85;display:inline-flex;align-items:center;gap:7px;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 6L2 7"/></svg>safesummit00admin@gmail.com
+          </a>
+        </div>
       </div>
       <div class="col"><h5 data-th="สำหรับนักเดินป่า" data-en="For Hikers">สำหรับนักเดินป่า</h5><ul><li><a href="#travelers" data-th="ค้นหาทริป" data-en="Search trips">ค้นหาทริป</a></li><li><a href="#" onclick="showAuth('register','customer',event)" data-th="วิธีจอง" data-en="How to book">วิธีจอง</a></li><li><a href="#" onclick="return false" data-th="นโยบายคืนเงิน" data-en="Refund policy">นโยบายคืนเงิน</a></li></ul></div>
       <div class="col"><h5 data-th="สำหรับผู้จัด" data-en="For Organizers">สำหรับผู้จัด</h5><ul><li><a href="organizer.html?register=1" data-th="สมัครเป็นผู้จัด" data-en="Become an organizer">สมัครเป็นผู้จัด</a></li><li><a href="#" onclick="return false" data-th="ขั้นตอนยืนยันตัวตน" data-en="Verification steps">ขั้นตอนยืนยันตัวตน</a></li><li><a href="#" onclick="return false" data-th="ค่าคอมมิชชั่น" data-en="Commission fees">ค่าคอมมิชชั่น</a></li></ul></div>
-      <div class="col"><h5 data-th="บริษัท" data-en="Company">บริษัท</h5><ul><li><a href="#" onclick="return false" data-th="เกี่ยวกับเรา" data-en="About us">เกี่ยวกับเรา</a></li><li><a href="#" onclick="return false" data-th="ติดต่อเรา" data-en="Contact">ติดต่อเรา</a></li><li><a href="#" onclick="return false" data-th="ข้อกำหนดการใช้งาน" data-en="Terms of use">ข้อกำหนดการใช้งาน</a></li></ul></div>
+      <div class="col"><h5 data-th="บริษัท" data-en="Company">บริษัท</h5><ul><li><a href="#" onclick="return false" data-th="เกี่ยวกับเรา" data-en="About us">เกี่ยวกับเรา</a></li><li><a href="#contact" data-th="ติดต่อเรา" data-en="Contact">ติดต่อเรา</a></li><li><a href="#" onclick="return false" data-th="ข้อกำหนดการใช้งาน" data-en="Terms of use">ข้อกำหนดการใช้งาน</a></li></ul></div>
     </div>
     <div class="tv-copy">© 2569 SafeSummit · <span data-th="ออกแบบเพื่อใช้เป็นต้นแบบนำเสนอแนวคิดแพลตฟอร์ม" data-en="Built as a concept prototype for the platform idea">ออกแบบเพื่อใช้เป็นต้นแบบนำเสนอแนวคิดแพลตฟอร์ม</span></div>
   </div>
