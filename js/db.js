@@ -208,7 +208,7 @@ const Bookings = {
   // ผู้จัดดูรายชื่อผู้จองของทริปตัวเอง (พร้อมชื่อเล่น เพื่อทำแผนผังที่นั่ง)
   async getByTrip(tripId) {
     const { data, error } = await db.from('bookings').select(`
-      id, booking_ref, seats, seat_numbers, note, status, pay_status, total_price, booked_at,
+      id, booking_ref, seats, seat_numbers, note, status, pay_status, total_price, paid_amount, declared_amount, booked_at,
       users ( full_name, nickname, phone )
     `).eq('trip_id', tripId).order('booked_at', { ascending: true });
     if (error) throw error;

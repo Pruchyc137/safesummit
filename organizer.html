@@ -1752,8 +1752,19 @@ async function openManifest(tripId){
   renderMfTable();
 }
 
+// map สถานะการชำระ (ให้ตรงกับ Admin)
+const MF_PAY = {
+  verified:{t:'✓ ชำระครบ',c:'#2E7D32',bg:'#EAF6EE'},
+  partial:{t:'● จ่ายมัดจำ',c:'#B26A16',bg:'#FBF0E2'},
+  pending_review:{t:'⏳ รอตรวจสอบ',c:'#B26A16',bg:'#FBF0E2'},
+  rejected:{t:'✕ ปฏิเสธ',c:'#C0392B',bg:'#FDEEEC'},
+  unpaid:{t:'ยังไม่ชำระ',c:'#8B7E6B',bg:'#F0E9D8'},
+};
+function mfPayInfo(ps){ return MF_PAY[ps]||MF_PAY.unpaid; }
+function mfIsPaid(ps){ return ps==='verified'||ps==='partial'; }
+
 function renderMfStat(t){
-  const paid=_mfBookings.filter(b=>b.pay_status==='paid').reduce((s,b)=>s+(+b.total_price||0),0);
+  const paid=_mfBookings.reduce((s,b)=>s+(mfIsPaid(b.pay_status)?(+b.paid_amount||0):0),0);
   const seatsBooked=_mfBookings.reduce((s,b)=>s+(b.seats||0),0);
   const totalSeats=_mfVanCount*9;
   document.getElementById('mf-stat').innerHTML=`
@@ -1774,7 +1785,8 @@ function renderMfVan(){
     const cell=_mfSeatMap[`${_mfActiveVan}-${s}`];
     if(cell){
       const nm=mfDisplayName(cell.booking.users);
-      grid+=`<div style="width:100%;height:60px;border-radius:11px;background:#E2672B;border:2px solid #E2672B;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Kanit';font-weight:700;font-size:15px;">${s}<span style="font-family:'Sarabun';font-weight:600;font-size:9px;max-width:88px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${nm}</span></div>`;
+      const bg=(cell.booking.pay_status==='verified')?'#E2672B':'#E8B06A'; // ยืนยันแล้ว=ส้มเข้ม, รอตรวจ/มัดจำ=ส้มอ่อน
+      grid+=`<div style="width:100%;height:60px;border-radius:11px;background:${bg};border:2px solid ${bg};color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Kanit';font-weight:700;font-size:15px;">${s}<span style="font-family:'Sarabun';font-weight:600;font-size:9px;max-width:88px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${nm}</span></div>`;
     } else {
       grid+=`<div style="width:100%;height:60px;border-radius:11px;background:#fff;border:2px dashed #CBBE9F;color:#BEB197;display:flex;align-items:center;justify-content:center;font-family:'Kanit';font-weight:700;font-size:15px;">${s}</div>`;
     }
@@ -1805,9 +1817,8 @@ function renderMfTable(){
     return va-vb || sa-sb;
   }).map(k=>{
     const c=_mfSeatMap[k]; const b=c.booking; const u=b.users||{};
-    const pay = b.pay_status==='paid'
-      ? '<span style="background:#EAF4EA;color:#2E7D32;font-family:\'Kanit\';font-weight:700;font-size:10.5px;padding:2px 8px;border-radius:10px;">ชำระแล้ว</span>'
-      : '<span style="background:#FBF0E2;color:#B26A16;font-family:\'Kanit\';font-weight:700;font-size:10.5px;padding:2px 8px;border-radius:10px;">รอชำระ/มัดจำ</span>';
+    const pi = mfPayInfo(b.pay_status);
+    const pay = `<span style="background:${pi.bg};color:${pi.c};font-family:'Kanit';font-weight:700;font-size:10.5px;padding:2px 8px;border-radius:10px;">${pi.t}</span>`;
     const vbg = c.van===0?'#E2672B':'#B4611F';
     return `<tr>
       <td style="padding:10px;border-bottom:1px solid #F0E9D8;"><span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:7px;background:${vbg};color:#fff;font-family:'Kanit';font-weight:800;font-size:12px;">${c.seatNo}</span> <span style="font-size:10px;color:#A99B85;">ค${c.van+1}</span></td>
