@@ -299,6 +299,10 @@ h1,h2,h3{font-family:'Kanit',sans-serif;}
       ผู้จัดทริป
       <span class="badge" id="sideOrgs">2</span>
     </button>
+    <button class="nav-item" onclick="showPage('orgsum',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="12" y="8" width="3" height="10"/><rect x="17" y="5" width="3" height="13"/></svg>
+      สรุปผู้จัด
+    </button>
     <button class="nav-item" onclick="showPage('customers',this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
       ลูกค้า
@@ -340,7 +344,10 @@ h1,h2,h3{font-family:'Kanit',sans-serif;}
         <p>สรุปข้อมูลและกิจกรรมล่าสุดของแพลตฟอร์ม SafeSummit</p>
       </div>
 
+      <p style="font-size:12.5px;color:var(--text-muted);margin:-6px 0 12px;">คลิกการ์ดเพื่อดูรายชื่อ/รายการที่ระเบิดออกมาด้านล่าง (ตัวเลขตรงกับการจองจริงในระบบ)</p>
       <div class="kpis" id="ovKpis"></div>
+
+      <div id="ovDrill"></div>
 
       <div class="ov-grid">
         <!-- Recent trips -->
@@ -371,6 +378,25 @@ h1,h2,h3{font-family:'Kanit',sans-serif;}
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- ======== ORGANIZER SUMMARY ======== -->
+    <div class="page" id="page-orgsum">
+      <div class="page-head">
+        <h1>สรุปผู้จัด</h1>
+        <p>ทริปที่จัด · เต็ม/ยังไม่เต็ม/จบแล้ว · ยอดที่ลูกค้าโอนแล้ว และยอดค้างเก็บ — เลือกกรองรายผู้จัดได้</p>
+      </div>
+      <div class="toolbar">
+        <div class="toolbar-left" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <label style="font-size:13px;color:var(--text-muted);font-weight:600;">ผู้จัด:</label>
+          <select id="orgsumFilter" onchange="renderOrgSummary()" style="height:36px;padding:0 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--card);color:var(--text);cursor:pointer;min-width:220px;">
+            <option value="">— ผู้จัดทั้งหมด —</option>
+          </select>
+        </div>
+        <button class="btn btn-ghost" onclick="_payLoaded=false;ensurePayData().then(renderOrgSummary)">รีเฟรช</button>
+      </div>
+      <div class="kpis" id="osKpis"></div>
+      <div id="osBody"></div>
     </div>
 
     <!-- ======== TRIPS ======== -->
@@ -1013,6 +1039,7 @@ function showPage(key, el){
   document.getElementById('page-'+key).classList.add('active');
   if(el) el.classList.add('active');
   if(key==='overview') renderOverview();
+  if(key==='orgsum'){ ensurePayData().then(renderOrgSummary); renderOrgSummary(); }
   if(key==='trips') renderTrips();
   if(key==='organizers'){ renderOrgs(); loadOrgsSecure(); }
   if(key==='customers') loadCustomersSecure();
@@ -1023,7 +1050,14 @@ function showPage(key, el){
 }
 
 // ===== PAYMENTS REVIEW (Phase 5) =====
-let ALL_PAY = [], _apBooking = null, _payTab = 'pending_review';
+let ALL_PAY = [], _apBooking = null, _payTab = 'pending_review', _payLoaded = false;
+// โหลดข้อมูลการชำระเงินครั้งเดียว (ใช้ร่วมกันระหว่าง Dashboard / สรุปผู้จัด / หน้าตรวจสลิป)
+async function ensurePayData(){
+  if(_payLoaded) return true;
+  if(!getAdminKey()) return false;
+  try { const { bookings } = await adminApi('list_all_payments'); ALL_PAY = bookings||[]; _payLoaded = true; return true; }
+  catch(e){ if(e.code===401) sessionStorage.removeItem('ss_admin_key'); return false; }
+}
 const PAY_TABS = [
   {key:'pending_review', label:'รอตรวจสอบ'},
   {key:'verified',       label:'ชำระครบ'},
@@ -1045,7 +1079,7 @@ async function loadPayments(force){
   rows.innerHTML='<tr><td colspan="10" style="text-align:center;padding:30px;color:var(--text-muted)">กำลังโหลด...</td></tr>';
   try {
     const { bookings } = await adminApi('list_all_payments');
-    ALL_PAY = bookings||[];
+    ALL_PAY = bookings||[]; _payLoaded = true;
     renderPayTabs(); renderPayments();
   } catch(e){
     if(e.code===401){ sessionStorage.removeItem('ss_admin_key'); _afterKeyAction='payments'; openModal('modalAdminKey'); return; }
@@ -1358,14 +1392,89 @@ async function doMarkGroupCreated(){
 }
 
 // ===== OVERVIEW =====
+// ===== helpers ร่วม (Dashboard + สรุปผู้จัด) =====
+let _ovDrill = null;
+function tripById(id){ return TRIPS.find(t=>String(t.id)===String(id)); }
+function tripIsFull(t){ return (t.cap||0)>0 && (t.booked||0)>=(t.cap||0); }
+function activeTripsList(){ return TRIPS.filter(t=>!['cancelled','draft'].includes(t.status)); }
+function custName(b){ const u=b.users||{}; return (u.nickname?u.nickname+' · ':'')+(u.full_name||'–'); }
+function payBadge(ps){ const st=PAY_STATUS[ps]||PAY_STATUS.unpaid; return `<span style="font-family:'Kanit',sans-serif;font-weight:700;font-size:11px;padding:2px 9px;border-radius:12px;background:${st.bg};color:${st.c};white-space:nowrap">${st.t}</span>`; }
+
 function renderOverview(){
-  const totalRevenue = TRIPS.filter(t=>t.status==='completed').reduce((s,t)=>s+tripRevenue(t),0);
-  const pending = ORGS.filter(o=>o.status==='pending').length;
-  document.getElementById('ovKpis').innerHTML = `
-    <div class="kpi k-trip"><div class="label">ทริปทั้งหมด</div><div class="val">${TRIPS.length}</div><div class="sub">เปิดรับจอง ${TRIPS.filter(t=>t.status==='open').length} ทริป</div></div>
-    <div class="kpi k-org"><div class="label">ผู้จัดทริป</div><div class="val">${ORGS.length}</div><div class="sub"><span class="delta up">รออนุมัติ ${pending} ราย</span></div></div>
-    <div class="kpi k-money"><div class="label">รายได้รวม (ปิดแล้ว)</div><div class="val">${fmtMoney(totalRevenue)}</div><div class="sub">จาก ${TRIPS.filter(t=>t.status==='completed').length} ทริปที่จบ</div></div>
-    <div class="kpi k-user"><div class="label">นักเดินป่ารวม</div><div class="val">${TRIPS.reduce((s,t)=>s+(t.booked||0),0)}</div><div class="sub">จองทุกทริปรวมกัน</div></div>`;
+  // โหลดข้อมูลการชำระเงินแบบ lazy แล้ว re-render ให้ตัวเลขตรงกับการจองจริง
+  ensurePayData().then(loaded=>{ if(loaded) drawOverview(); });
+  drawOverview();
+}
+
+function ovDrill(key){
+  const payKeys=['paid-trips','verified','partial','pending','received'];
+  if(payKeys.includes(key) && !getAdminKey()){ _afterKeyAction='overview'; openModal('modalAdminKey'); return; }
+  _ovDrill = (_ovDrill===key ? null : key);
+  drawOverview();
+}
+
+function renderDrill(){
+  const el=document.getElementById('ovDrill'); if(!el) return;
+  const key=_ovDrill;
+  if(!key){ el.innerHTML=''; return; }
+  let title='', head='', rows='', cols=6;
+  if(key==='all-trips'||key==='full'||key==='open'||key==='done'){
+    const base=activeTripsList();
+    const list = key==='all-trips'?base
+      : key==='full'?base.filter(tripIsFull)
+      : key==='open'?base.filter(t=>t.status==='open'&&!tripIsFull(t))
+      : base.filter(t=>t.status==='completed');
+    title = key==='all-trips'?'ทริปทั้งหมด':key==='full'?'ทริปเต็มแล้ว':key==='open'?'ทริปยังไม่เต็ม':'ทริปที่จัดจบแล้ว';
+    head='<th>ทริป</th><th>ผู้จัด</th><th>วันเดินทาง</th><th>ที่นั่ง</th><th>สถานะ</th>'; cols=5;
+    rows=list.map(t=>`<tr><td><div class="d-name">${tripName(t)}</div></td><td class="d-muted">${t.org}</td><td class="d-muted">${fmtDate(t.date)}</td><td style="font-family:'Bai Jamjuree',monospace">${t.booked||0}/${t.cap||0}</td><td><span class="pill ${t.status}">${TRIP_STATUS_LABELS[t.status]||t.status}</span></td></tr>`).join('');
+  } else if(key==='paid-trips'){
+    const map={};
+    ALL_PAY.filter(b=>['verified','partial'].includes(b.pay_status)).forEach(b=>{ (map[b.trip_id]=map[b.trip_id]||[]).push(b); });
+    title='ทริปที่มีลูกค้าโอนแล้ว'; head='<th>ทริป</th><th>ผู้จัด</th><th>คนโอน</th><th>รับจริง</th><th>ค้างเก็บ</th>'; cols=5;
+    rows=Object.keys(map).map(tid=>{ const t=tripById(tid); const bs=map[tid];
+      const paid=bs.reduce((s,b)=>s+(+b.paid_amount||0),0);
+      const out=bs.reduce((s,b)=>s+Math.max(0,(+b.total_price||0)-(+b.paid_amount||0)),0);
+      return `<tr><td><div class="d-name">${t?tripName(t):(bs[0].trips?.name_th||'–')}</div></td><td class="d-muted">${t?t.org:'–'}</td><td>${bs.length} คน</td><td style="font-family:'Bai Jamjuree',monospace">${fmtMoney(paid)}</td><td style="font-family:'Bai Jamjuree',monospace;color:var(--accent-trail)">${fmtMoney(out)}</td></tr>`; }).join('');
+  } else {
+    const titles={verified:'ลูกค้าโอนเต็ม (ชำระครบ)',partial:'ลูกค้าโอนมัดจำ',pending:'รอตรวจสลิป',received:'รายการที่รับเงินแล้วทั้งหมด'};
+    const list = key==='received'?ALL_PAY.filter(b=>['verified','partial'].includes(b.pay_status))
+      : key==='pending'?ALL_PAY.filter(b=>b.pay_status==='pending_review')
+      : ALL_PAY.filter(b=>b.pay_status===key);
+    title=titles[key]; head='<th>ลูกค้า</th><th>ทริป</th><th>ผู้จัด</th><th>ยอดต้องจ่าย</th><th>รับจริง</th><th>สถานะ</th>'; cols=6;
+    rows=list.map(b=>{ const t=tripById(b.trip_id);
+      return `<tr><td><div class="d-name">${custName(b)}</div><div class="d-sub">${(b.users||{}).phone||''}</div></td><td class="d-muted">${t?tripName(t):(b.trips?.name_th||'–')}</td><td class="d-muted">${t?t.org:'–'}</td><td style="font-family:'Bai Jamjuree',monospace">${fmtMoney(b.total_price)}</td><td style="font-family:'Bai Jamjuree',monospace">${b.paid_amount!=null?fmtMoney(b.paid_amount):'–'}</td><td>${payBadge(b.pay_status)}</td></tr>`; }).join('');
+  }
+  const n=(rows.match(/<tr>/g)||[]).length;
+  el.innerHTML=`<div class="panel" style="margin-bottom:18px;border:1.5px solid var(--accent-trail)">
+    <div class="panel-head"><h3>${title} <span style="color:var(--text-muted);font-weight:400;font-size:14px">(${n})</span></h3>
+      <button class="btn btn-ghost" onclick="_ovDrill=null;drawOverview()">✕ ปิด</button></div>
+    <div class="tscroll"><table><thead><tr>${head}</tr></thead><tbody>${rows||`<tr><td colspan="${cols}" style="text-align:center;padding:22px;color:var(--text-muted)">ไม่มีข้อมูล</td></tr>`}</tbody></table></div></div>`;
+}
+
+function drawOverview(){
+  const active = activeTripsList();
+  const fullTrips = active.filter(tripIsFull);
+  const openTrips = active.filter(t=>t.status==='open'&&!tripIsFull(t));
+  const doneTrips = active.filter(t=>t.status==='completed');
+  const verified = ALL_PAY.filter(b=>b.pay_status==='verified');
+  const partial  = ALL_PAY.filter(b=>b.pay_status==='partial');
+  const pendingP = ALL_PAY.filter(b=>b.pay_status==='pending_review');
+  const confirmed = [...verified,...partial];
+  const paidTripIds = new Set(confirmed.map(b=>b.trip_id));
+  const received = confirmed.reduce((s,b)=>s+(+b.paid_amount||0),0);
+  const outstanding = confirmed.reduce((s,b)=>s+Math.max(0,(+b.total_price||0)-(+b.paid_amount||0)),0);
+  const locked = !getAdminKey();
+  const card=(key,label,val,sub,cls)=>`<div class="kpi ${cls}" style="cursor:pointer;${_ovDrill===key?'outline:2px solid var(--accent-trail);outline-offset:2px;':''}" onclick="ovDrill('${key}')"><div class="label">${label}</div><div class="val">${val}</div><div class="sub">${sub}</div></div>`;
+  document.getElementById('ovKpis').innerHTML =
+    card('all-trips','ทริปทั้งหมด',active.length,`เปิดรับ ${openTrips.length} · เต็ม ${fullTrips.length} · จบ ${doneTrips.length}`,'k-trip')+
+    card('full','ทริปเต็มแล้ว',fullTrips.length,'กดดูรายการ','k-org')+
+    card('open','ยังไม่เต็ม',openTrips.length,'ยังรับจองได้','k-user')+
+    card('done','จัดจบแล้ว',doneTrips.length,'ทริปที่เดินทางแล้ว','k-trip')+
+    card('paid-trips','ทริปมีคนโอนแล้ว',locked?'🔒':paidTripIds.size,locked?'ใส่รหัสแอดมิน':'กดดูรายทริป','k-money')+
+    card('verified','ลูกค้าโอนเต็ม',locked?'🔒':verified.length,locked?'ใส่รหัสแอดมิน':'ชำระครบ','k-org')+
+    card('partial','ลูกค้าโอนมัดจำ',locked?'🔒':partial.length,locked?'ใส่รหัสแอดมิน':'จ่ายบางส่วน','k-user')+
+    card('received','ยอดรับจริงรวม',locked?'🔒':fmtMoney(received),locked?'ใส่รหัสแอดมิน':`ค้างเก็บ ${fmtMoney(outstanding)} · รอตรวจ ${pendingP.length}`,'k-money');
+  renderDrill();
 
   // recent 5 trips
   const recent = [...TRIPS].sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,5);
@@ -1402,9 +1511,88 @@ function renderOverview(){
     <div class="tier-track tier-unverified"><i style="width:${Math.round(unver/total*100)}%"></i></div>`;
 
   // sidebar badge pending
-  document.getElementById('sideOrgs').textContent = pending||'';
-  document.getElementById('sideOrgs').style.display = pending ? '' : 'none';
+  const pendingOrgs = ORGS.filter(o=>o.status==='pending').length;
+  document.getElementById('sideOrgs').textContent = pendingOrgs||'';
+  document.getElementById('sideOrgs').style.display = pendingOrgs ? '' : 'none';
   document.getElementById('sideTrips').textContent = TRIPS.length;
+}
+
+// ===== สรุปผู้จัด (per-organizer) =====
+function renderOrgSummary(){
+  const sel=document.getElementById('orgsumFilter'); if(!sel) return;
+  const orgNames=[...new Set(TRIPS.map(t=>t.org).filter(n=>n&&n!=='–'))].sort((a,b)=>a.localeCompare(b,'th'));
+  const cur=sel.value;
+  sel.innerHTML='<option value="">— ผู้จัดทั้งหมด —</option>'+orgNames.map(n=>`<option value="${n}"${cur===n?' selected':''}>${n}</option>`).join('');
+  const filter=sel.value;
+  const locked=!getAdminKey();
+
+  // จับกลุ่มทริปตามผู้จัด
+  const G={};
+  activeTripsList().forEach(t=>{
+    if(filter && t.org!==filter) return;
+    const g=G[t.org]=G[t.org]||{org:t.org,trips:[],full:0,open:0,done:0,custs:0,received:0,outstanding:0};
+    g.trips.push(t);
+    if(t.status==='completed') g.done++;
+    else if(tripIsFull(t)) g.full++;
+    else if(t.status==='open') g.open++;
+  });
+  // รวมยอดเงินจากการชำระจริง (verified/partial)
+  ALL_PAY.filter(b=>['verified','partial'].includes(b.pay_status)).forEach(b=>{
+    const t=tripById(b.trip_id); if(!t) return; if(filter && t.org!==filter) return;
+    const g=G[t.org]; if(!g) return;
+    g.custs++; g.received+=(+b.paid_amount||0);
+    g.outstanding+=Math.max(0,(+b.total_price||0)-(+b.paid_amount||0));
+  });
+  const groups=Object.values(G).sort((a,b)=>b.trips.length-a.trips.length);
+
+  // KPI รวมตามที่กรอง
+  const T={orgs:groups.length,trips:0,full:0,open:0,done:0,custs:0,received:0,outstanding:0};
+  groups.forEach(g=>{ T.trips+=g.trips.length; T.full+=g.full; T.open+=g.open; T.done+=g.done; T.custs+=g.custs; T.received+=g.received; T.outstanding+=g.outstanding; });
+  const kpi=(label,val,sub,cls)=>`<div class="kpi ${cls}"><div class="label">${label}</div><div class="val">${val}</div><div class="sub">${sub}</div></div>`;
+  document.getElementById('osKpis').innerHTML=
+    kpi('ผู้จัด'+(filter?' (ที่เลือก)':'ทั้งหมด'),T.orgs+' ราย',filter||'ทุกผู้จัด','k-org')+
+    kpi('ทริปที่จัด',T.trips,`เต็ม ${T.full} · ยังไม่เต็ม ${T.open} · จบ ${T.done}`,'k-trip')+
+    kpi('ลูกค้าโอนแล้ว',locked?'🔒':T.custs+' ราย',locked?'ใส่รหัสแอดมิน':'verified+มัดจำ','k-user')+
+    kpi('รับจริงรวม',locked?'🔒':fmtMoney(T.received),locked?'ใส่รหัสแอดมิน':`ค้างเก็บ ${fmtMoney(T.outstanding)}`,'k-money');
+
+  // ตารางต่อผู้จัด
+  const orgRows=groups.map(g=>`<tr>
+    <td><div class="d-name">${g.org}</div></td>
+    <td style="font-family:'Bai Jamjuree',monospace">${g.trips.length}</td>
+    <td>${g.full}</td><td>${g.open}</td><td>${g.done}</td>
+    <td>${locked?'🔒':g.custs}</td>
+    <td style="font-family:'Bai Jamjuree',monospace">${locked?'🔒':fmtMoney(g.received)}</td>
+    <td style="font-family:'Bai Jamjuree',monospace;color:var(--accent-trail)">${locked?'🔒':fmtMoney(g.outstanding)}</td>
+  </tr>`).join('');
+
+  // ถ้าเลือกผู้จัดคนเดียว → โชว์รายทริปแบบละเอียด
+  let detail='';
+  if(filter && groups.length){
+    const g=groups[0];
+    const trs=g.trips.sort((a,b)=>(b.date||'').localeCompare(a.date||'')).map(t=>{
+      const bs=ALL_PAY.filter(b=>String(b.trip_id)===String(t.id)&&['verified','partial'].includes(b.pay_status));
+      const paid=bs.reduce((s,b)=>s+(+b.paid_amount||0),0);
+      const out=bs.reduce((s,b)=>s+Math.max(0,(+b.total_price||0)-(+b.paid_amount||0)),0);
+      return `<tr>
+        <td><div class="d-name">${tripName(t)}</div></td>
+        <td class="d-muted">${fmtDate(t.date)}</td>
+        <td style="font-family:'Bai Jamjuree',monospace">${t.booked||0}/${t.cap||0}</td>
+        <td><span class="pill ${t.status}">${TRIP_STATUS_LABELS[t.status]||t.status}</span></td>
+        <td>${locked?'🔒':bs.length}</td>
+        <td style="font-family:'Bai Jamjuree',monospace">${locked?'🔒':fmtMoney(paid)}</td>
+        <td style="font-family:'Bai Jamjuree',monospace;color:var(--accent-trail)">${locked?'🔒':fmtMoney(out)}</td>
+      </tr>`;
+    }).join('');
+    detail=`<div class="panel"><div class="panel-head"><h3>รายทริปของ ${filter}</h3></div>
+      <div class="tscroll"><table><thead><tr><th>ทริป</th><th>วันเดินทาง</th><th>ที่นั่ง</th><th>สถานะ</th><th>คนโอน</th><th>รับจริง</th><th>ค้างเก็บ</th></tr></thead>
+      <tbody>${trs||'<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text-muted)">ไม่มีทริป</td></tr>'}</tbody></table></div></div>`;
+  }
+
+  document.getElementById('osBody').innerHTML=`
+    <div class="panel" style="margin-bottom:18px"><div class="panel-head"><h3>ภาพรวมรายผู้จัด <span style="color:var(--text-muted);font-weight:400;font-size:14px">(${groups.length} ราย)</span></h3></div>
+    <div class="tscroll"><table><thead><tr><th>ผู้จัด</th><th>ทริป</th><th>เต็ม</th><th>ยังไม่เต็ม</th><th>จบแล้ว</th><th>คนโอน</th><th>รับจริง</th><th>ค้างเก็บ</th></tr></thead>
+    <tbody>${orgRows||'<tr><td colspan="8" style="text-align:center;padding:22px;color:var(--text-muted)">ไม่มีข้อมูล</td></tr>'}</tbody></table></div></div>
+    ${detail}`;
 }
 
 // ===== TRIPS =====
@@ -1798,6 +1986,8 @@ async function submitAdminKey(){
   else if(_afterKeyAction==='groups') await loadGroupReady(true);
   else if(_afterKeyAction==='trips') renderTrips();
   else if(_afterKeyAction==='organizers') await loadOrgsSecure();
+  else if(_afterKeyAction==='overview'){ _payLoaded=false; await ensurePayData(); drawOverview(); }
+  else if(_afterKeyAction==='orgsum'){ _payLoaded=false; await ensurePayData(); renderOrgSummary(); }
   else await loadCustomersSecure(true);
   _afterKeyAction='customers';
 }
