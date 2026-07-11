@@ -1866,12 +1866,36 @@ function tripDaysFrom(t){
 function itinDayLabel(d){ return d===0 ? '🚌 วันเดินทางไป (ก่อนถึงจุดหมาย)' : ('วันที่ '+d); }
 function itinDayList(){ const a=[0]; for(let d=1;d<=_itinDays;d++) a.push(d); return a; }
 function defaultItin(days){
-  const rows=[{day:0,time:'20:00',desc:'นัดพบที่จุดนัดพบ ออกเดินทางสู่จุดหมาย'}];
-  for(let d=1;d<=days;d++){
-    rows.push({day:d,time:'07:00',desc:'เริ่มกิจกรรมช่วงเช้า'});
-    rows.push({day:d,time:'12:00',desc:'พักรับประทานอาหารกลางวัน'});
-    rows.push({day:d,time:'18:00',desc:'กิจกรรมช่วงเย็น / พักผ่อน'});
+  // ทริปวันเดียว (ไป-กลับในวันเดียว ไม่มีวันเดินทางก่อน)
+  if(days<=1) return [
+    {day:1,time:'06:00',desc:'รวมตัวที่จุดนัดพบ ลงทะเบียนรับอุปกรณ์'},
+    {day:1,time:'09:00',desc:'เริ่มเดินเส้นทางป่า แวะจุดสำคัญและถ่ายรูปจุดชมวิว'},
+    {day:1,time:'12:00',desc:'รับประทานอาหารกลางวันกลางป่า'},
+    {day:1,time:'15:00',desc:'เดินทางกลับ มุ่งหน้ากรุงเทพฯ'},
+    {day:1,time:'20:00',desc:'ถึงจุดนัดพบ แยกย้ายกลับบ้าน'},
+  ];
+  // ทริปค้างคืน: วันเดินทางไป + วันแรก(เดินขึ้น/แคมป์) + วันกลาง + วันสุดท้าย(เดินลง/ถึงกรุงเทพ)
+  const rows=[
+    {day:0,time:'20:00',desc:'รถออกจากจุดนัดพบกรุงเทพฯ มุ่งหน้าจังหวัดปลายทาง'},
+    {day:1,time:'05:00',desc:'ถึงจังหวัด พักรอเตรียมอุปกรณ์ รับประทานอาหารเช้า'},
+    {day:1,time:'08:00',desc:'เริ่มเดินขึ้นเส้นทาง ผ่านป่าและจุดชมวิวสำคัญ'},
+    {day:1,time:'15:00',desc:'ถึงจุดกางเต็นท์ กางเต็นท์ พักผ่อน'},
+    {day:1,time:'18:30',desc:'รับประทานอาหารเย็น พักผ่อนรอบกองไฟ'},
+  ];
+  for(let d=2; d<days; d++){
+    rows.push(
+      {day:d,time:'05:30',desc:'ตื่นชมพระอาทิตย์ขึ้น รับประทานอาหารเช้า'},
+      {day:d,time:'10:00',desc:'เดินสำรวจเส้นทาง / ยอดดอย ชมวิว ถ่ายรูป'},
+      {day:d,time:'13:00',desc:'รับประทานอาหารกลางวัน'},
+      {day:d,time:'17:00',desc:'กลับจุดพักแรม รับประทานอาหารเย็น'}
+    );
   }
+  rows.push(
+    {day:days,time:'06:00',desc:'ตื่น รับประทานอาหารเช้า เก็บเต็นท์และอุปกรณ์'},
+    {day:days,time:'07:30',desc:'เริ่มเดินลงเส้นทาง'},
+    {day:days,time:'13:00',desc:'ถึงด้านล่าง รับประทานอาหารกลางวัน ขึ้นรถกลับ'},
+    {day:days,time:'00:00',desc:'ถึงกรุงเทพฯ (ประมาณเที่ยงคืน–ตี 3 แล้วแต่จังหวัด)'}
+  );
   return rows;
 }
 function openItinerary(id){
@@ -1924,12 +1948,15 @@ async function saveItineraryEdit(){
   for(const d of itinDayList()){
     const rows=_itinRows.filter(r=>r.day===d && (r.time||(r.desc||'').trim()));
     let prev=-1;
-    for(const r of rows){
+    for(let i=0;i<rows.length;i++){
+      const r=rows[i];
       const mm=itinTimeMin(r.time);
       if(!r.time || isNaN(mm)){ showErr(`⚠️ ${itinDayLabel(d)}: กรุณากรอกเวลาให้ครบทุกช่วง`); return; }
       if(!(r.desc||'').trim()){ showErr(`⚠️ ${itinDayLabel(d)}: กรุณากรอกรายละเอียดให้ครบ`); return; }
-      if(mm<prev){ showErr(`⚠️ เวลาไม่ถูกต้อง — ${itinDayLabel(d)} เวลา <b>${r.time}</b> เรียงย้อนกลับ กรุณาเรียงตามเวลา`); return; }
-      prev=mm;
+      // 00:00 ที่ไม่ใช่ช่วงแรกของวัน = เที่ยงคืน (ปลายวัน) เช่น "ถึงกรุงเทพฯ"
+      const eff = (mm===0 && i>0) ? 1440 : mm;
+      if(eff<prev){ showErr(`⚠️ เวลาไม่ถูกต้อง — ${itinDayLabel(d)} เวลา <b>${r.time}</b> เรียงย้อนกลับ กรุณาเรียงตามเวลา`); return; }
+      prev=eff;
     }
   }
   const rows=all.map(r=>({day:r.day,time:r.time,desc:(r.desc||'').trim()}));
