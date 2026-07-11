@@ -1842,9 +1842,8 @@ function renderMfTable(){
       <button class="btn btn-ghost" onclick="document.getElementById('modalItin').style.display='none'">✕ ปิด</button>
     </div>
     <div id="itin-err" style="display:none;background:#FDEEEC;color:#C0392B;border-radius:10px;padding:10px 13px;font-size:13px;margin:12px 0;"></div>
-    <div style="margin:16px 0 10px;display:flex;gap:8px;flex-wrap:wrap;">
-      <button class="btn btn-ghost btn-sm" type="button" onclick="itinAddRow()">+ เพิ่มรายการ</button>
-      <button class="btn btn-ghost btn-sm" type="button" onclick="itinLoadDefault()">โหลดกำหนดการเริ่มต้น</button>
+    <div style="margin:16px 0 12px;display:flex;justify-content:flex-end;">
+      <button class="btn btn-ghost btn-sm" type="button" onclick="itinLoadDefault()">↻ โหลดกำหนดการเริ่มต้น</button>
     </div>
     <div id="itin-rows"></div>
     <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;">
@@ -1863,10 +1862,13 @@ function tripDaysFrom(t){
   const m=(t.name_th||t.name?.th||'').match(/(\d+)\s*วัน/);
   return m?Math.max(1,+m[1]):1;
 }
+// day 0 = วันเดินทางไป, 1..N = วันในทริป
+function itinDayLabel(d){ return d===0 ? '🚌 วันเดินทางไป (ก่อนถึงจุดหมาย)' : ('วันที่ '+d); }
+function itinDayList(){ const a=[0]; for(let d=1;d<=_itinDays;d++) a.push(d); return a; }
 function defaultItin(days){
-  const rows=[];
+  const rows=[{day:0,time:'20:00',desc:'นัดพบที่จุดนัดพบ ออกเดินทางสู่จุดหมาย'}];
   for(let d=1;d<=days;d++){
-    rows.push({day:d,time:'07:00',desc:'ออกเดินทาง / เริ่มกิจกรรมช่วงเช้า'});
+    rows.push({day:d,time:'07:00',desc:'เริ่มกิจกรรมช่วงเช้า'});
     rows.push({day:d,time:'12:00',desc:'พักรับประทานอาหารกลางวัน'});
     rows.push({day:d,time:'18:00',desc:'กิจกรรมช่วงเย็น / พักผ่อน'});
   }
@@ -1876,53 +1878,61 @@ function openItinerary(id){
   const t=TRIPS.find(x=>x.id===id); if(!t){ toast('ไม่พบทริป'); return; }
   _itinTripId=id; _itinDays=tripDaysFrom(t);
   document.getElementById('itin-title').textContent='กำหนดการ · '+(t.name_th||t.name?.th||'ทริป');
-  document.getElementById('itin-meta').textContent=`ทริป ${_itinDays} วัน · กรอกเวลา + รายละเอียดแต่ละช่วง (เรียงตามเวลา)`;
+  document.getElementById('itin-meta').textContent=`ทริป ${_itinDays} วัน · เพิ่มช่วงเวลาในแต่ละวัน (เรียงตามเวลา)`;
   document.getElementById('itin-err').style.display='none';
   const cur=Array.isArray(t.itinerary)?t.itinerary:null;
-  _itinRows=(cur&&cur.length)?cur.map(r=>({day:r.day||1,time:r.time||'',desc:r.desc||''})):defaultItin(_itinDays);
+  _itinRows=(cur&&cur.length)?cur.map(r=>({day:(r.day!=null?r.day:1),time:r.time||'',desc:r.desc||''})):defaultItin(_itinDays);
   renderItinRows();
   document.getElementById('modalItin').style.display='flex';
 }
 function itinLoadDefault(){ if(!confirm('แทนที่ด้วยกำหนดการเริ่มต้น? รายการที่แก้ไว้จะหาย')) return; _itinRows=defaultItin(_itinDays); renderItinRows(); }
-function itinAddRow(){ itinSync(); _itinRows.push({day:1,time:'',desc:''}); renderItinRows(); }
+function itinAddToDay(d){ itinSync(); _itinRows.push({day:d,time:'',desc:''}); renderItinRows(); }
 function itinDelRow(i){ itinSync(); _itinRows.splice(i,1); renderItinRows(); }
 function itinSync(){
-  document.querySelectorAll('#itin-rows [data-row]').forEach(el=>{
-    const i=+el.getAttribute('data-row');
-    _itinRows[i]={ day:+el.querySelector('.it-day').value, time:el.querySelector('.it-time').value, desc:el.querySelector('.it-desc').value };
+  document.querySelectorAll('#itin-rows [data-idx]').forEach(el=>{
+    const i=+el.getAttribute('data-idx');
+    if(_itinRows[i]){ _itinRows[i].time=el.querySelector('.it-time').value; _itinRows[i].desc=el.querySelector('.it-desc').value; }
   });
 }
 function renderItinRows(){
-  const dayOpts=(sel)=>{let s='';for(let d=1;d<=_itinDays;d++)s+=`<option value="${d}"${d==sel?' selected':''}>วันที่ ${d}</option>`;return s;};
   const el=document.getElementById('itin-rows');
-  el.innerHTML=_itinRows.map((r,i)=>`
-    <div data-row="${i}" style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
-      <select class="form-input it-day" style="width:104px;flex:none;">${dayOpts(r.day)}</select>
+  const rowHTML=(r,idx)=>`
+    <div data-idx="${idx}" style="display:flex;gap:8px;align-items:center;margin-bottom:7px;">
       <input class="form-input it-time" type="time" value="${r.time||''}" style="width:118px;flex:none;">
       <input class="form-input it-desc" type="text" value="${(r.desc||'').replace(/"/g,'&quot;')}" placeholder="รายละเอียดกิจกรรม" style="flex:1;">
-      <button type="button" class="icon-btn danger" style="flex:none;" onclick="itinDelRow(${i})">ลบ</button>
-    </div>`).join('') || '<div style="color:#8B7E6B;padding:16px;text-align:center;">ยังไม่มีรายการ — กด "+ เพิ่มรายการ"</div>';
+      <button type="button" class="icon-btn danger" style="flex:none;" onclick="itinDelRow(${idx})">ลบ</button>
+    </div>`;
+  el.innerHTML=itinDayList().map(d=>{
+    const rows=_itinRows.map((r,idx)=>({r,idx})).filter(x=>x.r.day===d);
+    const isTravel=d===0;
+    return `
+    <div style="border:1px solid #EADFC9;border-radius:12px;padding:14px 16px;margin-bottom:14px;background:${isTravel?'#FBF7EE':'#fff'};">
+      <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:15px;color:${isTravel?'#8a6d1e':'#2B2118'};margin-bottom:10px;">${itinDayLabel(d)}</div>
+      ${rows.map(x=>rowHTML(x.r,x.idx)).join('') || `<div style="color:#B59A6E;font-size:13px;padding:4px 0 8px;">${isTravel?'ไม่มีวันเดินทางไป (เว้นว่างได้)':'ยังไม่มีช่วงเวลาในวันนี้'}</div>`}
+      <button type="button" class="btn btn-ghost btn-sm" style="margin-top:6px;" onclick="itinAddToDay(${d})">+ เพิ่มช่วงเวลา</button>
+    </div>`;
+  }).join('');
 }
 function itinTimeMin(t){ const m=/^(\d{1,2}):(\d{2})$/.exec(t||''); return m?(+m[1]*60+ +m[2]):NaN; }
 async function saveItineraryEdit(){
   itinSync();
   const err=document.getElementById('itin-err'); err.style.display='none';
-  const rows=_itinRows.filter(r=>r.time||(r.desc||'').trim());
-  if(!rows.length){ err.textContent='กรุณาเพิ่มกำหนดการอย่างน้อย 1 รายการ'; err.style.display='block'; return; }
-  for(const r of rows){
-    if(!r.time || isNaN(itinTimeMin(r.time))){ err.textContent='กรุณากรอกเวลาให้ครบทุกรายการ'; err.style.display='block'; return; }
-    if(!(r.desc||'').trim()){ err.textContent='กรุณากรอกรายละเอียดให้ครบทุกรายการ'; err.style.display='block'; return; }
-  }
-  // ตรวจ "เวลาเรียงย้อนกลับ" ตามลำดับที่กรอก (วัน→เวลา)
-  let prev=-1, prevLabel='';
-  for(const r of rows){
-    const key=r.day*10000 + itinTimeMin(r.time);
-    if(key<prev){
-      err.innerHTML=`⚠️ เวลาไม่ถูกต้อง: <b>วันที่ ${r.day} ${r.time}</b> อยู่หลัง "${prevLabel}" แต่เวลาน้อยกว่า — กรุณาเรียงกำหนดการตามเวลา`;
-      err.style.display='block'; return;
+  const showErr=(html)=>{ err.innerHTML=html; err.style.display='block'; };
+  const all=_itinRows.filter(r=>r.time||(r.desc||'').trim());
+  if(!all.length){ showErr('กรุณาเพิ่มกำหนดการอย่างน้อย 1 รายการ'); return; }
+  // ตรวจแต่ละวัน: กรอกครบ + เวลาไม่เรียงย้อนกลับ
+  for(const d of itinDayList()){
+    const rows=_itinRows.filter(r=>r.day===d && (r.time||(r.desc||'').trim()));
+    let prev=-1;
+    for(const r of rows){
+      const mm=itinTimeMin(r.time);
+      if(!r.time || isNaN(mm)){ showErr(`⚠️ ${itinDayLabel(d)}: กรุณากรอกเวลาให้ครบทุกช่วง`); return; }
+      if(!(r.desc||'').trim()){ showErr(`⚠️ ${itinDayLabel(d)}: กรุณากรอกรายละเอียดให้ครบ`); return; }
+      if(mm<prev){ showErr(`⚠️ เวลาไม่ถูกต้อง — ${itinDayLabel(d)} เวลา <b>${r.time}</b> เรียงย้อนกลับ กรุณาเรียงตามเวลา`); return; }
+      prev=mm;
     }
-    prev=key; prevLabel=`วันที่ ${r.day} ${r.time}`;
   }
+  const rows=all.map(r=>({day:r.day,time:r.time,desc:(r.desc||'').trim()}));
   const btn=document.getElementById('itinSaveBtn'); btn.disabled=true; btn.textContent='กำลังบันทึก...';
   try {
     await Organizers.saveItinerary(_itinTripId, rows);
@@ -1931,7 +1941,7 @@ async function saveItineraryEdit(){
     toast('บันทึกกำหนดการแล้ว ✓');
   } catch(e){
     console.error('saveItinerary',e);
-    err.textContent='บันทึกไม่สำเร็จ: '+(e.message||e); err.style.display='block';
+    showErr('บันทึกไม่สำเร็จ: '+(e.message||e));
   } finally { btn.disabled=false; btn.textContent='บันทึกกำหนดการ'; }
 }
 </script>

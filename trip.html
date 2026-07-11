@@ -411,7 +411,7 @@ function itinFromSaved(t){
   if(!Array.isArray(t.itinerary) || !t.itinerary.length) return null;
   const byDay={};
   t.itinerary.forEach(r=>{ const d=r.day||1; (byDay[d]=byDay[d]||[]).push({time:r.time||'',desc:r.desc||''}); });
-  return Object.keys(byDay).map(Number).sort((a,b)=>a-b).map(d=>({ title:'วันที่ '+d, slots:byDay[d] }));
+  return Object.keys(byDay).map(Number).sort((a,b)=>a-b).map(d=>({ title:(d===0?'วันเดินทางไป':'วันที่ '+d), slots:byDay[d] }));
 }
 function renderItinerary(t){
   const days=itinFromSaved(t) || genItinerary(t);
