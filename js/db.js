@@ -276,6 +276,13 @@ const Organizers = {
     return data?.payment_qr_url || null;
   },
 
+  // บันทึกกำหนดการทริป (เฉพาะทริปของตัวเอง) — itinerary = [{day,time,desc}, ...]
+  async saveItinerary(tripId, itinerary) {
+    const { error } = await db.rpc('save_trip_itinerary', { p_trip_id: tripId, p_itinerary: itinerary });
+    if (error) throw error;
+    return true;
+  },
+
   async getAll() {
     const { data, error } = await db.from('organizers').select(`
       *, users ( full_name, email )

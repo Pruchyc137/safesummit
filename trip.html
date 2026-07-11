@@ -406,8 +406,15 @@ function renderInfo(t){
   document.getElementById('tagRow').innerHTML=['เดินป่า','ธรรมชาติ','วิวสวย','อากาศเย็น','ถ่ายรูป','แคมป์ปิ้ง','ไกด์มืออาชีพ'].slice(0,5).map(tag=>`<span class="tag">${tag}</span>`).join('');
 }
 
+// แปลงกำหนดการที่ผู้จัดบันทึก (flat [{day,time,desc}]) → โครงสร้างวัน/ช่วงเวลา
+function itinFromSaved(t){
+  if(!Array.isArray(t.itinerary) || !t.itinerary.length) return null;
+  const byDay={};
+  t.itinerary.forEach(r=>{ const d=r.day||1; (byDay[d]=byDay[d]||[]).push({time:r.time||'',desc:r.desc||''}); });
+  return Object.keys(byDay).map(Number).sort((a,b)=>a-b).map(d=>({ title:'วันที่ '+d, slots:byDay[d] }));
+}
 function renderItinerary(t){
-  const days=genItinerary(t);
+  const days=itinFromSaved(t) || genItinerary(t);
   document.getElementById('itinerary').innerHTML=days.map((d)=>`
     <div class="day-block">
       <div class="day-title">${d.title}</div>
@@ -530,6 +537,9 @@ function mapSupabaseTrip(r){
     scene:seed.scene||'peak',
     orgPhone:seed.orgPhone||'',
     orgLine:seed.orgLine||'',
+    itinerary: Array.isArray(r.itinerary) ? r.itinerary : null,
+    duration_days: r.duration_days || null,
+    name_th: r.name_th || '',
   };
 }
 
@@ -541,7 +551,7 @@ async function init(){
   if(isUUID && typeof db!=='undefined'){
     try{
       const {data,error}=await db.from('trips')
-        .select('id,name_th,price_per_person,capacity,booked_count,start_date,region,province,status,image_url')
+        .select('id,name_th,price_per_person,capacity,booked_count,start_date,region,province,status,image_url,itinerary,duration_days')
         .eq('id',id).single();
       if(!error && data) trip=mapSupabaseTrip(data);
     }catch(e){ console.warn('Supabase fetch failed',e); }

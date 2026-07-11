@@ -1465,6 +1465,28 @@ async function renderAuthState(){
     wrap.innerHTML = `<a class="btn btn-ghost" href="login.html">เข้าสู่ระบบ</a>`;
     return;
   }
+  // เช็คก่อนว่าเป็น "ผู้จัด" ไหม (มีแถวใน organizers) → แสดงเมนูผู้จัด ไม่ใช่ลูกค้า
+  let org = null;
+  try { const { data } = await db.from('organizers').select('org_name,status').eq('user_id', user.id).maybeSingle(); org = data; } catch(e){}
+
+  if(org){
+    const oname = org.org_name || 'ผู้จัดทริป';
+    const oinit = (oname||'?').trim().charAt(0).toUpperCase();
+    wrap.innerHTML = `
+      <button class="user-chip" onclick="toggleUserMenu(event)">
+        <span class="avatar" style="background:var(--accent-gold)">${oinit}</span>
+        <span class="uname">${oname}</span>
+        <span style="font-size:10px;background:rgba(201,162,75,.2);color:#8a6d1e;padding:1px 7px;border-radius:10px;font-weight:700;">ผู้จัด</span>
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="login-menu">
+        <a href="organizer.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>แดชบอร์ดผู้จัด</a>
+        <hr>
+        <a href="#" class="danger" onclick="customerLogout(event)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>ออกจากระบบ</a>
+      </div>`;
+    return;
+  }
+
   let name = user.email || 'ลูกค้า';
   try {
     const { data: prof } = await db.from('users').select('full_name').eq('id', user.id).maybeSingle();
