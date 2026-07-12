@@ -178,6 +178,16 @@ async function doLogin(){
 
   // ตรวจสถานะอนุมัติ (เฉพาะลูกค้า) — organizer มีระบบ gate ของตัวเองใน organizer.html
   if(currentRole === 'customer'){
+    // แยกบทบาทชัดเจน: อีเมลที่เป็น "ผู้จัด" เข้าในฐานะลูกค้าไม่ได้ (จองทริปไม่ได้)
+    try {
+      const { data: o } = await db.from('organizers').select('id').eq('user_id', data.user.id).maybeSingle();
+      if(o){
+        await db.auth.signOut();
+        err.innerHTML = 'อีเมลนี้เป็น<b>บัญชีผู้จัดทริป</b> จึงเข้าในฐานะลูกค้าไม่ได้<br>• จะจัดการทริป → กดแท็บ <b>"ผู้จัดทริป"</b><br>• จะจองทริป → ใช้<b>บัญชีลูกค้าคนละอีเมล</b>';
+        err.style.display = 'block';
+        return;
+      }
+    } catch(e){}
     let status = 'approved';
     try {
       const { data: prof } = await db.from('users').select('status,role').eq('id', data.user.id).maybeSingle();
