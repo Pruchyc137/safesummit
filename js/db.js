@@ -96,6 +96,18 @@ const Bookings = {
     } catch (_) { return []; }
   },
 
+  // สถานะที่นั่งแบบละเอียด → { 'v1-2':'paid', 'v1-3':'pending', ... }
+  // ถ้า RPC ยังไม่ถูกสร้าง (phase12) จะคืน null ให้ผู้เรียก fallback ไป getTakenSeats
+  async getSeatStatus(tripId) {
+    try {
+      const { data, error } = await db.rpc('trip_seat_status', { p_trip_id: tripId });
+      if (error || !Array.isArray(data)) return null;
+      const map = {};
+      data.forEach(r => { if (r && r.seat) map[r.seat] = r.status || 'paid'; });
+      return map;
+    } catch (_) { return null; }
+  },
+
   async create({ tripId, seats, name, phone, note, seatNumbers }) {
     // 1. ดึงข้อมูลทริป
     const { data: trip, error: tErr } = await db

@@ -184,6 +184,8 @@ canvas#qrCanvas{display:block;}
 .vseat.p.free:hover{background:#FDF0E8;}
 .vseat.p.sel{background:var(--accent-trail);border:2px solid var(--accent-trail);color:#fff;box-shadow:0 6px 14px rgba(226,103,43,.30);}
 .vseat.p.taken{background:#E7DDC8;border:2px solid #E7DDC8;color:#B3A488;cursor:not-allowed;}
+.vseat.p.pending{background:#F6D9A8;border:2px solid #E8B06A;color:#8A5A16;cursor:not-allowed;flex-direction:column;gap:0;line-height:1.05;}
+.vseat.p.pending small{font-size:8px;font-weight:700;}
 .van-legend{display:flex;gap:16px;justify-content:center;margin-top:16px;font-size:12px;color:var(--text-dark);flex-wrap:wrap;}
 .van-legend span{display:flex;align-items:center;gap:6px;}
 .van-legend i{width:15px;height:15px;border-radius:5px;display:inline-block;}
@@ -297,6 +299,7 @@ canvas#qrCanvas{display:block;}
           <div class="van-legend">
             <span><i style="background:#fff;border:2px solid var(--accent-trail);"></i> ว่าง</span>
             <span><i style="background:var(--accent-trail);"></i> ที่คุณเลือก</span>
+            <span><i style="background:#F6D9A8;border:2px solid #E8B06A;"></i> รอตรวจการชำระ</span>
             <span><i style="background:#E7DDC8;"></i> จองแล้ว</span>
           </div>
           <div class="seat-picked" id="seatPicked">ยังไม่ได้เลือกที่นั่ง</div>
@@ -477,7 +480,7 @@ const SEED_TRIPS=[
 let TRIPS=[], trip=null, seats=0, currentStep=1, bookingRef='', timerInterval=null;
 // van seat map + payment state
 const SEATS_PER_VAN=9;
-let VANS=[], selectedSeats=[], activeVan=0, TAKEN_SEATS=new Set();
+let VANS=[], selectedSeats=[], activeVan=0, TAKEN_SEATS=new Set(), PENDING_SEATS=new Set();
 let payType='full', depositMode='50';
 
 function loadTrips(){
@@ -570,7 +573,7 @@ function buildVans(){
   for(let v=0; v<vanCount; v++){
     const arr=[];
     // ทุกคันมี 9 ที่นั่งเสมอ · ที่นั่งไหน "ถูกจองไปแล้วจริง" = taken (กันจองซ้ำ)
-    for(let s=0; s<SEATS_PER_VAN; s++){ const id=`v${v+1}-${s+1}`; arr.push({ n:s+1, id, taken: TAKEN_SEATS.has(id) }); }
+    for(let s=0; s<SEATS_PER_VAN; s++){ const id=`v${v+1}-${s+1}`; arr.push({ n:s+1, id, taken: TAKEN_SEATS.has(id), pending: PENDING_SEATS.has(id) }); }
     VANS.push({ van:v+1, seats:arr });
   }
   activeVan=VANS.findIndex(vn=>vn.seats.some(s=>!s.taken));
@@ -580,9 +583,17 @@ function buildVans(){
 async function initSeatMap(){
   if(!trip) return;
   selectedSeats=[]; seats=0;
-  // ดึงที่นั่งที่ถูกจองไปแล้ว (คนอื่น) มากันจองซ้ำ
-  try { const t=await Bookings.getTakenSeats(trip.id); TAKEN_SEATS=new Set(t||[]); }
-  catch(e){ TAKEN_SEATS=new Set(); }
+  // ดึงที่นั่งที่ถูกจองไปแล้ว + สถานะ (paid=ชำระแล้ว / pending=รอตรวจการชำระ)
+  const sm = await Bookings.getSeatStatus(trip.id);
+  if(sm){
+    TAKEN_SEATS=new Set(Object.keys(sm));
+    PENDING_SEATS=new Set(Object.keys(sm).filter(k=>sm[k]==='pending'));
+  } else {
+    // fallback ถ้ายังไม่ได้รัน phase12 — ถือว่าทุกที่นั่งที่จองแล้ว = จองแล้ว
+    try { const t=await Bookings.getTakenSeats(trip.id); TAKEN_SEATS=new Set(t||[]); }
+    catch(e){ TAKEN_SEATS=new Set(); }
+    PENDING_SEATS=new Set();
+  }
   renderSummary();                 // อัปเดต "ที่นั่งว่าง X จาก Y" ตามที่นั่งจริง
   buildVans();
   renderVanTabs(); renderVanMap(); refreshSeatUI();
@@ -605,11 +616,13 @@ function renderVanMap(){
   const vn=VANS[activeVan]; if(!vn){ el.innerHTML=''; return; }
   const grid=vn.seats.map(s=>{
     let cls='vseat p ';
-    if(s.taken) cls+='taken';
+    if(s.taken) cls+=(s.pending?'pending':'taken');
     else if(selectedSeats.includes(s.id)) cls+='sel';
     else cls+='free';
     const click=s.taken?'':`onclick="toggleSeat('${s.id}')"`;
-    return `<div class="${cls}" ${click}>${s.n}</div>`;
+    const inner=(s.taken&&s.pending)?`${s.n}<small>รอตรวจ</small>`:s.n;
+    const tip=(s.taken&&s.pending)?' title="รอตรวจการชำระ"':(s.taken?' title="จองแล้ว"':'');
+    return `<div class="${cls}"${tip} ${click}>${inner}</div>`;
   }).join('');
   el.innerHTML=`
     <div class="van">
