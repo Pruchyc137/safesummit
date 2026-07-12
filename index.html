@@ -1464,7 +1464,15 @@ async function renderAuthState(){
   try { const { data } = await db.auth.getUser(); user = data?.user || null; } catch(e){}
   if(!user){
     wrap.classList.remove('open');
-    wrap.innerHTML = `<a class="btn btn-ghost" href="login.html">เข้าสู่ระบบ</a>`;
+    wrap.innerHTML = `
+      <button class="user-chip" onclick="toggleUserMenu(event)">
+        <span class="uname">เข้าสู่ระบบ</span>
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="login-menu">
+        <a href="login.html?role=customer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>ลูกค้า / นักเดินป่า</a>
+        <a href="login.html?role=organizer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>ผู้จัดทริป</a>
+      </div>`;
     return;
   }
   // เช็คก่อนว่าเป็น "ผู้จัด" ไหม (มีแถวใน organizers) → แสดงเมนูผู้จัด ไม่ใช่ลูกค้า
