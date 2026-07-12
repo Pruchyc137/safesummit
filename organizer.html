@@ -649,6 +649,11 @@ h1,h2,h3,h4{font-family:'Kanit',sans-serif;}
               <label class="inc-check"><input type="checkbox" id="inc-park"> ค่าเข้าอุทยาน</label>
               <label class="inc-check"><input type="checkbox" id="inc-photo"> บริการถ่ายภาพ</label>
             </div>
+            <div id="incCustomList" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;"></div>
+            <div style="display:flex;gap:8px;margin-top:10px;">
+              <input id="incCustomInput" class="form-input" placeholder="เพิ่มรายการอื่นๆ เอง เช่น น้ำดื่ม, ของว่าง, ค่าประกันเดินทาง" onkeydown="if(event.key==='Enter'){event.preventDefault();addIncCustom();}" style="flex:1;">
+              <button type="button" class="btn btn-ghost" onclick="addIncCustom()" style="white-space:nowrap;">+ เพิ่มรายการ</button>
+            </div>
           </div>
         </div>
 
@@ -1611,6 +1616,8 @@ function clearForm(){
   setVal('f-cap','1'); updateVanHint();
   setVal('f-type','transfer');
   _tripImageFiles=[]; _coverIdx=0;
+  _incCustom=[]; renderIncCustom();
+  const ici=document.getElementById('incCustomInput'); if(ici) ici.value='';
   const grid=document.getElementById('imgPreviewGrid');
   if(grid){ grid.innerHTML=''; grid.style.display='none'; }
   const fi=document.getElementById('f-img-files');
@@ -1621,6 +1628,21 @@ function clearForm(){
 }
 
 function getChecked(id){ return document.getElementById(id)?.checked||false; }
+
+// รายการ "สิ่งที่รวมอยู่ในราคา" ที่ผู้จัดพิมพ์เพิ่มเอง
+let _incCustom = [];
+function addIncCustom(){
+  const inp=document.getElementById('incCustomInput');
+  const v=(inp.value||'').trim();
+  if(!v) return;
+  if(_incCustom.includes(v)){ toast('มีรายการนี้แล้ว'); return; }
+  _incCustom.push(v); inp.value=''; inp.focus(); renderIncCustom();
+}
+function removeIncCustom(i){ _incCustom.splice(i,1); renderIncCustom(); }
+function renderIncCustom(){
+  const box=document.getElementById('incCustomList'); if(!box) return;
+  box.innerHTML=_incCustom.map((x,i)=>`<span style="display:inline-flex;align-items:center;gap:7px;background:#FBEDE3;border:1px solid #F0C9A9;color:#B2560F;border-radius:20px;padding:6px 8px 6px 14px;font-size:13.5px;font-weight:600;">✓ ${x.replace(/</g,'&lt;')}<button type="button" onclick="removeIncCustom(${i})" style="border:none;background:#E2672B;color:#fff;width:18px;height:18px;border-radius:50%;cursor:pointer;font-size:12px;line-height:1;">×</button></span>`).join('');
+}
 
 async function submitTrip(){
   const name   = v('f-name').trim();
@@ -1652,6 +1674,7 @@ async function submitTrip(){
   if(getChecked('inc-firstaid'))  includes.push('ชุดปฐมพยาบาล');
   if(getChecked('inc-park'))      includes.push('ค่าเข้าอุทยาน');
   if(getChecked('inc-photo'))     includes.push('บริการถ่ายภาพ');
+  _incCustom.forEach(x=>{ if(x && !includes.includes(x)) includes.push(x); });   // รายการที่ผู้จัดพิมพ์เอง
 
   // เก็บกำหนดการจากฟอร์ม (มีค่าเริ่มต้นให้แล้ว) + ตรวจเวลาเรียงถูกต้อง
   if(document.getElementById('addItinRows')){ _itinTarget='addItinRows'; itinSync(); }
