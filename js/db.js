@@ -344,6 +344,7 @@ const Auth = {
 // ─── LOCATION IMAGE MATCHER ───────────────────────────────
 // จับคู่ชื่อทริป/จังหวัด กับรูปในคลัง (fallback เมื่อผู้จัดไม่ได้อัปโหลดรูปเอง)
 const LOCATION_IMAGES = [
+  { img:'images/lelosu.jpg',          kw:['เลลอซู','พือหน่วย'] },   // น้ำตกพือหน่วยเลลอซู (ตาก) — ผู้จัด "เดอะจร"
   { img:'images/doichiangdao.png',    kw:['เชียงดาว'] },
   { img:'images/doiinthanon.webp',    kw:['อินทนนท์'] },
   { img:'images/kiwmaepan.jpg',       kw:['กิ่วแม่ปาน'] },
