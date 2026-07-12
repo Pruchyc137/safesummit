@@ -526,7 +526,7 @@ h1,h2,h3{font-family:'Kanit',sans-serif;}
     <div class="page" id="page-bookings">
       <div class="page-head">
         <h1>การจองลูกค้า</h1>
-        <p>รายการจองทั้งหมดในระบบ อัปเดตจาก Supabase</p>
+        <p>รายการจองที่ลูกค้าโอน/อัปโหลดสลิปแล้ว — ตัวเลขตรงกับหน้าตรวจการชำระเงินและ Dashboard</p>
       </div>
       <div class="kpi-row" id="bk-kpis"></div>
       <div class="panel" style="margin-top:20px;">
@@ -1988,6 +1988,7 @@ async function submitAdminKey(){
   else if(_afterKeyAction==='organizers') await loadOrgsSecure();
   else if(_afterKeyAction==='overview'){ _payLoaded=false; await ensurePayData(); drawOverview(); }
   else if(_afterKeyAction==='orgsum'){ _payLoaded=false; await ensurePayData(); renderOrgSummary(); }
+  else if(_afterKeyAction==='bookings'){ _payLoaded=false; await loadBookings(); renderBookings(); }
   else await loadCustomersSecure(true);
   _afterKeyAction='customers';
 }
@@ -2238,51 +2239,58 @@ function exportFinance(){
 // ===== BOOKINGS (Supabase) =====
 let BOOKINGS = [];
 
+// ใช้แหล่งข้อมูลเดียวกับหน้า "ตรวจการชำระเงิน" (service_role ผ่าน Edge Function)
+// เพราะ anon อ่านตาราง bookings ไม่ได้ (RLS) — เลขจะตรงกับ Dashboard เสมอ
 async function loadBookings(){
-  try {
-    const { data, error } = await db.from('bookings').select(`
-      *, trips(name_th, start_date), users(full_name, phone, email)
-    `).order('booked_at', { ascending: false });
-    if(error) throw error;
-    BOOKINGS = data || [];
-  } catch(e){ console.error('loadBookings', e); BOOKINGS = []; }
+  if(!getAdminKey()){ _afterKeyAction='bookings'; openModal('modalAdminKey'); BOOKINGS=[]; return; }
+  const ok = await ensurePayData();
+  BOOKINGS = ok ? ALL_PAY : [];
 }
 
+// สถานะการจอง (derive จาก pay_status เพราะ list_all_payments ไม่ได้ดึงคอลัมน์ status)
+const BOOK_FROM_PAY = {
+  verified:{t:'ยืนยันแล้ว',c:'#3E6E8E'}, partial:{t:'ยืนยันแล้ว',c:'#3E6E8E'},
+  pending_review:{t:'รอยืนยัน',c:'#C99A3B'}, rejected:{t:'ยกเลิก',c:'#C0552F'}, unpaid:{t:'รอยืนยัน',c:'#C99A3B'},
+};
+
 function renderBookings(){
-  const paid   = BOOKINGS.filter(b=>b.pay_status==='paid').length;
-  const unpaid = BOOKINGS.filter(b=>b.pay_status==='unpaid').length;
-  const total  = BOOKINGS.reduce((s,b)=>s+(parseFloat(b.total_price)||0), 0);
+  const verified = BOOKINGS.filter(b=>b.pay_status==='verified').length;
+  const partial  = BOOKINGS.filter(b=>b.pay_status==='partial').length;
+  const pending  = BOOKINGS.filter(b=>b.pay_status==='pending_review').length;
+  const received = BOOKINGS.reduce((s,b)=>s+(+b.paid_amount||0), 0);
   document.getElementById('bk-kpis').innerHTML = `
     <div class="kpi k-trip"><div class="label">การจองทั้งหมด</div><div class="val">${BOOKINGS.length}</div></div>
-    <div class="kpi k-money"><div class="label">ชำระแล้ว</div><div class="val">${paid}</div></div>
-    <div class="kpi k-org"><div class="label">รอชำระ</div><div class="val">${unpaid}</div></div>
-    <div class="kpi k-user"><div class="label">รายได้รวม</div><div class="val">${fmtMoney(total)}</div></div>`;
+    <div class="kpi k-money"><div class="label">ชำระครบ</div><div class="val">${verified}</div></div>
+    <div class="kpi k-org"><div class="label">มัดจำ / รอตรวจ</div><div class="val">${partial} / ${pending}</div></div>
+    <div class="kpi k-user"><div class="label">ยอดรับจริงรวม</div><div class="val" style="font-size:18px;">${fmtMoney(received)}</div></div>`;
 
   const tbody = document.getElementById('bkRows');
   const empty = document.getElementById('bkEmpty');
-  if(!BOOKINGS.length){ tbody.innerHTML=''; empty.style.display='block'; return; }
+  if(!BOOKINGS.length){
+    tbody.innerHTML='';
+    empty.textContent = getAdminKey() ? 'ยังไม่มีการจอง' : '🔒 ใส่รหัสแอดมินเพื่อดูรายการจอง';
+    empty.style.display='block';
+    const sb0=document.getElementById('sideBookings'); if(sb0){ sb0.textContent=''; sb0.style.display='none'; }
+    return;
+  }
   empty.style.display='none';
 
-  const PAY_LABEL  = { paid:'ชำระแล้ว', unpaid:'รอชำระ', refunded:'คืนเงินแล้ว' };
-  const BOOK_LABEL = { confirmed:'ยืนยันแล้ว', pending:'รอยืนยัน', cancelled:'ยกเลิก' };
-  const PAY_COLOR  = { paid:'#5C8A5A', unpaid:'#C99A3B', refunded:'#9B8E7A' };
-  const BOOK_COLOR = { confirmed:'#3E6E8E', pending:'#C99A3B', cancelled:'#C0552F' };
-
   tbody.innerHTML = BOOKINGS.map(b => {
-    const tripName = b.trips?.name_th || b.trip_id || '–';
-    const userName = b.users?.full_name || '–';
-    const bookedAt = b.booked_at ? b.booked_at.slice(0,10) : '–';
-    const payColor  = PAY_COLOR[b.pay_status]  || '#9B8E7A';
-    const bookColor = BOOK_COLOR[b.status]     || '#9B8E7A';
+    const u = b.users||{}, t = b.trips||{};
+    const tripName = t.name_th || tripById(b.trip_id)?.name?.th || '–';
+    const userName = (u.nickname?u.nickname+' · ':'') + (u.full_name || '–');
+    const dt = b.slip_uploaded_at ? b.slip_uploaded_at.slice(0,10) : '–';
+    const bk = BOOK_FROM_PAY[b.pay_status] || {t:b.pay_status,c:'#9B8E7A'};
+    const ps = PAY_STATUS[b.pay_status] || PAY_STATUS.unpaid;
     return `<tr>
       <td style="font-family:'Bai Jamjuree',monospace;font-size:12px;">${b.booking_ref||'–'}</td>
       <td>${tripName}</td>
-      <td>${userName}</td>
-      <td style="text-align:center;">${b.seats}</td>
-      <td style="font-family:'Bai Jamjuree',monospace;">${fmtMoney(b.total_price)}</td>
-      <td><span style="font-size:12px;font-weight:700;color:${bookColor}">${BOOK_LABEL[b.status]||b.status}</span></td>
-      <td><span style="font-size:12px;font-weight:700;color:${payColor}">${PAY_LABEL[b.pay_status]||b.pay_status}</span></td>
-      <td style="color:var(--text-muted);font-size:12.5px;">${bookedAt}</td>
+      <td>${userName}<div style="font-size:11px;color:var(--text-muted)">${u.phone||''}</div></td>
+      <td style="text-align:center;">${b.seats||1}</td>
+      <td style="font-family:'Bai Jamjuree',monospace;">${fmtMoney(b.total_price)}<div style="font-size:11px;color:var(--text-muted)">รับจริง ${b.paid_amount!=null?fmtMoney(b.paid_amount):'–'}</div></td>
+      <td><span style="font-size:12px;font-weight:700;color:${bk.c}">${bk.t}</span></td>
+      <td><span style="font-family:'Kanit',sans-serif;font-weight:700;font-size:11px;padding:2px 9px;border-radius:12px;background:${ps.bg};color:${ps.c};white-space:nowrap">${ps.t}</span></td>
+      <td style="color:var(--text-muted);font-size:12.5px;">${dt}</td>
     </tr>`;
   }).join('');
 
@@ -2291,10 +2299,11 @@ function renderBookings(){
 }
 
 function exportBookings(){
-  const headers = ['เลขที่จอง','ทริป','ผู้จอง','ที่นั่ง','ยอดรวม','สถานะจอง','สถานะชำระ','วันที่จอง'];
+  const headers = ['เลขที่จอง','ทริป','ผู้จอง','เบอร์','ที่นั่ง','ยอดต้องจ่าย','รับจริง','สถานะชำระ','วันที่โอน'];
   const rows = BOOKINGS.map(b => [
-    b.booking_ref||'', b.trips?.name_th||'', b.users?.full_name||'',
-    b.seats, b.total_price, b.status, b.pay_status, b.booked_at?.slice(0,10)||''
+    b.booking_ref||'', b.trips?.name_th||'', b.users?.full_name||'', b.users?.phone||'',
+    b.seats||1, b.total_price||0, b.paid_amount!=null?b.paid_amount:'',
+    (PAY_STATUS[b.pay_status]||{}).t||b.pay_status, b.slip_uploaded_at?.slice(0,10)||''
   ]);
   downloadCSV([headers,...rows], 'SafeSummit_bookings_'+new Date().toISOString().slice(0,10)+'.csv');
   toast('ดาวน์โหลดไฟล์แล้ว');
