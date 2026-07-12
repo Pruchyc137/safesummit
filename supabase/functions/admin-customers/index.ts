@@ -198,7 +198,7 @@ Deno.serve(async (req) => {
     if (action === 'update_trip') {
       if (!id) return json({ error: 'missing id' }, 400);
       const ALLOWED = [
-        'status', 'note', 'name_th', 'province', 'start_date', 'capacity',
+        'status', 'note', 'name_th', 'name_en', 'province', 'start_date', 'capacity',
         'booked_count', 'price_per_person', 'trip_type', 'image_url',
         'description', 'difficulty',
       ];

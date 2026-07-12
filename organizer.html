@@ -1403,7 +1403,33 @@ function openEditTrip(id){
   document.getElementById('et-type').value=t.trip_type||'transfer';
   document.getElementById('et-desc').value=t.description||'';
   document.getElementById('et-reason').value='';
+  // preview รูปปัจจุบัน
+  const prev=document.getElementById('et-img-preview');
+  const cur=t.image_url||t.img||'';
+  if(prev){ if(cur){ prev.src=cur; prev.style.display='block'; } else { prev.style.display='none'; } }
+  const fi=document.getElementById('et-img-file'); if(fi) fi.value='';
+  const stt=document.getElementById('et-img-status'); if(stt){ stt.textContent='เลือกรูปใหม่เพื่อเปลี่ยนทันที'; stt.style.color='var(--text-muted)'; }
   document.getElementById('modalEditTrip').style.display='flex';
+}
+
+// เปลี่ยนรูปทริปทันที (อัปขึ้น Storage → เซ็ต image_url ผ่าน RPC) ไม่ต้องรออนุมัติ
+async function changeTripImage(input){
+  const file=input.files&&input.files[0]; if(!file||!_editTripId) return;
+  const stt=document.getElementById('et-img-status');
+  const prev=document.getElementById('et-img-preview');
+  if(prev){ prev.src=URL.createObjectURL(file); prev.style.display='block'; }
+  if(stt){ stt.textContent='กำลังอัปโหลด...'; stt.style.color='var(--text-muted)'; }
+  try {
+    const url=await Organizers.uploadTripImage(file);
+    await Organizers.saveTripImage(_editTripId, url);
+    const t=TRIPS.find(x=>x.id===_editTripId); if(t){ t.image_url=url; t.img=url; }
+    if(prev) prev.src=url;
+    if(stt){ stt.textContent='✓ เปลี่ยนรูปแล้ว — ขึ้นเว็บทันที'; stt.style.color='#2A7A4B'; }
+    renderMyTrips(); toast('เปลี่ยนรูปทริปแล้ว ✓');
+  } catch(e){
+    console.error(e);
+    if(stt){ stt.textContent='อัปโหลดไม่สำเร็จ: '+(e.message||'ลองใหม่'); stt.style.color='#C0392B'; }
+  }
 }
 async function submitEditTrip(){
   if(!_editTripId) return;
@@ -1658,7 +1684,17 @@ load().then(ok => { if(ok !== false) renderOverview(); });
         </select>
       </div>
       <div><label class="form-label">รายละเอียด</label><textarea class="form-input" id="et-desc" rows="3" style="resize:vertical;"></textarea></div>
-      <div><label class="form-label">เหตุผลในการแก้ไข *</label><input class="form-input" id="et-reason" placeholder="ระบุเหตุผล เช่น เปลี่ยนวันเดินทาง..."></div>
+      <div style="background:#F6FBF7;border:1px solid #C7E7D2;border-radius:10px;padding:12px 14px;">
+        <label class="form-label" style="margin:0 0 6px;">รูปทริป (เปลี่ยนแล้วขึ้นเว็บทันที ไม่ต้องรออนุมัติ)</label>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <img id="et-img-preview" src="" alt="" style="width:84px;height:56px;object-fit:cover;border-radius:8px;background:#eee;display:none;flex-shrink:0;">
+          <div style="flex:1;">
+            <input type="file" id="et-img-file" accept="image/*" onchange="changeTripImage(this)" style="font-size:12.5px;">
+            <div id="et-img-status" style="font-size:12px;color:var(--text-muted);margin-top:4px;">เลือกรูปใหม่เพื่อเปลี่ยนทันที</div>
+          </div>
+        </div>
+      </div>
+      <div><label class="form-label">เหตุผลในการแก้ไข (สำหรับแก้ชื่อ/วัน/ราคา) *</label><input class="form-input" id="et-reason" placeholder="ระบุเหตุผล เช่น เปลี่ยนวันเดินทาง..."></div>
     </div>
     <div style="display:flex;gap:10px;margin-top:24px;justify-content:flex-end;">
       <button class="btn btn-ghost" onclick="document.getElementById('modalEditTrip').style.display='none'">ยกเลิก</button>

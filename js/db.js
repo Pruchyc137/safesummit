@@ -276,6 +276,23 @@ const Organizers = {
     return data?.payment_qr_url || null;
   },
 
+  // อัปโหลดรูปทริปขึ้น bucket trip-images → คืน public URL (ใช้ทั้งตอนสร้างและแก้ไข)
+  async uploadTripImage(file) {
+    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+    const path = `trips/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const { error } = await db.storage.from('trip-images')
+      .upload(path, file, { upsert: false, contentType: file.type || 'image/jpeg' });
+    if (error) throw error;
+    return db.storage.from('trip-images').getPublicUrl(path).data.publicUrl;
+  },
+
+  // ผู้จัดเปลี่ยนรูปของทริปที่มีอยู่ (ผ่าน RPC security-definer — แก้ได้เฉพาะทริปตัวเอง)
+  async saveTripImage(tripId, url) {
+    const { error } = await db.rpc('save_trip_image', { p_trip_id: tripId, p_url: url });
+    if (error) throw error;
+    return url;
+  },
+
   // บันทึกกำหนดการทริป (เฉพาะทริปของตัวเอง) — itinerary = [{day,time,desc}, ...]
   async saveItinerary(tripId, itinerary) {
     const { error } = await db.rpc('save_trip_itinerary', { p_trip_id: tripId, p_itinerary: itinerary });
