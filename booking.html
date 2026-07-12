@@ -271,6 +271,11 @@ canvas#qrCanvas{display:block;}
         <div style="flex:1;font-size:13.5px;color:#7A5E1A;">เข้าสู่ระบบก่อนจอง เพื่อบันทึกการจองไว้ใน "ทริปของฉัน"</div>
         <button onclick="goLoginFromBooking()" style="background:var(--accent-trail);color:#fff;border:none;border-radius:8px;padding:9px 16px;font-family:'Sarabun',sans-serif;font-weight:700;font-size:13.5px;cursor:pointer;white-space:nowrap;">เข้าสู่ระบบ</button>
       </div>
+      <div id="orgBlockBanner" style="display:none;align-items:center;gap:12px;background:#FDEEEC;border:1px solid #E7B4AC;border-radius:12px;padding:14px 16px;margin-bottom:16px;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C0392B" stroke-width="1.8" style="flex-shrink:0;"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+        <div style="flex:1;font-size:13.5px;color:#8A2A20;">คุณกำลังเข้าสู่ระบบด้วย<b>บัญชีผู้จัดทริป</b> — บัญชีผู้จัดจองทริปไม่ได้ กรุณาออกจากระบบแล้วเข้าด้วย<b>บัญชีลูกค้า</b>เพื่อจอง</div>
+        <button onclick="logoutToCustomer()" style="background:#C0392B;color:#fff;border:none;border-radius:8px;padding:9px 16px;font-family:'Sarabun',sans-serif;font-weight:700;font-size:13.5px;cursor:pointer;white-space:nowrap;">ออกจากระบบ แล้วเข้าเป็นลูกค้า</button>
+      </div>
       <div class="panel">
         <div class="panel-head">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -721,6 +726,7 @@ function goStep(n){
 function goStep2(){
   if(!trip){ toast('ไม่พบข้อมูลทริป'); return; }
   if(!BOOKING_USER){ toast('กรุณาเข้าสู่ระบบก่อนจอง'); goLoginFromBooking(); return; }
+  if(BOOKING_IS_ORG){ toast('บัญชีผู้จัดจองทริปไม่ได้ — เข้าด้วยบัญชีลูกค้าก่อน'); const bb=document.getElementById('orgBlockBanner'); if(bb){ bb.style.display='flex'; bb.scrollIntoView({behavior:'smooth'}); } return; }
   const fname=document.getElementById('f-fname').value.trim();
   const lname=document.getElementById('f-lname').value.trim();
   const email=document.getElementById('f-email').value.trim();
@@ -824,6 +830,7 @@ async function submitSlip(){
 
 // ===== SAVE BOOKING (Supabase) — คืน row ที่สร้าง =====
 async function saveBooking(){
+  if(BOOKING_IS_ORG){ toast('บัญชีผู้จัดจองทริปไม่ได้ — เข้าด้วยบัญชีลูกค้าก่อน'); throw new Error('organizer cannot book'); }
   const note = document.getElementById('f-note').value.trim();
   const total = trip.price*seats;
   const pay = payType==='deposit' ? depositAmount(total) : total;
@@ -989,14 +996,29 @@ function toast(msg){
 }
 
 // ===== AUTH =====
-let BOOKING_USER = null;
+let BOOKING_USER = null, BOOKING_IS_ORG = false;
 function goLoginFromBooking(){
+  const next = encodeURIComponent(location.pathname.split('/').pop() + location.search);
+  location.href = 'login.html?next=' + next;
+}
+// ออกจากระบบ (บัญชีผู้จัด) แล้วไปหน้าเข้าสู่ระบบลูกค้า เพื่อกลับมาจองต่อ
+async function logoutToCustomer(){
+  try { await db.auth.signOut(); } catch(e){}
   const next = encodeURIComponent(location.pathname.split('/').pop() + location.search);
   location.href = 'login.html?next=' + next;
 }
 async function initBookingAuth(){
   try { const { data } = await db.auth.getUser(); BOOKING_USER = data?.user || null; } catch(e){}
   if(BOOKING_USER){
+    // บัญชีผู้จัด (มีแถวใน organizers) จองทริปไม่ได้ — ต้องเข้าด้วยบัญชีลูกค้า
+    try {
+      const { data: o } = await db.from('organizers').select('id').eq('user_id', BOOKING_USER.id).maybeSingle();
+      BOOKING_IS_ORG = !!o;
+    } catch(e){ BOOKING_IS_ORG = false; }
+    if(BOOKING_IS_ORG){
+      const bb = document.getElementById('orgBlockBanner'); if(bb) bb.style.display='flex';
+      return;   // ไม่ prefill / ไม่ให้จองต่อ
+    }
     // prefill จากโปรไฟล์
     let prof = {};
     try { const { data } = await db.from('users').select('full_name,phone,email,line_id').eq('id', BOOKING_USER.id).maybeSingle(); if(data) prof = data; } catch(e){}
