@@ -881,7 +881,8 @@ function validImg(u){
 }
 // ทริปมี "รูปจริง" ไหม (รูปที่ผู้จัดอัป หรือจับคู่จากคลังรูป) — ไม่นับภาพวาด SVG
 function hasPhoto(t){
-  return validImg(t.img) || !!(typeof matchLocationImg==='function' && matchLocationImg(t));
+  // ทริปจริงจากผู้จัดโชว์เสมอ (มีภาพ scene สำรองอยู่แล้ว) — กันไม่ให้ทริปที่อนุมัติแล้วหายไปเพราะยังไม่ใส่รูป
+  return !!t.real || validImg(t.img) || !!(typeof matchLocationImg==='function' && matchLocationImg(t));
 }
 function sceneFor(t){
   const sceneSvg = t.scene ? (SCENES[t.scene]||SCENES.peak) : (({north:SCENES.peak,northeast:SCENES.sunrise,south:SCENES.forest})[t.region]||SCENES.peak);
@@ -957,6 +958,7 @@ function mapSupabaseTrip(r){
     rating: r.rating_avg || seed.rating || null,
     img: r.image_url || seed.img || null,
     scene: seed.scene || ({north:'peak',northeast:'sunrise',south:'forest',west:'forest',east:'forest',central:'sunrise'}[r.region||'north']||'peak'),
+    real: !isSeedFormat,   // ทริปจริงจากผู้จัด (ไม่ใช่ seed) — โชว์เสมอแม้ยังไม่ใส่รูป (มีภาพ scene สำรอง)
   };
 }
 
