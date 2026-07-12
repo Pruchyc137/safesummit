@@ -171,7 +171,7 @@ async function doLogin(){
       const { data: o } = await db.from('organizers').select('id').eq('user_id', data.user.id).maybeSingle();
       if(o){
         await db.auth.signOut();
-        err.innerHTML = 'อีเมลนี้เป็น<b>บัญชีผู้จัดทริป</b> จึงเข้าในฐานะลูกค้าไม่ได้<br>• จะจัดการทริป → กดแท็บ <b>"ผู้จัดทริป"</b><br>• จะจองทริป → ใช้<b>บัญชีลูกค้าคนละอีเมล</b>';
+        err.textContent = 'อีเมลหรือรหัสผ่านไม่ถูกต้อง';
         err.style.display = 'block';
         return;
       }
