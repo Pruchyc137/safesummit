@@ -694,6 +694,18 @@ h1,h2,h3,h4{font-family:'Kanit',sans-serif;}
           </p>
         </div>
 
+        <!-- SECTION: กำหนดการ (มีค่าเริ่มต้นให้ ปรับได้ทันที) -->
+        <div class="form-section">
+          <div class="form-section-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+            กำหนดการเดินทาง
+          </div>
+          <p style="font-size:12.5px;color:var(--text-muted);margin:0 0 12px;">ระบบใส่ค่าเริ่มต้นให้ตามจำนวนวัน — <b>"วันเดินทางไป" คือวันก่อนวันเริ่มทริป</b> (ดึงจากวันที่ด้านบน) ปรับเวลา/รายละเอียดได้เลย</p>
+          <div id="addItinNote" style="display:none;background:#FDF6E3;border:1px solid rgba(201,162,75,.5);border-radius:8px;padding:10px 12px;font-size:12.5px;color:#8A6D1E;margin-bottom:10px;">กรอก "วันเริ่มต้น" และ "จำนวนวัน" ด้านบนก่อน แล้วกำหนดการจะขึ้นให้อัตโนมัติ</div>
+          <div id="addItinRows"></div>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="addItinReset()">↻ โหลดกำหนดการเริ่มต้นใหม่</button>
+        </div>
+
         <div class="form-foot">
           <button class="btn btn-ghost" onclick="clearForm()">ล้างฟอร์ม</button>
           <button class="btn btn-primary" onclick="submitTrip()">
@@ -1301,6 +1313,7 @@ function showPage(key, el){
   if(key==='my-trips') renderMyTrips();
   if(key==='bookings') renderBookings();
   if(key==='profile') loadProfile();
+  if(key==='add-trip') refreshAddItin();
 }
 
 function kpiCard(cls, iconSvg, label, val, sub){
@@ -1526,6 +1539,31 @@ function updatePreview(){
   const ppB=document.getElementById('ppBig');
   if(price>0){ pp.style.display='flex'; ppB.textContent='฿'+price.toLocaleString('th-TH'); }
   else pp.style.display='none';
+  refreshAddItin();
+}
+
+// ===== กำหนดการในฟอร์มเพิ่มทริป (ค่าเริ่มต้นอัตโนมัติ + วันที่จริง) =====
+let _addItinDaysCache=null;
+function refreshAddItin(){
+  const box=document.getElementById('addItinRows'); if(!box) return;   // อยู่หน้าอื่น
+  const days=parseInt(v('f-days'))||0;
+  const date=v('f-date')||'';
+  const note=document.getElementById('addItinNote');
+  if(!days || !date){ if(note) note.style.display='block'; box.innerHTML=''; _addItinDaysCache=null; return; }
+  if(note) note.style.display='none';
+  _itinTarget='addItinRows'; _itinStart=date; _itinDays=days;
+  if(_addItinDaysCache!==days){
+    // จำนวนวันเปลี่ยน (หรือครั้งแรก) → โหลดค่าเริ่มต้นใหม่
+    _itinRows=defaultItin(days); _addItinDaysCache=days;
+  } else {
+    itinSync();   // เก็บที่แก้ไว้ แล้วแค่รีเฟรชป้ายวันที่
+  }
+  renderItinRows();
+}
+function addItinReset(){
+  const days=parseInt(v('f-days'))||0; if(!days){ toast('เลือกจำนวนวันก่อน'); return; }
+  _itinTarget='addItinRows'; _itinStart=v('f-date')||''; _itinDays=days;
+  _itinRows=defaultItin(days); _addItinDaysCache=days; renderItinRows();
 }
 function updateVanHint(){
   const vans=parseInt(v('f-cap'))||0;
@@ -1568,6 +1606,7 @@ function clearForm(){
   const fi=document.getElementById('f-img-files');
   if(fi) fi.value='';
   document.getElementById('addSuccess').style.display='none';
+  _addItinDaysCache=null;   // ให้กำหนดการโหลดค่าเริ่มต้นใหม่รอบหน้า
   updatePreview();
 }
 
@@ -1604,6 +1643,21 @@ async function submitTrip(){
   if(getChecked('inc-park'))      includes.push('ค่าเข้าอุทยาน');
   if(getChecked('inc-photo'))     includes.push('บริการถ่ายภาพ');
 
+  // เก็บกำหนดการจากฟอร์ม (มีค่าเริ่มต้นให้แล้ว) + ตรวจเวลาเรียงถูกต้อง
+  if(document.getElementById('addItinRows')){ _itinTarget='addItinRows'; itinSync(); }
+  const itinRows=_itinRows.filter(r=>r.time||(r.desc||'').trim()).map(r=>({day:r.day,time:r.time,desc:(r.desc||'').trim()}));
+  for(const dd of itinDayList()){
+    const rr=itinRows.filter(r=>r.day===dd); let prev=-1;
+    for(let i=0;i<rr.length;i++){
+      const mm=itinTimeMin(rr[i].time);
+      if(!rr[i].time||isNaN(mm)){ toast('⚠️ '+itinDayLabel(dd)+': กรอกเวลาให้ครบ'); return; }
+      if(!rr[i].desc){ toast('⚠️ '+itinDayLabel(dd)+': กรอกรายละเอียดให้ครบ'); return; }
+      const eff=(mm===0&&i>0)?1440:mm;
+      if(eff<prev){ toast('⚠️ เวลาไม่ถูกต้อง — '+itinDayLabel(dd)+' เวลา '+rr[i].time+' เรียงย้อนกลับ'); return; }
+      prev=eff;
+    }
+  }
+
   const btn = document.querySelector('#addTripForm .btn-primary');
   if(btn){ btn.disabled=true; btn.textContent='กำลังบันทึก...'; }
 
@@ -1634,6 +1688,7 @@ async function submitTrip(){
       description:      v('f-desc')||null,
       image_url:        imageUrl,
       includes:         includes,
+      itinerary:        itinRows.length?itinRows:null,
     }).select().single();
     if(error) throw error;
 
@@ -1902,15 +1957,26 @@ function renderMfTable(){
 
 <script>
 // ===== ITINERARY EDITOR =====
-let _itinTripId=null, _itinDays=1, _itinRows=[];
+let _itinTripId=null, _itinDays=1, _itinRows=[], _itinTarget='itin-rows', _itinStart=null;
 function tripDaysFrom(t){
   const d=parseInt(t.duration_days)||0;
   if(d>0) return d;
   const m=(t.name_th||t.name?.th||'').match(/(\d+)\s*วัน/);
   return m?Math.max(1,+m[1]):1;
 }
+// วันที่จริงของแต่ละวัน: day0 = วันก่อนเริ่มทริป (วันเดินทางไป), day k = วันเริ่ม + (k-1)
+function itinDateStr(d){
+  if(!_itinStart) return '';
+  const base=new Date(_itinStart+'T00:00:00'); if(isNaN(base)) return '';
+  base.setDate(base.getDate() + (d===0 ? -1 : d-1));
+  return base.toLocaleDateString('th-TH',{weekday:'short',day:'numeric',month:'short',year:'2-digit'});
+}
 // day 0 = วันเดินทางไป, 1..N = วันในทริป
-function itinDayLabel(d){ return d===0 ? '🚌 วันเดินทางไป (ก่อนถึงจุดหมาย)' : ('วันที่ '+d); }
+function itinDayLabel(d){
+  const dt=itinDateStr(d);
+  const base = d===0 ? '🚌 วันเดินทางไป (ก่อนถึงจุดหมาย)' : ('วันที่ '+d);
+  return dt ? `${base} · ${dt}` : base;
+}
 function itinDayList(){ const a=[0]; for(let d=1;d<=_itinDays;d++) a.push(d); return a; }
 function defaultItin(days){
   // ทริปวันเดียว (ไป-กลับในวันเดียว ไม่มีวันเดินทางก่อน)
@@ -1947,7 +2013,7 @@ function defaultItin(days){
 }
 function openItinerary(id){
   const t=TRIPS.find(x=>x.id===id); if(!t){ toast('ไม่พบทริป'); return; }
-  _itinTripId=id; _itinDays=tripDaysFrom(t);
+  _itinTripId=id; _itinDays=tripDaysFrom(t); _itinTarget='itin-rows'; _itinStart=t.start_date||t.date||null;
   document.getElementById('itin-title').textContent='กำหนดการ · '+(t.name_th||t.name?.th||'ทริป');
   document.getElementById('itin-meta').textContent=`ทริป ${_itinDays} วัน · เพิ่มช่วงเวลาในแต่ละวัน (เรียงตามเวลา)`;
   document.getElementById('itin-err').style.display='none';
@@ -1960,13 +2026,14 @@ function itinLoadDefault(){ if(!confirm('แทนที่ด้วยกำห
 function itinAddToDay(d){ itinSync(); _itinRows.push({day:d,time:'',desc:''}); renderItinRows(); }
 function itinDelRow(i){ itinSync(); _itinRows.splice(i,1); renderItinRows(); }
 function itinSync(){
-  document.querySelectorAll('#itin-rows [data-idx]').forEach(el=>{
+  document.querySelectorAll('#'+_itinTarget+' [data-idx]').forEach(el=>{
     const i=+el.getAttribute('data-idx');
     if(_itinRows[i]){ _itinRows[i].time=el.querySelector('.it-time').value; _itinRows[i].desc=el.querySelector('.it-desc').value; }
   });
 }
 function renderItinRows(){
-  const el=document.getElementById('itin-rows');
+  const el=document.getElementById(_itinTarget);
+  if(!el) return;
   const rowHTML=(r,idx)=>`
     <div data-idx="${idx}" style="display:flex;gap:8px;align-items:center;margin-bottom:7px;">
       <input class="form-input it-time" type="time" value="${r.time||''}" style="width:118px;flex:none;">
