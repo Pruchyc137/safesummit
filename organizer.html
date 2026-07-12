@@ -1685,7 +1685,7 @@ async function submitTrip(){
       }
     }
     if(btn) btn.textContent='กำลังบันทึก...';
-    const { data, error } = await db.from('trips').insert({
+    const payload = {
       organizer_id:     _orgProfile.id,
       name_th:          fullName,
       name_en:          name,
@@ -1704,7 +1704,13 @@ async function submitTrip(){
       images:           imagesArr,
       includes:         includes,
       itinerary:        itinRows.length?itinRows:null,
-    }).select().single();
+    };
+    let { data, error } = await db.from('trips').insert(payload).select().single();
+    // เผื่อยังไม่ได้รัน SQL เพิ่มคอลัมน์ images (phase11) — ลองใหม่โดยไม่ส่ง images
+    if(error && /images/.test(error.message||'')){
+      delete payload.images;
+      ({ data, error } = await db.from('trips').insert(payload).select().single());
+    }
     if(error) throw error;
 
     TRIPS.unshift(data);
