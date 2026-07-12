@@ -199,7 +199,7 @@ Deno.serve(async (req) => {
       if (!id) return json({ error: 'missing id' }, 400);
       const ALLOWED = [
         'status', 'note', 'name_th', 'name_en', 'province', 'start_date', 'capacity',
-        'booked_count', 'price_per_person', 'trip_type', 'image_url',
+        'booked_count', 'price_per_person', 'trip_type', 'image_url', 'images',
         'description', 'difficulty',
       ];
       const src = payload.trip || {};

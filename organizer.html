@@ -1571,17 +1571,27 @@ function updateVanHint(){
   if(h) h.innerHTML = vans>0 ? `รับได้สูงสุด <b>${vans*9} ที่นั่ง</b> (${vans} คัน × 9)` : 'กรอกจำนวนรถตู้';
 }
 
-let _tripImageFiles = [];
+let _tripImageFiles = [], _coverIdx = 0;
 function handleTripImages(input){
   const files = Array.from(input.files).slice(0,6);
   _tripImageFiles = files;
+  if(_coverIdx>=files.length) _coverIdx=0;
+  renderTripImgGrid();
+}
+function setCover(i){ _coverIdx=i; renderTripImgGrid(); }
+function renderTripImgGrid(){
   const grid = document.getElementById('imgPreviewGrid');
+  if(!grid) return;
+  const files=_tripImageFiles;
   grid.style.display = files.length ? 'grid' : 'none';
   grid.innerHTML = files.map((f,i)=>{
     const url = URL.createObjectURL(f);
-    return `<div style="position:relative;border-radius:8px;overflow:hidden;aspect-ratio:4/3;background:#eee;">
+    const isCover=i===_coverIdx;
+    return `<div onclick="setCover(${i})" title="กดเพื่อตั้งเป็นรูปปก" style="position:relative;border-radius:8px;overflow:hidden;aspect-ratio:4/3;background:#eee;cursor:pointer;border:3px solid ${isCover?'#E2672B':'transparent'};">
       <img src="${url}" style="width:100%;height:100%;object-fit:cover;">
-      ${i===0?'<span style="position:absolute;top:4px;left:4px;background:#E2672B;color:#fff;font-size:10px;padding:2px 6px;border-radius:4px;">ปก</span>':''}
+      ${isCover
+        ? '<span style="position:absolute;top:4px;left:4px;background:#E2672B;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;">★ ปก</span>'
+        : '<span style="position:absolute;top:4px;left:4px;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:4px;">ตั้งเป็นปก</span>'}
     </div>`;
   }).join('');
 }
@@ -1600,7 +1610,7 @@ function clearForm(){
   setVal('f-days','3');
   setVal('f-cap','1'); updateVanHint();
   setVal('f-type','transfer');
-  _tripImageFiles=[];
+  _tripImageFiles=[]; _coverIdx=0;
   const grid=document.getElementById('imgPreviewGrid');
   if(grid){ grid.innerHTML=''; grid.style.display='none'; }
   const fi=document.getElementById('f-img-files');
@@ -1662,13 +1672,17 @@ async function submitTrip(){
   if(btn){ btn.disabled=true; btn.textContent='กำลังบันทึก...'; }
 
   try {
-    // upload รูปภาพก่อน
-    let imageUrl = null;
+    // upload รูปภาพก่อน (ทุกรูป) + เก็บ URL ทุกรูปไว้ให้ Admin ตรวจ + เลือกปกตามที่ผู้จัดเลือก
+    let imageUrl = null, imagesArr = null;
     if(_tripImageFiles.length){
       if(btn) btn.textContent='กำลังอัปโหลดรูป...';
       const urls = await Promise.all(_tripImageFiles.map(f=>uploadTripImage(f).catch(()=>null)));
-      const valid = urls.filter(Boolean);
-      imageUrl = valid[0]||null;
+      const valid = urls.map((u,i)=>({u,i})).filter(x=>x.u);
+      if(valid.length){
+        imagesArr = valid.map(x=>({ url:x.u, ok:null }));   // ok=null = รอ Admin ตรวจ
+        const coverUrl = urls[_coverIdx] || valid[0].u;      // ปกที่ผู้จัดเลือก (fallback รูปแรกที่อัปสำเร็จ)
+        imageUrl = coverUrl;
+      }
     }
     if(btn) btn.textContent='กำลังบันทึก...';
     const { data, error } = await db.from('trips').insert({
@@ -1687,6 +1701,7 @@ async function submitTrip(){
       trip_type:        v('f-type')||'transfer',
       description:      v('f-desc')||null,
       image_url:        imageUrl,
+      images:           imagesArr,
       includes:         includes,
       itinerary:        itinRows.length?itinRows:null,
     }).select().single();

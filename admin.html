@@ -670,6 +670,12 @@ h1,h2,h3{font-family:'Kanit',sans-serif;}
             <div id="tf-img-status" style="font-size:12px;color:var(--text-muted);margin-top:4px;">อัปรูปใหม่ หรือเลือกจากคลังด้านล่าง</div>
           </div>
         </div>
+        <!-- ตรวจความเหมาะสมของรูปที่ผู้จัดอัปมา -->
+        <div id="tf-trip-images-wrap" style="display:none;margin:8px 0 10px;">
+          <div style="font-size:12px;color:var(--text-muted);font-weight:600;margin-bottom:5px;">รูปที่ผู้จัดอัปมา — ตรวจว่าเหมาะสมหรือไม่ / เลือกปก</div>
+          <div id="tf-trip-images" style="display:flex;flex-wrap:wrap;gap:10px;"></div>
+          <button type="button" onclick="tfUseDefaultImg()" style="margin-top:8px;background:#FDF6E3;border:1px solid rgba(201,162,75,.6);color:#8A6D1E;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;">ใช้รูป Default ของทริป (ตามชื่อ/ภาค)</button>
+        </div>
         <div style="display:flex;justify-content:space-between;align-items:center;margin:6px 0 4px;">
           <span style="font-size:12px;color:var(--text-muted);font-weight:600;">คลังรูปจากผู้จัด (กดเพื่อใช้รูปนี้)</span>
           <button type="button" onclick="loadTripImageGallery(true)" style="background:none;border:none;color:#3E6E8E;font-size:12px;cursor:pointer;">รีเฟรช</button>
@@ -1033,6 +1039,7 @@ async function saveTrips(t){
     price_per_person: t.price||t.price_per_person,
     image_url: (t.image_url!==undefined?t.image_url:t.img),   // อนุญาตใน Edge Function แล้ว
     name_en: t.name_en||t.name?.en||undefined,                // (ต้องเพิ่ม name_en ใน Edge Function ก่อนถึงจะเซฟถาวร)
+    images: (t.images!==undefined?t.images:undefined),        // ผลตรวจความเหมาะสมของรูป
   });
 }
 
@@ -1714,10 +1721,10 @@ function openAddTrip(){
   document.getElementById('tf-status').value='open';
   document.getElementById('tf-badge').value='Verified Pro';
   document.getElementById('tf-name-en').value='';
-  _tfImgUrl=null; renderTfImg(); loadTripImageGallery();
+  _tfImgUrl=null; _tfImages=[]; renderTfImg(); renderTfTripImages(); loadTripImageGallery();
   populateOrgSelect(); updateTripImgPreview(); openModal('modalTrip');
 }
-let _tfImgUrl = null;
+let _tfImgUrl = null, _tfImages = [];
 function renderTfImg(){
   const prev=document.getElementById('tf-img-preview'), st=document.getElementById('tf-img-status');
   if(_tfImgUrl){ prev.src=_tfImgUrl; prev.style.display='block'; }
@@ -1725,11 +1732,53 @@ function renderTfImg(){
   const fi=document.getElementById('tf-img-file'); if(fi) fi.value='';
   if(st){ st.textContent='อัปรูปใหม่ หรือเลือกจากคลังด้านล่าง'; st.style.color='var(--text-muted)'; }
 }
+// รูปที่ผู้จัดอัปมา (ตรวจความเหมาะสม + เลือกปก)
+function renderTfTripImages(){
+  const wrap=document.getElementById('tf-trip-images-wrap'), box=document.getElementById('tf-trip-images');
+  if(!wrap||!box) return;
+  if(!_tfImages||!_tfImages.length){ wrap.style.display='none'; return; }
+  wrap.style.display='block';
+  box.innerHTML=_tfImages.map((im,i)=>{
+    const isCover=_tfImgUrl===im.url;
+    const okColor = im.ok===false?'#C0392B':(im.ok===true?'#2E7D32':'#8B7E6B');
+    const okText  = im.ok===false?'ไม่เหมาะสม':(im.ok===true?'เหมาะสม':'รอตรวจ');
+    return `<div style="width:118px;border:2px solid ${isCover?'var(--accent-trail)':'#E6DCC6'};border-radius:10px;overflow:hidden;background:#fff;">
+      <div style="position:relative;height:78px;background:#eee;">
+        <img src="${im.url}" style="width:100%;height:100%;object-fit:cover;${im.ok===false?'filter:grayscale(1) opacity(.55);':''}">
+        ${isCover?'<span style="position:absolute;top:3px;left:3px;background:var(--accent-trail);color:#fff;font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;">★ ปก</span>':''}
+        <span style="position:absolute;bottom:3px;right:3px;background:${okColor};color:#fff;font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;">${okText}</span>
+      </div>
+      <div style="display:flex;gap:2px;padding:4px;">
+        <button type="button" onclick="tfImgMark(${i},true)" title="เหมาะสม" style="flex:1;border:none;background:#EAF6EE;color:#2E7D32;border-radius:5px;padding:4px 0;font-size:12px;cursor:pointer;">✓</button>
+        <button type="button" onclick="tfImgMark(${i},false)" title="ไม่เหมาะสม" style="flex:1;border:none;background:#FDEEEC;color:#C0392B;border-radius:5px;padding:4px 0;font-size:12px;cursor:pointer;">✕</button>
+        <button type="button" onclick="tfImgCover(${i})" title="ตั้งเป็นปก" style="flex:1;border:none;background:#FBEDE3;color:#E2672B;border-radius:5px;padding:4px 0;font-size:12px;cursor:pointer;">★</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function tfImgMark(i,ok){
+  if(!_tfImages[i]) return;
+  _tfImages[i].ok=ok;
+  // ถ้าปฏิเสธรูปที่เป็นปกอยู่ → เอาปกออก (กลับไปใช้ default)
+  if(ok===false && _tfImgUrl===_tfImages[i].url){ _tfImgUrl=null; renderTfImg(); }
+  renderTfTripImages();
+}
+function tfImgCover(i){
+  if(!_tfImages[i]) return;
+  if(_tfImages[i].ok===false){ toast('รูปนี้ถูกทำเครื่องหมายว่าไม่เหมาะสม — กด ✓ ก่อนตั้งเป็นปก'); return; }
+  _tfImgUrl=_tfImages[i].url; renderTfImg(); renderTfTripImages();
+}
+function tfUseDefaultImg(){
+  _tfImgUrl=null; renderTfImg(); renderTfTripImages();
+  toast('ตั้งให้ใช้รูป Default (ตามชื่อ/ภาค) แล้ว — กดบันทึก');
+}
 function openEditTrip(id){
   const t=TRIPS.find(x=>x.id===id); if(!t) return; editTripId=id;
   document.getElementById('tripModalTitle').textContent='แก้ไขทริป';
   document.getElementById('tf-name-en').value=t.name_en||t.name?.en||'';
-  _tfImgUrl = t.image_url||t.img||null; renderTfImg(); loadTripImageGallery();
+  _tfImgUrl = t.image_url||t.img||null;
+  _tfImages = Array.isArray(t.images) ? t.images.map(x=>({url:x.url,ok:(x.ok!==undefined?x.ok:null)})) : [];
+  renderTfImg(); renderTfTripImages(); loadTripImageGallery();
   document.getElementById('tf-name').value=tripName(t);
   document.getElementById('tf-region').value=t.region||'north';
   document.getElementById('tf-prov').value=t.prov||'';
@@ -1785,6 +1834,7 @@ async function saveTrip(){
     if(typeof t.name==='object'){ t.name.th=name; t.name.en=nameEn||t.name.en; } else t.name=name;
     Object.assign(t,data);
     t.image_url=_tfImgUrl||null; t.img=_tfImgUrl||t.img; t.name_en=nameEn||t.name_en;
+    t.images=_tfImages&&_tfImages.length?_tfImages:null;
     edited=t; toast('บันทึกการแก้ไขแล้ว');
   } else {
     TRIPS.push(Object.assign({id:'t'+Date.now(),name:{th:name,en:nameEn||name},rating:4.8,image_url:_tfImgUrl||null,img:_tfImgUrl||null,name_en:nameEn},data));
