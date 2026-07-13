@@ -553,7 +553,7 @@ h1,h2,h3,h4{font-family:'Kanit',sans-serif;}
           <div class="fld-row">
             <div class="fld">
               <label>ภาค<span class="fld-req">*</span></label>
-              <select id="f-region" onchange="updatePreview()">
+              <select id="f-region" onchange="onRegionChange()">
                 <option value="">-- เลือกภาค --</option>
                 <option value="north">ภาคเหนือ</option>
                 <option value="northeast">ภาคตะวันออกเฉียงเหนือ</option>
@@ -565,7 +565,9 @@ h1,h2,h3,h4{font-family:'Kanit',sans-serif;}
             </div>
             <div class="fld">
               <label>จังหวัด<span class="fld-req">*</span></label>
-              <input id="f-prov" placeholder="เช่น เลย" oninput="updatePreview()">
+              <select id="f-prov" onchange="updatePreview()" disabled>
+                <option value="">-- เลือกภาคก่อน --</option>
+              </select>
             </div>
           </div>
           <div class="fld">
@@ -582,18 +584,20 @@ h1,h2,h3,h4{font-family:'Kanit',sans-serif;}
           </div>
           <div class="fld-row">
             <div class="fld">
-              <label>วันเริ่มต้น<span class="fld-req">*</span></label>
-              <input id="f-date" type="date" oninput="updatePreview()">
+              <label>วันเริ่มต้น (วันไปถึง)<span class="fld-req">*</span></label>
+              <input id="f-date" type="date" onchange="syncTripDates()">
             </div>
             <div class="fld">
-              <label>จำนวนวัน<span class="fld-req">*</span></label>
-              <select id="f-days" onchange="updatePreview()">
-                <option value="1">1 วัน</option>
-                <option value="2">2 วัน 1 คืน</option>
-                <option value="3" selected>3 วัน 2 คืน</option>
-                <option value="4">4 วัน 3 คืน</option>
-                <option value="5">5 วัน 4 คืน</option>
-              </select>
+              <label>วันเดินทางกลับ<span class="fld-req">*</span></label>
+              <input id="f-date-end" type="date" onchange="syncTripDates()">
+            </div>
+          </div>
+          <div class="fld-row">
+            <div class="fld">
+              <label>จำนวนวัน (คำนวณจากวันที่อัตโนมัติ)</label>
+              <input id="f-days-label" readonly placeholder="เลือกวันเริ่ม + วันกลับก่อน" style="background:#F5EFE0;cursor:default;color:#2B2118;font-weight:600;">
+              <input type="hidden" id="f-days" value="">
+              <div class="hint">รอบเดินทางนี้จะไปตั้ง "กำหนดการ" ให้อัตโนมัติ (วันเดินทางไป = ก่อนวันเริ่ม 1 วัน)</div>
             </div>
           </div>
           <div class="fld-row">
@@ -1544,6 +1548,43 @@ function selectBadge(b){
   document.getElementById(b==='Verified Pro'?'badge-pro':'badge-basic').classList.add('active');
 }
 
+// ===== จังหวัดตามภาค (dropdown ล้อตาม Filter ภาค) =====
+const PROVINCES_BY_REGION = {
+  north:     ['เชียงใหม่','เชียงราย','ลำปาง','ลำพูน','แม่ฮ่องสอน','น่าน','พะเยา','แพร่','อุตรดิตถ์','ตาก','สุโขทัย','พิษณุโลก','เพชรบูรณ์','กำแพงเพชร','พิจิตร','นครสวรรค์','อุทัยธานี'],
+  northeast: ['เลย','หนองคาย','บึงกาฬ','หนองบัวลำภู','อุดรธานี','สกลนคร','นครพนม','มุกดาหาร','กาฬสินธุ์','ขอนแก่น','ชัยภูมิ','มหาสารคาม','ร้อยเอ็ด','ยโสธร','อำนาจเจริญ','อุบลราชธานี','ศรีสะเกษ','สุรินทร์','บุรีรัมย์','นครราชสีมา'],
+  central:   ['กรุงเทพมหานคร','นนทบุรี','ปทุมธานี','พระนครศรีอยุธยา','อ่างทอง','ลพบุรี','สิงห์บุรี','ชัยนาท','สระบุรี','นครปฐม','สมุทรปราการ','สมุทรสาคร','สมุทรสงคราม','สุพรรณบุรี','นครนายก'],
+  east:      ['ชลบุรี','ระยอง','จันทบุรี','ตราด','ฉะเชิงเทรา','ปราจีนบุรี','สระแก้ว'],
+  west:      ['กาญจนบุรี','ราชบุรี','เพชรบุรี','ประจวบคีรีขันธ์','ตาก'],
+  south:     ['ชุมพร','ระนอง','สุราษฎร์ธานี','พังงา','ภูเก็ต','กระบี่','นครศรีธรรมราช','ตรัง','พัทลุง','สตูล','สงขลา','ปัตตานี','ยะลา','นราธิวาส'],
+};
+function onRegionChange(){
+  const region=v('f-region');
+  const sel=document.getElementById('f-prov');
+  const list=PROVINCES_BY_REGION[region]||[];
+  const cur=sel.value;
+  sel.innerHTML='<option value="">'+(list.length?'-- เลือกจังหวัด --':'-- เลือกภาคก่อน --')+'</option>'
+    + list.map(p=>`<option${cur===p?' selected':''}>${p}</option>`).join('');
+  sel.disabled=!list.length;
+  updatePreview();
+}
+
+// ===== รอบเดินทาง: เลือกวันเริ่ม+วันกลับ → คำนวณจำนวนวันอัตโนมัติ + ผูกกับกำหนดการ =====
+function syncTripDates(){
+  const s=v('f-date'), e=v('f-date-end');
+  const endEl=document.getElementById('f-date-end');
+  if(s && endEl) endEl.min=s;                      // วันกลับต้องไม่ก่อนวันเริ่ม
+  const lbl=document.getElementById('f-days-label');
+  const hid=document.getElementById('f-days');
+  if(!s || !e){ hid.value=''; if(lbl){ lbl.value=''; lbl.placeholder='เลือกวันเริ่ม + วันกลับก่อน'; } updatePreview(); return; }
+  const d1=new Date(s+'T00:00:00'), d2=new Date(e+'T00:00:00');
+  const nights=Math.round((d2-d1)/86400000);       // จำนวนคืน = ผลต่างวัน
+  if(nights<0){ hid.value=''; if(lbl){ lbl.value=''; lbl.placeholder='⚠ วันกลับต้องไม่ก่อนวันเริ่ม'; } updatePreview(); return; }
+  const days=nights+1;                             // Logic: จำนวนวัน = คืน + 1
+  hid.value=String(days);
+  if(lbl) lbl.value = days===1 ? '1 วัน (ไป-กลับวันเดียว)' : `${days} วัน ${nights} คืน`;
+  updatePreview();
+}
+
 function updatePreview(){
   const price=parseInt(v('f-price'))||0;
   const pp=document.getElementById('pricePreview');
@@ -1616,9 +1657,11 @@ async function uploadTripImage(file){
 function previewImg(url){}
 
 function clearForm(){
-  ['f-name','f-region','f-prov','f-desc','f-date','f-days','f-price','f-cap','f-diff','f-img']
+  ['f-name','f-region','f-prov','f-desc','f-date','f-date-end','f-price','f-cap','f-diff','f-img']
     .forEach(id=>setVal(id,''));
-  setVal('f-days','3');
+  const hid=document.getElementById('f-days'); if(hid) hid.value='';
+  const lbl=document.getElementById('f-days-label'); if(lbl){ lbl.value=''; lbl.placeholder='เลือกวันเริ่ม + วันกลับก่อน'; }
+  onRegionChange();   // รีเซ็ต dropdown จังหวัด (กลับเป็น disabled)
   setVal('f-cap','1'); updateVanHint();
   setVal('f-type','transfer');
   _tripImageFiles=[]; _coverIdx=0;
@@ -1655,13 +1698,16 @@ async function submitTrip(){
   const region = v('f-region');
   const prov   = v('f-prov').trim();
   const date   = v('f-date');
+  const dateEnd= v('f-date-end');
   const price  = parseInt(v('f-price'));
   const vans   = parseInt(v('f-cap'));
   const cap    = (vans||0) * 9;   // รถตู้ 1 คัน = 9 ที่นั่ง
   if(!name)            { toast('กรุณากรอกชื่อทริป'); return; }
   if(!region)          { toast('กรุณาเลือกภาค'); return; }
-  if(!prov)            { toast('กรุณากรอกจังหวัด'); return; }
-  if(!date)            { toast('กรุณาเลือกวันเดินทาง'); return; }
+  if(!prov)            { toast('กรุณาเลือกจังหวัด'); return; }
+  if(!date)            { toast('กรุณาเลือกวันเริ่มต้น'); return; }
+  if(!dateEnd)         { toast('กรุณาเลือกวันเดินทางกลับ'); return; }
+  if(!parseInt(v('f-days'))){ toast('วันกลับต้องไม่ก่อนวันเริ่ม — กรุณาเลือกวันที่ใหม่'); return; }
   if(!price||price<100){ toast('กรุณากรอกราคา (ขั้นต่ำ 100 บาท)'); return; }
   if(!vans||vans<1)    { toast('กรุณากรอกจำนวนรถตู้ (อย่างน้อย 1 คัน)'); return; }
   if(!_tripImageFiles.length){ toast('กรุณาอัปโหลดรูปทริปอย่างน้อย 1 รูป (จำเป็นสำหรับแสดงบนหน้าเว็บ)'); return; }
