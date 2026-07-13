@@ -983,19 +983,11 @@ async function submitReview(){
   if(!reviewRating){ toast('กรุณาเลือกคะแนน'); return; }
   const b=BOOKINGS.find(x=>x.id===reviewId); if(!b) return;
   const comment = (document.getElementById('reviewText').value||'').trim();
-  // บันทึกรีวิวลง Supabase
+  // บันทึกรีวิวผ่าน RPC (ตรวจสิทธิ์ที่ DB: ต้องไปทริปมาแล้ว + จ่ายแล้ว + จองเอง + รีวิวได้ครั้งเดียว)
   try{
-    if(typeof db!=='undefined'){
-      const { data:{ user } } = await db.auth.getUser();
-      if(user){
-        const { error } = await db.from('reviews').upsert({
-          booking_id: b.id, trip_id: b.tripId, user_id: user.id,
-          rating: reviewRating, comment: comment || null
-        }, { onConflict: 'booking_id' });
-        if(error) throw error;
-      }
-    }
-  }catch(e){ console.error('save review failed', e); toast('บันทึกรีวิวไม่สำเร็จ ลองใหม่'); return; }
+    const { error } = await db.rpc('submit_review', { p_booking_id: b.id, p_rating: reviewRating, p_comment: comment || null });
+    if(error) throw error;
+  }catch(e){ console.error('save review failed', e); toast(e.message || 'บันทึกรีวิวไม่สำเร็จ ลองใหม่'); return; }
   b.reviewed=true; b.rating=reviewRating;
   refreshAll(); closeModal('modalReview');
   toast('ขอบคุณสำหรับรีวิว '+'★'.repeat(reviewRating));
