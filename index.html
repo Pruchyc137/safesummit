@@ -728,7 +728,7 @@ footer .foot-grid li a:hover{opacity:1;color:var(--accent-gold);}
   <div class="wrap">
     <h2 data-th="รีวิวจากผู้ใช้งาน" data-en="User reviews">รีวิวจากผู้ใช้งาน</h2>
     <p class="sub" data-th="ความเห็นจากนักเดินป่าและผู้จัดทริปที่ใช้งานแพลตฟอร์ม" data-en="Feedback from hikers and organizers using the platform">ความเห็นจากนักเดินป่าและผู้จัดทริปที่ใช้งานแพลตฟอร์ม</p>
-    <div class="testi-grid">
+    <div class="testi-grid" id="testiGrid">
       <div class="testi-card">
         <p class="quote" data-th="&quot;จองง่ายกว่าทักเพจเยอะ แถมเห็นรีวิวจริงก่อนตัดสินใจ&quot;" data-en="&quot;Far easier than messaging a page, and I can see real reviews first.&quot;">"จองง่ายกว่าทักเพจเยอะ แถมเห็นรีวิวจริงก่อนตัดสินใจ"</p>
         <div class="who"><div class="avatar">ม</div><div><div class="name">มินตรา</div><div class="role" data-th="นักเดินป่า, กรุงเทพฯ" data-en="Hiker, Bangkok">นักเดินป่า, กรุงเทพฯ</div></div></div>
@@ -1524,7 +1524,30 @@ document.addEventListener('click', e=>{
 });
 
 // ===== INIT =====
-(async function(){ await loadTrips(); updateRegionCounts(); renderTripCards('all','all',''); renderAuthState(); })();
+(async function(){ await loadTrips(); updateRegionCounts(); renderTripCards('all','all',''); renderAuthState(); loadReviews(); })();
+
+// ===== รีวิวจริงจากลูกค้า (หน้าแรก) =====
+function escHtml(s){ return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+async function loadReviews(){
+  const grid = document.getElementById('testiGrid');
+  if(!grid || typeof db === 'undefined') return;
+  let rows = [];
+  try { const { data, error } = await db.rpc('recent_reviews', { p_limit: 9 }); if(!error && Array.isArray(data)) rows = data; }
+  catch(e){ return; }   // RPC ยังไม่ถูกสร้าง → คงรีวิวตัวอย่างไว้
+  if(!rows.length) return;   // ยังไม่มีรีวิวจริง → คงตัวอย่างไว้
+  grid.innerHTML = rows.map(r=>{
+    const n = Math.max(0, Math.min(5, parseInt(r.rating)||0));
+    const stars = '★'.repeat(n) + '☆'.repeat(5-n);
+    const who = (r.reviewer||'นักเดินป่า').trim();
+    const init = who.charAt(0).toUpperCase();
+    const role = r.trip_name ? ('รีวิวทริป ' + escHtml(r.trip_name)) : 'ลูกค้าที่จองผ่านระบบ';
+    return `<div class="testi-card">
+      <div style="color:#F5A623;font-size:15px;letter-spacing:1px;margin-bottom:8px;">${stars}</div>
+      <p class="quote">"${escHtml(r.comment)}"</p>
+      <div class="who"><div class="avatar">${escHtml(init)}</div><div><div class="name">${escHtml(who)}</div><div class="role">${role}</div></div></div>
+    </div>`;
+  }).join('');
+}
 setTimeout(()=>{ const s=document.getElementById('searchQ'); if(s) s.value=''; }, 100);
 
 </script>
