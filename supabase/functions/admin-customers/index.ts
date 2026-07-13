@@ -154,6 +154,42 @@ Deno.serve(async (req) => {
       return json({ ok: true, id, pay_status: 'rejected' });
     }
 
+    // ===== ADMIN: ดูแลรีวิว (รายการทั้งหมด + ซ่อน/แสดง + ลบ) =====
+    if (action === 'list_reviews') {
+      const { data: revs, error } = await supabase
+        .from('reviews')
+        .select('id, rating, comment, hidden, created_at, user_id, trip_id, trips ( name_th )')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      const out = [];
+      for (const r of revs || []) {
+        let reviewer = 'นักเดินป่า';
+        if (r.user_id) {
+          const { data: u } = await supabase.from('users').select('nickname, full_name').eq('id', r.user_id).maybeSingle();
+          reviewer = (u?.nickname && u.nickname.trim()) || (u?.full_name && u.full_name.trim()) || 'นักเดินป่า';
+        }
+        out.push({
+          id: r.id, rating: r.rating, comment: r.comment, hidden: !!r.hidden,
+          created_at: r.created_at, reviewer, trip_name: r.trips?.name_th || '',
+        });
+      }
+      return json({ reviews: out });
+    }
+
+    if (action === 'set_review_hidden') {
+      if (!id) return json({ error: 'missing id' }, 400);
+      const { error } = await supabase.from('reviews').update({ hidden: !!payload.hidden }).eq('id', id);
+      if (error) throw error;
+      return json({ ok: true, id, hidden: !!payload.hidden });
+    }
+
+    if (action === 'delete_review') {
+      if (!id) return json({ error: 'missing id' }, 400);
+      const { error } = await supabase.from('reviews').delete().eq('id', id);
+      if (error) throw error;
+      return json({ ok: true, id, deleted: true });
+    }
+
     // ===== ADMIN: รายชื่อผู้จัด + ข้อมูลติดต่อจริง (ชื่อ/อีเมล/เบอร์ อยู่ใน auth ไม่ใช่ตาราง organizers) =====
     if (action === 'list_organizers') {
       const { data: orgs, error } = await supabase

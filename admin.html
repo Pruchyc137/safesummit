@@ -323,6 +323,10 @@ h1,h2,h3{font-family:'Kanit',sans-serif;}
       กลุ่ม LINE
       <span class="badge" id="sideGroups"></span>
     </button>
+    <button class="nav-item" onclick="showPage('reviews',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 17l-6 3 1-7-5-5h7l3-7 3 7h7l-5 5 1 7z"/></svg>
+      รีวิว
+    </button>
     <button class="nav-item" onclick="showPage('finance',this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
       การเงิน
@@ -397,6 +401,27 @@ h1,h2,h3{font-family:'Kanit',sans-serif;}
       </div>
       <div class="kpis" id="osKpis"></div>
       <div id="osBody"></div>
+    </div>
+
+    <!-- ======== REVIEWS (moderation) ======== -->
+    <div class="page" id="page-reviews">
+      <div class="page-head">
+        <h1>รีวิว</h1>
+        <p>ดูรีวิวทั้งหมดจากลูกค้า — ซ่อนรีวิวไม่เหมาะสม (ไม่ขึ้นหน้าแรก) หรือลบทิ้ง</p>
+      </div>
+      <div class="toolbar">
+        <div class="toolbar-left" id="revTabs" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+        <button class="btn btn-ghost" onclick="loadReviewsAdmin(true)">รีเฟรช</button>
+      </div>
+      <div class="panel">
+        <div style="overflow-x:auto;">
+          <table class="data-table">
+            <thead><tr><th>ดาว</th><th>ความคิดเห็น</th><th>ผู้รีวิว</th><th>ทริป</th><th>วันที่</th><th>สถานะ</th><th>จัดการ</th></tr></thead>
+            <tbody id="revRows"></tbody>
+          </table>
+          <div id="revEmpty" style="display:none;text-align:center;padding:40px;color:var(--text-muted);">ยังไม่มีรีวิว</div>
+        </div>
+      </div>
     </div>
 
     <!-- ======== TRIPS ======== -->
@@ -1078,6 +1103,7 @@ function showPage(key, el){
   if(key==='bookings') loadBookings().then(renderBookings);
   if(key==='payments') loadPayments();
   if(key==='groups') loadGroupReady();
+  if(key==='reviews') loadReviewsAdmin();
 }
 
 // ===== PAYMENTS REVIEW (Phase 5) =====
@@ -1627,6 +1653,81 @@ function renderOrgSummary(){
     ${detail}`;
 }
 
+// ===== REVIEWS (moderation) =====
+let _allReviews = [], _revTab = 'all';
+const REV_TABS = [
+  {key:'all',    label:'ทั้งหมด'},
+  {key:'visible',label:'แสดงอยู่'},
+  {key:'hidden', label:'ซ่อนแล้ว'},
+];
+async function loadReviewsAdmin(force){
+  if(!getAdminKey()){ _afterKeyAction='reviews'; openModal('modalAdminKey'); return; }
+  const rows=document.getElementById('revRows');
+  rows.innerHTML='<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-muted)">กำลังโหลด...</td></tr>';
+  try {
+    const { reviews } = await adminApi('list_reviews');
+    _allReviews = reviews||[];
+    renderRevTabs(); renderReviewsAdmin();
+  } catch(e){
+    if(e.code===401){ sessionStorage.removeItem('ss_admin_key'); _afterKeyAction='reviews'; openModal('modalAdminKey'); return; }
+    rows.innerHTML='<tr><td colspan="7" style="text-align:center;padding:30px;color:#C0392B">โหลดไม่สำเร็จ: '+(e.message||e)+'</td></tr>';
+  }
+}
+function revList(){ return _revTab==='visible'?_allReviews.filter(r=>!r.hidden):_revTab==='hidden'?_allReviews.filter(r=>r.hidden):_allReviews; }
+function renderRevTabs(){
+  const el=document.getElementById('revTabs'); if(!el) return;
+  el.innerHTML=REV_TABS.map(t=>{
+    const n=t.key==='all'?_allReviews.length:t.key==='visible'?_allReviews.filter(r=>!r.hidden).length:_allReviews.filter(r=>r.hidden).length;
+    const on=_revTab===t.key;
+    return `<button onclick="setRevTab('${t.key}')" style="font-family:'Kanit',sans-serif;font-weight:700;font-size:12.5px;padding:7px 15px;border-radius:20px;border:1.5px solid ${on?'var(--accent-trail)':'#E6DCC6'};background:${on?'var(--accent-trail)':'#fff'};color:${on?'#fff':'var(--text-muted)'};cursor:pointer;">${t.label} ${n}</button>`;
+  }).join('');
+}
+function setRevTab(k){ _revTab=k; renderRevTabs(); renderReviewsAdmin(); }
+function renderReviewsAdmin(){
+  const tbody=document.getElementById('revRows'), empty=document.getElementById('revEmpty');
+  const list=revList();
+  if(!list.length){ tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  tbody.innerHTML=list.map(r=>{
+    const n=Math.max(0,Math.min(5,parseInt(r.rating)||0));
+    const stars=`<span style="color:#F5A623;white-space:nowrap">${'★'.repeat(n)}${'☆'.repeat(5-n)}</span>`;
+    const dt=r.created_at?new Date(r.created_at).toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'2-digit'}):'–';
+    const badge=r.hidden
+      ? '<span style="font-family:\'Kanit\';font-weight:700;font-size:11px;padding:2px 9px;border-radius:12px;background:#FDEEEC;color:#C0392B;">ซ่อนอยู่</span>'
+      : '<span style="font-family:\'Kanit\';font-weight:700;font-size:11px;padding:2px 9px;border-radius:12px;background:#EAF6EE;color:#2E7D32;">แสดงอยู่</span>';
+    const toggle=r.hidden
+      ? `<button class="icon-btn" onclick="toggleReviewHidden('${r.id}',false)">แสดง</button>`
+      : `<button class="icon-btn" onclick="toggleReviewHidden('${r.id}',true)">ซ่อน</button>`;
+    return `<tr${r.hidden?' style="opacity:.6"':''}>
+      <td>${stars}</td>
+      <td style="max-width:340px;white-space:normal;">${esc(r.comment)||'<span style="color:var(--text-muted)">(ไม่มีข้อความ)</span>'}</td>
+      <td>${esc(r.reviewer)}</td>
+      <td class="d-muted">${esc(r.trip_name)}</td>
+      <td class="d-muted" style="font-size:12px;">${dt}</td>
+      <td>${badge}</td>
+      <td style="white-space:nowrap;">${toggle} <button class="icon-btn" style="border-color:rgba(192,57,43,.5);color:#C0392B" onclick="deleteReviewAdmin('${r.id}')">ลบ</button></td>
+    </tr>`;
+  }).join('');
+}
+async function toggleReviewHidden(id, hide){
+  try {
+    await adminApi('set_review_hidden', id, { hidden: hide });
+    const r=_allReviews.find(x=>String(x.id)===String(id)); if(r) r.hidden=hide;
+    renderRevTabs(); renderReviewsAdmin();
+    toast(hide?'ซ่อนรีวิวแล้ว':'แสดงรีวิวแล้ว');
+  } catch(e){ toast('ไม่สำเร็จ: '+(e.message||e)); }
+}
+async function deleteReviewAdmin(id){
+  if(!confirm('ลบรีวิวนี้ถาวร? (กู้คืนไม่ได้)')) return;
+  try {
+    await adminApi('delete_review', id);
+    _allReviews=_allReviews.filter(x=>String(x.id)!==String(id));
+    renderRevTabs(); renderReviewsAdmin();
+    toast('ลบรีวิวแล้ว');
+  } catch(e){ toast('ลบไม่สำเร็จ: '+(e.message||e)); }
+}
+
 // ===== TRIPS =====
 const isRequest = t => /^\[ขอ/.test(t.note||'');
 const isCancelReq = t => (t.note||'').startsWith('[ขอยกเลิก]');
@@ -2156,6 +2257,7 @@ async function submitAdminKey(){
   else if(_afterKeyAction==='overview'){ _payLoaded=false; await ensurePayData(); drawOverview(); }
   else if(_afterKeyAction==='orgsum'){ _payLoaded=false; await ensurePayData(); renderOrgSummary(); }
   else if(_afterKeyAction==='bookings'){ _payLoaded=false; await loadBookings(); renderBookings(); }
+  else if(_afterKeyAction==='reviews'){ await loadReviewsAdmin(true); }
   else await loadCustomersSecure(true);
   _afterKeyAction='customers';
 }
