@@ -582,15 +582,12 @@ h1,h2,h3,h4{font-family:'Kanit',sans-serif;}
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
             รอบวันเดินทาง
           </div>
-          <div class="fld-row">
-            <div class="fld">
-              <label>วันเริ่มต้น (วันไปถึง)<span class="fld-req">*</span></label>
-              <input id="f-date" type="date" onchange="syncTripDates()">
-            </div>
-            <div class="fld">
-              <label>วันเดินทางกลับ<span class="fld-req">*</span></label>
-              <input id="f-date-end" type="date" onchange="syncTripDates()">
-            </div>
+          <div class="fld">
+            <label>เลือกรอบเดินทาง<span class="fld-req">*</span> <span style="font-weight:400;color:var(--text-muted)">— กดวันแรก = วันไป, กดอีกวัน = วันกลับ (เหมือนจองตั๋วไป-กลับ)</span></label>
+            <div id="rangeSummary" style="background:#FBF7EE;border:1px solid #EEE3CD;border-radius:10px;padding:11px 14px;font-size:14px;margin-bottom:10px;"></div>
+            <div id="rangeCal" style="max-width:360px;background:#fff;border:1px solid #E6DCC6;border-radius:14px;padding:16px;"></div>
+            <input type="hidden" id="f-date">
+            <input type="hidden" id="f-date-end">
           </div>
           <div class="fld-row">
             <div class="fld">
@@ -1318,7 +1315,7 @@ function showPage(key, el){
   if(key==='my-trips') renderMyTrips();
   if(key==='bookings') renderBookings();
   if(key==='profile') loadProfile();
-  if(key==='add-trip'){ refreshAddItin(); renderOrgBadge(); }
+  if(key==='add-trip'){ refreshAddItin(); renderOrgBadge(); initRangeCal(); }
 }
 function badgeLabel(t){
   const s=String(t||'').toLowerCase();
@@ -1585,6 +1582,64 @@ function syncTripDates(){
   updatePreview();
 }
 
+// ===== ปฏิทินเลือกรอบเดินทาง (range เดียว แบบ Agoda: กดวันไป → กดวันกลับ) =====
+let _calMonth = null;
+const _TH_MONTHS = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+function _ymd(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function _fmtTh(ds){ return ds ? new Date(ds+'T00:00:00').toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'2-digit'}) : ''; }
+function initRangeCal(){
+  if(!_calMonth){
+    const anchor = v('f-date') ? new Date(v('f-date')+'T00:00:00') : new Date();
+    _calMonth = new Date(anchor.getFullYear(), anchor.getMonth(), 1);
+  }
+  renderRangeCal(); renderRangeSummary();
+}
+function calNav(delta){ _calMonth = new Date(_calMonth.getFullYear(), _calMonth.getMonth()+delta, 1); renderRangeCal(); }
+function onRangeDay(ds){
+  const s=v('f-date'), e=v('f-date-end');
+  if(!s || (s && e)){ setVal('f-date', ds); setVal('f-date-end', ''); }   // เริ่มเลือกใหม่
+  else if(ds < s){ setVal('f-date', ds); setVal('f-date-end', ''); }       // กดก่อนวันเริ่ม → ตั้งเป็นวันเริ่มใหม่
+  else { setVal('f-date-end', ds); }                                       // กดครั้งที่สอง = วันกลับ
+  syncTripDates();                     // คำนวณจำนวนวัน + อัปเดตกำหนดการ
+  renderRangeCal(); renderRangeSummary();
+}
+function renderRangeSummary(){
+  const el=document.getElementById('rangeSummary'); if(!el) return;
+  const s=v('f-date'), e=v('f-date-end');
+  if(!s) el.innerHTML='<span style="color:#8B7E6B">กดวันแรกในปฏิทิน = <b>วันไป</b> แล้วกดอีกวัน = <b>วันกลับ</b></span>';
+  else if(!e) el.innerHTML=`ไป <b style="color:#E2672B">${_fmtTh(s)}</b> &nbsp;→&nbsp; <span style="color:#8B7E6B">กดวันกลับ...</span>`;
+  else el.innerHTML=`ไป <b style="color:#E2672B">${_fmtTh(s)}</b> &nbsp;→&nbsp; กลับ <b style="color:#E2672B">${_fmtTh(e)}</b>`;
+}
+function renderRangeCal(){
+  const box=document.getElementById('rangeCal'); if(!box) return;
+  if(!_calMonth){ const t=new Date(); _calMonth=new Date(t.getFullYear(), t.getMonth(), 1); }
+  const y=_calMonth.getFullYear(), m=_calMonth.getMonth();
+  const startDow=new Date(y,m,1).getDay(), dim=new Date(y,m+1,0).getDate();
+  const s=v('f-date'), e=v('f-date-end'), today=_ymd(new Date());
+  let cells='';
+  for(let i=0;i<startDow;i++) cells+='<div></div>';
+  for(let d=1; d<=dim; d++){
+    const ds=_ymd(new Date(y,m,d));
+    const isStart=ds===s, isEnd=ds===e, inRange=s&&e&&ds>s&&ds<e, isPast=ds<today;
+    let bg='transparent', color='#2B2118', bd='transparent';
+    if(isStart||isEnd){ bg='#E2672B'; color='#fff'; }
+    else if(inRange){ bg='#FBEDE3'; color='#B2560F'; }
+    if(ds===today && !isStart && !isEnd) bd='#E2672B';
+    const style=`height:38px;display:flex;align-items:center;justify-content:center;border-radius:9px;font-size:13.5px;background:${bg};color:${isPast?'#CBBEA6':color};border:1.5px solid ${bd};cursor:${isPast?'not-allowed':'pointer'};${isPast?'opacity:.55;':''}`;
+    cells+=`<div style="${style}" ${isPast?'':`onclick="onRangeDay('${ds}')"`}>${d}</div>`;
+  }
+  box.innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <button type="button" onclick="calNav(-1)" style="border:1px solid #E6DCC6;background:#fff;border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:16px;line-height:1;">‹</button>
+      <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:15px;">${_TH_MONTHS[m]} ${y+543}</div>
+      <button type="button" onclick="calNav(1)" style="border:1px solid #E6DCC6;background:#fff;border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:16px;line-height:1;">›</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;font-size:11px;color:#8B7E6B;font-weight:700;margin-bottom:4px;">
+      <div>อา</div><div>จ</div><div>อ</div><div>พ</div><div>พฤ</div><div>ศ</div><div>ส</div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;">${cells}</div>`;
+}
+
 function updatePreview(){
   const price=parseInt(v('f-price'))||0;
   const pp=document.getElementById('pricePreview');
@@ -1662,6 +1717,7 @@ function clearForm(){
   const hid=document.getElementById('f-days'); if(hid) hid.value='';
   const lbl=document.getElementById('f-days-label'); if(lbl){ lbl.value=''; lbl.placeholder='เลือกวันเริ่ม + วันกลับก่อน'; }
   onRegionChange();   // รีเซ็ต dropdown จังหวัด (กลับเป็น disabled)
+  renderRangeCal(); renderRangeSummary();   // รีเซ็ตปฏิทินรอบเดินทาง
   setVal('f-cap','1'); updateVanHint();
   setVal('f-type','transfer');
   _tripImageFiles=[]; _coverIdx=0;
