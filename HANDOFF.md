@@ -12,11 +12,8 @@ Supabase: `wucrvtgpjqjxxqarzcpv` · Edge Function slug = `super-processor`
 
 ## ⏳ งานค้าง / ต้องทำโดยผู้ใช้ (สำคัญ)
 
-- [ ] **Redeploy Edge Function `super-processor`** — โค้ดใน `supabase/functions/admin-customers/index.ts` มี action/field ใหม่ที่ยังไม่ deploy:
-  - `name_en`, `images` ใน `update_trip` (Admin แก้ชื่ออังกฤษ + ผลตรวจรูปให้บันทึกถาวร)
-  - `list_reviews`, `set_review_hidden`, `delete_review` (หน้า Admin → รีวิว)
-  - วิธี: Supabase Dashboard → Edge Functions → super-processor → วางโค้ด → Deploy
-- [ ] ตรวจว่ารัน SQL ครบ (ดูตารางด้านล่าง)
+- [x] **Redeploy Edge Function `super-processor`** — ผู้ใช้ยืนยันแล้วว่า deploy โค้ดล่าสุดจาก `supabase/functions/admin-customers/index.ts` เรียบร้อย (`name_en`, `images` ใน `update_trip`; `list_reviews`, `set_review_hidden`, `delete_review`)
+- [x] ตรวจว่ารัน SQL ครบ — ผู้ใช้ยืนยันแล้ว (ดูตารางด้านล่าง)
 
 ## 📦 SQL phases (รันใน Supabase SQL Editor)
 
@@ -28,7 +25,7 @@ Supabase: `wucrvtgpjqjxxqarzcpv` · Edge Function slug = `super-processor`
 | phase12-seat-status.sql | สถานะที่นั่ง "รอตรวจการชำระ" | ✅ รันแล้ว |
 | phase13-public-reviews.sql | รีวิวจริงหน้าแรก | ✅ รันแล้ว |
 | phase14-review-rules.sql | กติการีวิว (RPC + RLS) | ✅ รันแล้ว |
-| phase15-review-moderation.sql | คอลัมน์ hidden + recent_reviews | ⚠️ ตรวจสอบ (คู่กับ redeploy Edge Function) |
+| phase15-review-moderation.sql | คอลัมน์ hidden + recent_reviews | ✅ รันแล้ว |
 
 ---
 
@@ -56,3 +53,4 @@ Supabase: `wucrvtgpjqjxxqarzcpv` · Edge Function slug = `super-processor`
 ## 📝 บันทึกล่าสุด
 - (อัปเดตบรรทัดนี้ทุกครั้งที่ทำงานเสร็จ — ใคร/เครื่องไหน/ทำอะไร/commit)
 - PC หลัก: ตั้งค่าระบบส่งต่องานทีม 2 เครื่อง + สร้างไฟล์นี้
+- Surface Go: ยืนยัน redeploy Edge Function `super-processor` และรัน `phase15-review-moderation.sql` เรียบร้อยแล้ว (ผู้ใช้ทำผ่าน Supabase Dashboard เอง) — ไม่มีการแก้โค้ดเพิ่มในรอบนี้
