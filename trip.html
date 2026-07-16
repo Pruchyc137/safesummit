@@ -518,12 +518,17 @@ function seedIdxFromUUID(uuid){
   return parseInt(last,16)||0;
 }
 function mapSupabaseTrip(r){
-  const idx=seedIdxFromUUID(r.id);
-  const seed=SEED_TRIPS.find(s=>s.id===`t${idx}`)||{};
+  // seed ใช้ได้เฉพาะทริปที่ migrate มาจาก seed (id ขึ้นต้น 00000) เท่านั้น
+  const isSeedFormat=/^00000/.test(r.id);
+  const idx=isSeedFormat?seedIdxFromUUID(r.id):0;
+  const seed=isSeedFormat?(SEED_TRIPS.find(s=>s.id===`t${idx}`)||{}):{};
+  // ข้อมูลจาก DB ต้องชนะ seed เสมอ (seed = fallback เท่านั้น)
+  const bt=r.organizers?.badge_tier||r.badge_tier||'';
+  const badgeLabel=/pro/i.test(bt)?'Verified Pro':/basic/i.test(bt)?'Verified Basic':(seed.badge||'Verified Basic');
   return {
     id:r.id,
-    name:seed.name||{th:r.name_th||'',en:r.name_th||''},
-    org:seed.org||'',
+    name:r.name_th?{th:r.name_th,en:r.name_en||r.name_th}:(seed.name||{th:'',en:''}),
+    org:r.organizers?.org_name||seed.org||'',
     region:r.region||seed.region||'',
     prov:r.province||seed.prov||'',
     date:r.start_date||seed.date||'',
@@ -531,7 +536,7 @@ function mapSupabaseTrip(r){
     booked:r.booked_count||seed.booked||0,
     price:parseFloat(r.price_per_person)||seed.price||0,
     status:r.status||seed.status||'open',
-    badge:seed.badge||'Verified Basic',
+    badge:badgeLabel,
     rating:r.rating_avg||seed.rating||null,
     img:r.image_url||seed.img||null,
     scene:seed.scene||'peak',
@@ -551,7 +556,7 @@ async function init(){
   if(isUUID && typeof db!=='undefined'){
     try{
       const {data,error}=await db.from('trips')
-        .select('id,name_th,price_per_person,capacity,booked_count,start_date,region,province,status,image_url,itinerary,duration_days')
+        .select('id,name_th,name_en,price_per_person,capacity,booked_count,start_date,region,province,status,image_url,itinerary,duration_days,rating_avg,badge_tier, organizers(org_name,badge_tier)')
         .eq('id',id).single();
       if(!error && data) trip=mapSupabaseTrip(data);
     }catch(e){ console.warn('Supabase fetch failed',e); }

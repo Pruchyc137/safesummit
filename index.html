@@ -944,7 +944,9 @@ function mapSupabaseTrip(r){
   const badgeLabel = /pro/i.test(bt) ? 'Verified Pro' : /basic/i.test(bt) ? 'Verified Basic' : (seed.badge || 'Verified Basic');
   return {
     id: r.id,
-    name: seed.name || {th: nameTh, en: r.name_en || nameTh},
+    // ชื่อจาก DB ต้องชนะ seed เสมอ (seed เป็นแค่ fallback ตอน DB ว่าง)
+    // เดิมใช้ seed.name ก่อน → Admin แก้ชื่อแล้วไม่ขึ้น + บางทริปโชว์ชื่อผิดทริปไปเลย
+    name: nameTh ? { th: nameTh, en: r.name_en || nameTh } : (seed.name || { th: '', en: '' }),
     org: r.organizers?.org_name || seed.org || '',
     region: r.region || seed.region || 'north',
     prov: r.province || seed.prov || '',
