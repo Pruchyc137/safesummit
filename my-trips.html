@@ -648,7 +648,9 @@ const fmtDs=d=>d?new Date(d+'T00:00:00').toLocaleDateString('th-TH',{day:'numeri
 const bName=b=>(b.tripName&&b.tripName.th)||b.tripName||'ทริป';
 const seatLabel=id=>{ const m=String(id).match(/^v(\d+)-(\d+)$/); return m?`คันที่ ${m[1]} #${m[2]}`:id; };
 const daysTill=d=>{ if(!d) return null; return Math.ceil((new Date(d+'T00:00:00')-new Date())/86400000); };
-function refundPct(d){ const n=daysTill(d); if(n==null) return 0; if(n>=14) return 100; if(n>=7) return 50; if(n>=3) return 25; return 0; }
+// อัตราคืนเงิน — ต้องตรงกับ refund-policy.html เสมอ
+// 30+ วัน = 100% · 20–29 = 70% · 10–19 = 50% · 5–9 = 25% · น้อยกว่า 5 วัน = ไม่คืน
+function refundPct(d){ const n=daysTill(d); if(n==null) return 0; if(n>=30) return 100; if(n>=20) return 70; if(n>=10) return 50; if(n>=5) return 25; return 0; }
 
 /* ══════════════════════════════════
    HERO KPIs
@@ -1041,7 +1043,7 @@ function openCancel(id){
   const b=BOOKINGS.find(x=>x.id===id); if(!b) return; cancelId=id;
   document.getElementById('cancelSub').textContent=bName(b);
   const pct=refundPct(b.date), refund=Math.round(b.total*pct/100), days=daysTill(b.date);
-  document.getElementById('cancelPolicy').innerHTML=`<b>นโยบายคืนเงิน:</b> ยกเลิกก่อน ${days??'?'} วัน → คืน ${pct}% = ${fmtM(refund)}<br><small>14+ วัน = 100% · 7+ วัน = 50% · 3+ วัน = 25% · น้อยกว่านั้น = ไม่คืน</small>`;
+  document.getElementById('cancelPolicy').innerHTML=`<b>นโยบายคืนเงิน:</b> ยกเลิกก่อน ${days??'?'} วัน → คืน ${pct}% = ${fmtM(refund)}<br><small>30+ วัน = 100% · 20–29 วัน = 70% · 10–19 วัน = 50% · 5–9 วัน = 25% · น้อยกว่านั้น = ไม่คืน</small>`;
   document.getElementById('cancelReceipt').innerHTML=`
     <div class="r-row"><span>ยอดที่จ่าย</span><span>${fmtM(b.total)}</span></div>
     <div class="r-row"><span>คืนเงิน ${pct}%</span><span style="color:#5C8A5A">${fmtM(refund)}</span></div>
