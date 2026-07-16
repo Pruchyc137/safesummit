@@ -1057,6 +1057,9 @@ function mapCustomer(u){
 }
 
 function getAdminKey(){ return sessionStorage.getItem('ss_admin_key') || ''; }
+// ยังไม่ผ่านหน้า admin-login → เด้งไปล็อกอินก่อน
+// (ด่านจริงคือ Edge Function ที่ตรวจ ADMIN_API_KEY ฝั่งเซิร์ฟเวอร์ — อันนี้แค่กันเปิดหน้ามั่ว)
+if(!getAdminKey()) location.replace('admin-login.html');
 async function adminApi(action, id, extra){
   const res = await fetch(ADMIN_FN_URL, {
     method:'POST',

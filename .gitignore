@@ -8,3 +8,6 @@ SafeSummit_Admin_Credentials.xlsx
 *Credential*
 .env
 .env.*
+
+# Admin login ใช้ ADMIN_API_KEY (ตรวจฝั่ง server) แล้ว — ห้าม commit รหัสผ่านลง repo สาธารณะ
+admin-accounts.js
