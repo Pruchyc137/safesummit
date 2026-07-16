@@ -1,2 +1,10 @@
 brand/.fonts/
 _backup/
+
+# Credentials — never commit (contains ADMIN_API_KEY + admin passwords)
+SafeSummit_Admin_Credentials.xlsx
+*.xlsx
+*credential*
+*Credential*
+.env
+.env.*
