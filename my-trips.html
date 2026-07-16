@@ -256,6 +256,23 @@ h1,h2,h3,h4{font-family:'Kanit',sans-serif;}
 .detail-row:last-child{border-bottom:none;}
 .detail-row .l{color:var(--text-muted);}
 .detail-row .v{font-weight:600;text-align:right;}
+/* ── VAN SEAT MAP (read-only, ของลูกค้าเอง) ── */
+.dvan-wrap{margin-top:16px;}
+.dvan-tabs{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;justify-content:center;}
+.dvtab{font-family:'Kanit',sans-serif;font-weight:700;font-size:12px;padding:6px 13px;border-radius:20px;border:1.5px solid #E6DCC6;color:var(--text-muted);background:#fff;cursor:pointer;transition:.15s;}
+.dvtab.on{background:var(--accent-trail);border-color:var(--accent-trail);color:#fff;}
+.dvan{max-width:280px;margin:0 auto;background:#F7F1E4;border:2px solid #E2D6BC;border-radius:22px 22px 16px 16px;padding:14px 18px 18px;}
+.dvan-front{display:flex;justify-content:space-between;align-items:center;padding:6px 2px 12px;border-bottom:2px dashed #DDD0B4;margin-bottom:12px;}
+.dvseat{border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Kanit',sans-serif;font-weight:700;font-size:14px;gap:2px;}
+.dvseat small{font-family:'Sarabun',sans-serif;font-weight:600;font-size:8.5px;}
+.dvseat.crew{background:#EDE4D2;color:#9B8E7A;width:64px;height:50px;}
+.dvseat.crew svg{width:16px;height:16px;}
+.dvan-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px 10px;justify-items:center;}
+.dvseat.p{width:60px;height:50px;background:#fff;border:2px solid #E6DCC6;color:#B3A488;}
+.dvseat.p.mine{background:var(--accent-trail);border-color:var(--accent-trail);color:#fff;box-shadow:0 6px 14px rgba(226,103,43,.30);}
+.dvan-legend{display:flex;gap:14px;justify-content:center;margin-top:14px;font-size:11.5px;color:var(--text-dark);flex-wrap:wrap;}
+.dvan-legend span{display:flex;align-items:center;gap:6px;}
+.dvan-legend i{width:13px;height:13px;border-radius:4px;display:inline-block;}
 .star-row{display:flex;gap:4px;justify-content:center;}
 .star-btn{background:none;border:none;cursor:pointer;font-size:28px;color:#DDD5C0;transition:.1s;padding:2px;}
 .star-btn.active,.star-btn:hover{color:var(--accent-gold);}
@@ -425,6 +442,7 @@ h1,h2,h3,h4{font-family:'Kanit',sans-serif;}
     <div class="modal-h"><div><h3>รายละเอียดการจอง</h3><p id="detailRef"></p></div><button class="modal-x" onclick="closeModal('modalDetail')">×</button></div>
     <div class="modal-b">
       <div id="detailRows"></div>
+      <div id="detailSeatMap"></div>
       <div class="modal-foot">
         <button class="btn btn-ghost" onclick="closeModal('modalDetail')">ปิด</button>
         <button class="btn btn-red" id="detailCancelBtn" style="display:none">ยกเลิกการจอง</button>
@@ -558,6 +576,7 @@ function mapBooking(r){
     status: status,
     bookedAt: (r.booked_at||'').slice(0,10),
     seatNumbers: Array.isArray(r.seat_numbers) ? r.seat_numbers : [],
+    capacity: t.capacity || 9,
     badge: (/pro/i.test(t.organizers?.badge_tier||'')?'Verified Pro':/basic/i.test(t.organizers?.badge_tier||'')?'Verified Basic':'Verified Basic'),
     scene: SCENE_BY_REGION[region] || 'peak',
     bookingRef: r.booking_ref || '',
@@ -601,7 +620,7 @@ async function load(){
   // โหลดการจองจริงของลูกค้าคนนี้
   try{
     const { data, error } = await db.from('bookings')
-      .select('id,trip_id,booking_ref,seats,seat_numbers,price_snapshot,total_price,declared_amount,paid_amount,admin_note,status,pay_status,note,booked_at, trips(name_th,start_date,duration_days,province,region,payment_qr_url,organizers(org_name,badge_tier,payment_qr_url))')
+      .select('id,trip_id,booking_ref,seats,seat_numbers,price_snapshot,total_price,declared_amount,paid_amount,admin_note,status,pay_status,note,booked_at, trips(name_th,start_date,duration_days,province,region,payment_qr_url,capacity,organizers(org_name,badge_tier,payment_qr_url))')
       .eq('user_id', user.id)
       .order('booked_at',{ascending:false});
     if(error) throw error;
@@ -919,8 +938,66 @@ function bcardHTML(b){
 }
 
 /* ══════════════════════════════════
-   DETAIL MODAL
+   DETAIL MODAL — VAN SEAT MAP
+   (แสดงแค่ว่าที่นั่งของ "ลูกค้าคนนี้" อยู่ตรงไหน ไม่ดึงข้อมูลการจองของคนอื่น)
 ══════════════════════════════════ */
+const DVAN_PER=9;
+let _dVans=[], _dActiveVan=0;
+
+function buildDetailVans(b){
+  const vanCount=Math.max(1,Math.ceil((b.capacity||DVAN_PER)/DVAN_PER));
+  const mine=new Set(b.seatNumbers||[]);
+  _dVans=[];
+  for(let v=0; v<vanCount; v++){
+    const arr=[];
+    for(let s=0; s<DVAN_PER; s++){ const id=`v${v+1}-${s+1}`; arr.push({ n:s+1, id, mine:mine.has(id) }); }
+    _dVans.push({ van:v+1, seats:arr });
+  }
+  _dActiveVan=Math.max(0,_dVans.findIndex(vn=>vn.seats.some(s=>s.mine)));
+}
+
+function renderDetailVanTabs(){
+  const el=document.getElementById('dvanTabs'); if(!el) return;
+  if(_dVans.length<=1){ el.innerHTML=''; return; }
+  el.innerHTML=_dVans.map((vn,i)=>
+    `<div class="dvtab${i===_dActiveVan?' on':''}" onclick="selectDetailVan(${i})">คันที่ ${vn.van}</div>`
+  ).join('');
+}
+
+function renderDetailVanMap(){
+  const el=document.getElementById('dvanMap'); if(!el) return;
+  const vn=_dVans[_dActiveVan]; if(!vn){ el.innerHTML=''; return; }
+  const grid=vn.seats.map(s=>
+    `<div class="dvseat p${s.mine?' mine':''}"${s.mine?' title="ที่นั่งของคุณ"':''}>${s.n}</div>`
+  ).join('');
+  el.innerHTML=`
+    <div class="dvan">
+      <div class="dvan-front">
+        <div class="dvseat crew"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg><small>Staff</small></div>
+        <div class="dvseat crew"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.4"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg><small>คนขับ</small></div>
+      </div>
+      <div class="dvan-grid">${grid}</div>
+    </div>
+    <div class="dvan-legend">
+      <span><i style="background:var(--accent-trail)"></i>ที่นั่งของคุณ</span>
+      <span><i style="background:#fff;border:1.5px solid #E6DCC6"></i>ที่นั่งอื่น</span>
+    </div>`;
+}
+
+function selectDetailVan(i){ _dActiveVan=i; renderDetailVanTabs(); renderDetailVanMap(); }
+
+function renderDetailSeatMap(b){
+  const wrap=document.getElementById('detailSeatMap');
+  if(!b.seatNumbers || !b.seatNumbers.length){
+    wrap.innerHTML=`<div class="info-note" style="margin-top:14px;">ยังไม่มีข้อมูลที่นั่ง — จะแจ้งให้ทราบก่อนวันเดินทาง</div>`;
+    return;
+  }
+  buildDetailVans(b);
+  wrap.innerHTML=`<div class="dvan-wrap"><div class="dvan-tabs" id="dvanTabs"></div><div id="dvanMap"></div></div>`;
+  renderDetailVanTabs();
+  renderDetailVanMap();
+}
+
 function openDetail(id){
   const b=BOOKINGS.find(x=>x.id===id); if(!b) return;
   document.getElementById('detailRef').textContent='เลขที่จอง: '+b.bookingRef;
@@ -930,12 +1007,12 @@ function openDetail(id){
     <div class="detail-row"><span class="l">วันเดินทาง</span><span class="v">${fmtD(b.date)}</span></div>
     <div class="detail-row"><span class="l">จังหวัด</span><span class="v">${b.prov}</span></div>
     <div class="detail-row"><span class="l">จำนวนที่นั่ง</span><span class="v">${b.seats} คน</span></div>
-    <div class="detail-row"><span class="l">ที่นั่งในรถตู้</span><span class="v">${b.seatNumbers&&b.seatNumbers.length?b.seatNumbers.map(seatLabel).join(', '):'จะแจ้งให้ทราบก่อนวันเดินทาง'}</span></div>
     <div class="detail-row"><span class="l">ยอดชำระ</span><span class="v" style="color:var(--accent-trail)">${fmtM(b.total)}</span></div>
     <div class="detail-row"><span class="l">สถานะ</span><span class="v"><span class="pill ${b.status}">${STATUS_LABEL[b.status]||b.status}</span></span></div>
     <div class="detail-row"><span class="l">ติดต่อผู้จัด</span><span class="v">${b.orgPhone||'–'} · ${b.orgLine||'–'}</span></div>
     ${b.cancelledAt?`<div class="detail-row"><span class="l">วันยกเลิก</span><span class="v">${fmtD(b.cancelledAt)}</span></div>`:''}
     ${b.refundAmt!=null?`<div class="detail-row"><span class="l">คืนเงิน</span><span class="v" style="color:#5C8A5A">${fmtM(b.refundAmt)}</span></div>`:''}`;
+  renderDetailSeatMap(b);
   const cb=document.getElementById('detailCancelBtn');
   if(['confirmed','pending'].includes(b.status)){ cb.style.display=''; cb.onclick=()=>{ closeModal('modalDetail'); openCancel(id); }; }
   else cb.style.display='none';
