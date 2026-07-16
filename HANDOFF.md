@@ -14,6 +14,8 @@ Supabase: `wucrvtgpjqjxxqarzcpv` · Edge Function slug = `super-processor`
 
 - [x] **Redeploy Edge Function `super-processor`** — ผู้ใช้ยืนยันแล้วว่า deploy โค้ดล่าสุดจาก `supabase/functions/admin-customers/index.ts` เรียบร้อย (`name_en`, `images` ใน `update_trip`; `list_reviews`, `set_review_hidden`, `delete_review`)
 - [x] ตรวจว่ารัน SQL ครบ — ผู้ใช้ยืนยันแล้ว (ดูตารางด้านล่าง)
+- [x] **รัน `phase16-cancellation-refunds.sql`** — ผู้ใช้ยืนยันแล้ว
+- [x] **Redeploy Edge Function `super-processor` อีกรอบ** — ผู้ใช้ยืนยันแล้ว (เพิ่ม action `list_pending_refunds` / `mark_refund_paid`) — ฟีเจอร์ "รอคืนเงินลูกค้า" ใช้งานได้จริงแล้ว
 
 ## 📦 SQL phases (รันใน Supabase SQL Editor)
 
@@ -26,6 +28,7 @@ Supabase: `wucrvtgpjqjxxqarzcpv` · Edge Function slug = `super-processor`
 | phase13-public-reviews.sql | รีวิวจริงหน้าแรก | ✅ รันแล้ว |
 | phase14-review-rules.sql | กติการีวิว (RPC + RLS) | ✅ รันแล้ว |
 | phase15-review-moderation.sql | คอลัมน์ hidden + recent_reviews | ✅ รันแล้ว |
+| phase16-cancellation-refunds.sql | refund tracking (bookings) + ตาราง refund_reviews | ✅ รันแล้ว |
 
 ---
 
@@ -55,3 +58,4 @@ Supabase: `wucrvtgpjqjxxqarzcpv` · Edge Function slug = `super-processor`
 - PC หลัก: ตั้งค่าระบบส่งต่องานทีม 2 เครื่อง + สร้างไฟล์นี้
 - Surface Go: ยืนยัน redeploy Edge Function `super-processor` และรัน `phase15-review-moderation.sql` เรียบร้อยแล้ว (ผู้ใช้ทำผ่าน Supabase Dashboard เอง) — ไม่มีการแก้โค้ดเพิ่มในรอบนี้
 - Surface Go: **🔴 พบว่า `admin-accounts.js` และ `SafeSummit_Admin_Credentials.xlsx` (มี `ADMIN_API_KEY` จริงอยู่ข้างใน) ถูก commit ขึ้น public GitHub repo มาตลอด** — แก้แล้ว: (1) rotate password 3 บัญชี admin ใน `admin-accounts.js`, (2) ผู้ใช้ตั้งค่า `ADMIN_API_KEY` ใหม่บน Supabase Secrets เอง, (3) เพิ่ม `.gitignore` + เอา `SafeSummit_Admin_Credentials.xlsx` ออกจาก git tracking (ไฟล์ยังอยู่ในเครื่องแต่ละคน ไม่ push ขึ้น GitHub อีกต่อไป) — **⚠️ ค่าเก่ายังอยู่ใน git history เก่า (ไม่ได้ purge) แต่ใช้งานไม่ได้แล้วเพราะ rotate ไปแล้ว** · **ใครก็ตามที่ยังใช้ `SafeSummit_Admin_Credentials.xlsx` เวอร์ชันเก่าในเครื่องตัวเอง ให้โหลดค่าล่าสุดจากเครื่อง Surface Go หรือถามทีมสำหรับรหัสผ่าน/key ใหม่** — commit: `078c5bb`
+- Surface Go: **แก้ปัญหา "คืนเงินแล้ว" ปลอม** — ก่อนหน้านี้ตอนลูกค้ายกเลิกทริป หน้า `my-trips.html` โชว์ว่า "คืนเงินแล้ว" ทันทีทั้งที่ไม่มีการโอนเงินจริงและไม่มีที่ไหนบันทึกให้ Admin เห็นเลย (เขียนแค่ `status:'cancelled'` ลง DB) ตอนนี้: (1) ลูกค้ายกเลิก → บันทึก `cancelled_at/cancel_reason/refund_pct/refund_amount/refund_status='pending'` ลง `bookings` จริง + ข้อความเปลี่ยนเป็น "ส่งคำขอยกเลิกแล้ว รอ Admin ดำเนินการ" ไม่ใช่ "คืนเงินแล้ว", (2) เพิ่มแผงใหม่ในหน้า Admin → การเงิน → "รอคืนเงินลูกค้า" ให้เห็นคิว + เบอร์โทร/LINE ลูกค้า + กดยืนยัน "โอนคืนแล้ว" ได้จริงหลังโอนเงินเสร็จ (action ใหม่ `list_pending_refunds`/`mark_refund_paid` ใน Edge Function) — **⚠️ ต้องรัน `phase16-cancellation-refunds.sql` + redeploy Edge Function ก่อนฟีเจอร์นี้จะทำงาน** (ดูรายการงานค้างด้านบน)

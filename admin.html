@@ -648,6 +648,25 @@ h1,h2,h3{font-family:'Kanit',sans-serif;}
           <p>ยังไม่มีรายการปิดงาน</p>
         </div>
       </div>
+
+      <div class="panel" style="margin-top:20px;">
+        <div class="panel-head">
+          <h3>รอคืนเงินลูกค้า</h3>
+          <p style="font-size:12.5px;color:var(--text-muted);margin-top:2px;">ลูกค้ายกเลิกทริปแล้วมีสิทธิ์คืนเงิน — ต้องโอนจริงแล้วกดยืนยันที่นี่</p>
+        </div>
+        <div class="tscroll">
+          <table>
+            <thead><tr>
+              <th>ทริป</th><th>ลูกค้า</th><th>ติดต่อ</th><th>วันยกเลิก</th><th>เหตุผล</th><th>คืนเงิน</th><th></th>
+            </tr></thead>
+            <tbody id="refundRows"></tbody>
+          </table>
+        </div>
+        <div class="empty" id="refundEmpty" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/></svg>
+          <p>ไม่มีรายการรอคืนเงิน</p>
+        </div>
+      </div>
     </div>
 
     <!-- ======== SETTINGS ======== -->
@@ -1099,7 +1118,7 @@ function showPage(key, el){
   if(key==='trips') renderTrips();
   if(key==='organizers'){ renderOrgs(); loadOrgsSecure(); }
   if(key==='customers') loadCustomersSecure();
-  if(key==='finance') renderFinance();
+  if(key==='finance'){ renderFinance(); loadRefunds().then(renderRefunds); }
   if(key==='bookings') loadBookings().then(renderBookings);
   if(key==='payments') loadPayments();
   if(key==='groups') loadGroupReady();
@@ -2258,6 +2277,7 @@ async function submitAdminKey(){
   else if(_afterKeyAction==='orgsum'){ _payLoaded=false; await ensurePayData(); renderOrgSummary(); }
   else if(_afterKeyAction==='bookings'){ _payLoaded=false; await loadBookings(); renderBookings(); }
   else if(_afterKeyAction==='reviews'){ await loadReviewsAdmin(true); }
+  else if(_afterKeyAction==='finance'){ await loadRefunds(); renderRefunds(); }
   else await loadCustomersSecure(true);
   _afterKeyAction='customers';
 }
@@ -2503,6 +2523,45 @@ function exportFinance(){
   });
   downloadCSV([headers,...rows],'SafeSummit_finance_'+new Date().toISOString().slice(0,10)+'.csv');
   toast('ดาวน์โหลดไฟล์แล้ว');
+}
+
+// ===== PENDING REFUNDS (Phase 16) =====
+let PENDING_REFUNDS = [];
+async function loadRefunds(){
+  if(!getAdminKey()){ _afterKeyAction='finance'; openModal('modalAdminKey'); PENDING_REFUNDS=[]; return; }
+  try { const { bookings } = await adminApi('list_pending_refunds'); PENDING_REFUNDS = bookings||[]; }
+  catch(e){ if(e.code===401){ sessionStorage.removeItem('ss_admin_key'); _afterKeyAction='finance'; openModal('modalAdminKey'); } PENDING_REFUNDS=[]; }
+}
+function renderRefunds(){
+  const tbody=document.getElementById('refundRows'); const empty=document.getElementById('refundEmpty');
+  if(!tbody) return;
+  if(!PENDING_REFUNDS.length){ tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  tbody.innerHTML=PENDING_REFUNDS.map(b=>{
+    const u=b.users||{}; const t=b.trips||{};
+    const name=u.nickname||u.full_name||'–';
+    return `<tr>
+      <td><div class="d-name">${t.name_th||'–'}</div><div class="d-sub">${b.booking_ref||''}</div></td>
+      <td>${name}</td>
+      <td class="d-muted">${u.phone||'–'}${u.line_id?' · LINE '+u.line_id:''}</td>
+      <td class="d-muted">${fmtDate(b.cancelled_at?b.cancelled_at.slice(0,10):null)}</td>
+      <td class="d-muted">${b.cancel_reason||'–'}</td>
+      <td class="d-money" style="color:#B26A16">${fmtMoney(b.refund_amount)} <span style="font-size:11px;color:var(--text-muted)">(${b.refund_pct}%)</span></td>
+      <td><button class="btn btn-primary" onclick="confirmAction('ยืนยันว่าโอนคืน ${fmtMoney(b.refund_amount)} ให้ ${name} แล้ว?','markRefundPaid','${b.id}')">✓ โอนคืนแล้ว</button></td>
+    </tr>`;
+  }).join('');
+}
+async function markRefundPaid(id){
+  try{
+    const res=await adminApi('mark_refund_paid', id);
+    if(!res.ok){ toast('บันทึกไม่สำเร็จ'); return; }
+    PENDING_REFUNDS=PENDING_REFUNDS.filter(b=>b.id!==id);
+    renderRefunds();
+    toast('บันทึกการคืนเงินแล้ว ✓');
+  }catch(e){
+    if(e.code===401){ sessionStorage.removeItem('ss_admin_key'); _afterKeyAction='finance'; openModal('modalAdminKey'); return; }
+    toast('บันทึกไม่สำเร็จ');
+  }
 }
 
 // ===== BOOKINGS (Supabase) =====

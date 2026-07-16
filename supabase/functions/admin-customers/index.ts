@@ -284,6 +284,34 @@ Deno.serve(async (req) => {
       return json({ ok: true, id, group_status: 'created' });
     }
 
+    // ===== PHASE 16: คิวคืนเงิน (ลูกค้ายกเลิก → ส่งคำขอ → Admin โอนจริง → กดยืนยันที่นี่) =====
+    if (action === 'list_pending_refunds') {
+      const { data, error } = await supabase
+        .from('bookings')
+        .select('id, booking_ref, seats, total_price, cancelled_at, cancel_reason, refund_pct, refund_amount, refund_status, trip_id, users ( full_name, nickname, phone, line_id ), trips ( name_th, start_date )')
+        .eq('refund_status', 'pending')
+        .order('cancelled_at', { ascending: true });
+      if (error) throw error;
+      return json({ bookings: data });
+    }
+
+    if (action === 'mark_refund_paid') {
+      if (!id) return json({ error: 'missing id' }, 400);
+      const { data: b, error: be } = await supabase.from('bookings').select('refund_amount').eq('id', id).maybeSingle();
+      if (be) throw be;
+      if (!b) return json({ error: 'booking not found' }, 404);
+      const { error: ue } = await supabase.from('bookings').update({
+        refund_status: 'paid',
+        refund_paid_at: new Date().toISOString(),
+        refund_note: payload.note || null,
+      }).eq('id', id);
+      if (ue) throw ue;
+      await supabase.from('refund_reviews').insert({
+        booking_id: id, action: 'mark_paid', refund_amount: b.refund_amount, note: payload.note || null,
+      });
+      return json({ ok: true, id, refund_status: 'paid' });
+    }
+
     return json({ error: 'unknown action' }, 400);
   } catch (e) {
     return json({ error: String((e as Error).message || e) }, 500);

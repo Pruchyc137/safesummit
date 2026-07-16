@@ -582,7 +582,12 @@ function mapBooking(r){
     bookingRef: r.booking_ref || '',
     orgPhone: '', orgLine: '',
     reviewed: false, rating: 0,
-    cancelReason: r.note || '',
+    cancelReason: r.cancel_reason || r.note || '',
+    cancelledAt: r.cancelled_at ? r.cancelled_at.slice(0,10) : null,
+    refundPct: r.refund_pct != null ? r.refund_pct : null,
+    refundAmt: r.refund_amount != null ? parseFloat(r.refund_amount) : null,
+    refundStatus: r.refund_status || 'none',
+    refundPaidAt: r.refund_paid_at ? r.refund_paid_at.slice(0,10) : null,
     payStatus: r.pay_status || 'unpaid',
     declaredAmount: r.declared_amount!=null ? parseFloat(r.declared_amount) : null,
     paidAmount: r.paid_amount!=null ? parseFloat(r.paid_amount) : null,
@@ -620,7 +625,7 @@ async function load(){
   // โหลดการจองจริงของลูกค้าคนนี้
   try{
     const { data, error } = await db.from('bookings')
-      .select('id,trip_id,booking_ref,seats,seat_numbers,price_snapshot,total_price,declared_amount,paid_amount,admin_note,status,pay_status,note,booked_at, trips(name_th,start_date,duration_days,province,region,payment_qr_url,capacity,organizers(org_name,badge_tier,payment_qr_url))')
+      .select('id,trip_id,booking_ref,seats,seat_numbers,price_snapshot,total_price,declared_amount,paid_amount,admin_note,status,pay_status,note,booked_at,cancelled_at,cancel_reason,refund_pct,refund_amount,refund_status,refund_paid_at, trips(name_th,start_date,duration_days,province,region,payment_qr_url,capacity,organizers(org_name,badge_tier,payment_qr_url))')
       .eq('user_id', user.id)
       .order('booked_at',{ascending:false});
     if(error) throw error;
@@ -823,6 +828,16 @@ function payStatusHTML(b){
   return `<div style="background:${m.bg};border-radius:8px;padding:8px 11px;margin-top:10px;"><span style="font-family:'Kanit',sans-serif;font-weight:700;font-size:12.5px;color:${m.c}">${m.t}</span>${extra}</div>`;
 }
 
+// สถานะคืนเงินจริง (pending = ส่งคำขอแล้ว รอ Admin โอน, paid = โอนคืนแล้วจริง)
+function refundRowHTML(b){
+  if(b.refundAmt==null) return '';
+  if(b.refundAmt<=0) return `<div class="detail-row"><span class="l">คืนเงิน</span><span class="v">ไม่มีการคืนเงิน</span></div>`;
+  if(b.refundStatus==='paid'){
+    return `<div class="detail-row"><span class="l">คืนเงิน</span><span class="v" style="color:#5C8A5A">${fmtM(b.refundAmt)} · โอนคืนแล้ว${b.refundPaidAt?' ('+fmtDs(b.refundPaidAt)+')':''}</span></div>`;
+  }
+  return `<div class="detail-row"><span class="l">คืนเงิน</span><span class="v" style="color:#B26A16">${fmtM(b.refundAmt)} · ⏳ รอ Admin ดำเนินการโอนคืน</span></div>`;
+}
+
 // ===== อัปสลิป: (ก) โดนปฏิเสธ อัปใหม่  (ข) จ่ายส่วนที่เหลือ (มัดจำ) =====
 let _reupBooking=null, _reupMode='reject';
 function prepReupModal(b){
@@ -1011,7 +1026,7 @@ function openDetail(id){
     <div class="detail-row"><span class="l">สถานะ</span><span class="v"><span class="pill ${b.status}">${STATUS_LABEL[b.status]||b.status}</span></span></div>
     <div class="detail-row"><span class="l">ติดต่อผู้จัด</span><span class="v">${b.orgPhone||'–'} · ${b.orgLine||'–'}</span></div>
     ${b.cancelledAt?`<div class="detail-row"><span class="l">วันยกเลิก</span><span class="v">${fmtD(b.cancelledAt)}</span></div>`:''}
-    ${b.refundAmt!=null?`<div class="detail-row"><span class="l">คืนเงิน</span><span class="v" style="color:#5C8A5A">${fmtM(b.refundAmt)}</span></div>`:''}`;
+    ${refundRowHTML(b)}`;
   renderDetailSeatMap(b);
   const cb=document.getElementById('detailCancelBtn');
   if(['confirmed','pending'].includes(b.status)){ cb.style.display=''; cb.onclick=()=>{ closeModal('modalDetail'); openCancel(id); }; }
@@ -1037,14 +1052,25 @@ function openCancel(id){
 async function confirmCancel(){
   const b=BOOKINGS.find(x=>x.id===cancelId); if(!b) return;
   const pct=refundPct(b.date);
-  b.status='cancelled'; b.cancelledAt=new Date().toISOString().slice(0,10);
-  b.cancelReason=document.getElementById('cancelReason').value.trim();
-  b.refundAmt=Math.round(b.total*pct/100);
-  b.refundStatus=b.refundAmt>0?'คืนเงินแล้ว':'ไม่มีการคืนเงิน';
-  // อัปเดตสถานะใน Supabase
-  try{ if(typeof db!=='undefined') await db.from('bookings').update({status:'cancelled'}).eq('id', b.id); }catch(e){}
+  const refundAmt=Math.round(b.total*pct/100);
+  const cancelReason=document.getElementById('cancelReason').value.trim();
+  const nowIso=new Date().toISOString();
+  b.status='cancelled'; b.cancelledAt=nowIso.slice(0,10);
+  b.cancelReason=cancelReason;
+  b.refundPct=pct; b.refundAmt=refundAmt;
+  // ยังไม่มีการโอนเงินจริง — แค่ "ส่งคำขอ" ให้ Admin ไปดำเนินการคืนต่อ
+  b.refundStatus=refundAmt>0?'pending':'none';
+  // บันทึกลง Supabase จริง (ก่อนหน้านี้บันทึกแค่ status ทำให้ Admin ไม่รู้ว่าต้องคืนเงินเท่าไหร่)
+  try{
+    if(typeof db!=='undefined') await db.from('bookings').update({
+      status:'cancelled', cancelled_at:nowIso, cancel_reason:cancelReason,
+      refund_pct:pct, refund_amount:refundAmt, refund_status:b.refundStatus,
+    }).eq('id', b.id);
+  }catch(e){ console.warn('cancel update failed', e); }
   save(); refreshAll(); closeModal('modalCancel');
-  toast('ยกเลิกแล้ว'+(b.refundAmt>0?' — คืน '+fmtM(b.refundAmt)+' ภายใน 3-5 วัน':''));
+  toast(refundAmt>0
+    ? 'ส่งคำขอยกเลิกแล้ว — Admin จะดำเนินการคืนเงิน '+fmtM(refundAmt)+' ภายใน 3-5 วันทำการ'
+    : 'ยกเลิกทริปแล้ว');
 }
 
 /* ══════════════════════════════════
