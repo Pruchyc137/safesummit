@@ -557,6 +557,7 @@ function mapBooking(r){
     total: total,
     status: status,
     bookedAt: (r.booked_at||'').slice(0,10),
+    seatNumbers: Array.isArray(r.seat_numbers) ? r.seat_numbers : [],
     badge: (/pro/i.test(t.organizers?.badge_tier||'')?'Verified Pro':/basic/i.test(t.organizers?.badge_tier||'')?'Verified Basic':'Verified Basic'),
     scene: SCENE_BY_REGION[region] || 'peak',
     bookingRef: r.booking_ref || '',
@@ -600,7 +601,7 @@ async function load(){
   // โหลดการจองจริงของลูกค้าคนนี้
   try{
     const { data, error } = await db.from('bookings')
-      .select('id,trip_id,booking_ref,seats,price_snapshot,total_price,declared_amount,paid_amount,admin_note,status,pay_status,note,booked_at, trips(name_th,start_date,duration_days,province,region,payment_qr_url,organizers(org_name,badge_tier,payment_qr_url))')
+      .select('id,trip_id,booking_ref,seats,seat_numbers,price_snapshot,total_price,declared_amount,paid_amount,admin_note,status,pay_status,note,booked_at, trips(name_th,start_date,duration_days,province,region,payment_qr_url,organizers(org_name,badge_tier,payment_qr_url))')
       .eq('user_id', user.id)
       .order('booked_at',{ascending:false});
     if(error) throw error;
@@ -621,6 +622,7 @@ const fmtM=n=>'฿'+(n||0).toLocaleString('th-TH');
 const fmtD=d=>d?new Date(d+'T00:00:00').toLocaleDateString('th-TH',{day:'numeric',month:'long',year:'numeric'}):'–';
 const fmtDs=d=>d?new Date(d+'T00:00:00').toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'2-digit'}):'–';
 const bName=b=>(b.tripName&&b.tripName.th)||b.tripName||'ทริป';
+const seatLabel=id=>{ const m=String(id).match(/^v(\d+)-(\d+)$/); return m?`คันที่ ${m[1]} #${m[2]}`:id; };
 const daysTill=d=>{ if(!d) return null; return Math.ceil((new Date(d+'T00:00:00')-new Date())/86400000); };
 function refundPct(d){ const n=daysTill(d); if(n==null) return 0; if(n>=14) return 100; if(n>=7) return 50; if(n>=3) return 25; return 0; }
 
@@ -928,6 +930,7 @@ function openDetail(id){
     <div class="detail-row"><span class="l">วันเดินทาง</span><span class="v">${fmtD(b.date)}</span></div>
     <div class="detail-row"><span class="l">จังหวัด</span><span class="v">${b.prov}</span></div>
     <div class="detail-row"><span class="l">จำนวนที่นั่ง</span><span class="v">${b.seats} คน</span></div>
+    <div class="detail-row"><span class="l">ที่นั่งในรถตู้</span><span class="v">${b.seatNumbers&&b.seatNumbers.length?b.seatNumbers.map(seatLabel).join(', '):'จะแจ้งให้ทราบก่อนวันเดินทาง'}</span></div>
     <div class="detail-row"><span class="l">ยอดชำระ</span><span class="v" style="color:var(--accent-trail)">${fmtM(b.total)}</span></div>
     <div class="detail-row"><span class="l">สถานะ</span><span class="v"><span class="pill ${b.status}">${STATUS_LABEL[b.status]||b.status}</span></span></div>
     <div class="detail-row"><span class="l">ติดต่อผู้จัด</span><span class="v">${b.orgPhone||'–'} · ${b.orgLine||'–'}</span></div>
