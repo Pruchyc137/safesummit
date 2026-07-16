@@ -844,9 +844,9 @@ footer .foot-grid li a:hover{opacity:1;color:var(--accent-gold);}
           </a>
         </div>
       </div>
-      <div class="col"><h5 data-th="สำหรับนักเดินป่า" data-en="For Hikers">สำหรับนักเดินป่า</h5><ul><li><a href="#travelers" data-th="ค้นหาทริป" data-en="Search trips">ค้นหาทริป</a></li><li><a href="#" onclick="showAuth('register','customer',event)" data-th="วิธีจอง" data-en="How to book">วิธีจอง</a></li><li><a href="#" onclick="return false" data-th="นโยบายคืนเงิน" data-en="Refund policy">นโยบายคืนเงิน</a></li></ul></div>
+      <div class="col"><h5 data-th="สำหรับนักเดินป่า" data-en="For Hikers">สำหรับนักเดินป่า</h5><ul><li><a href="#travelers" data-th="ค้นหาทริป" data-en="Search trips">ค้นหาทริป</a></li><li><a href="#" onclick="showAuth('register','customer',event)" data-th="วิธีจอง" data-en="How to book">วิธีจอง</a></li><li><a href="refund-policy.html" data-th="นโยบายคืนเงิน" data-en="Refund policy">นโยบายคืนเงิน</a></li></ul></div>
       <div class="col"><h5 data-th="สำหรับผู้จัด" data-en="For Organizers">สำหรับผู้จัด</h5><ul><li><a href="organizer.html?register=1" data-th="สมัครเป็นผู้จัด" data-en="Become an organizer">สมัครเป็นผู้จัด</a></li><li><a href="#" onclick="return false" data-th="ขั้นตอนยืนยันตัวตน" data-en="Verification steps">ขั้นตอนยืนยันตัวตน</a></li><li><a href="#" onclick="return false" data-th="ค่าคอมมิชชั่น" data-en="Commission fees">ค่าคอมมิชชั่น</a></li></ul></div>
-      <div class="col"><h5 data-th="บริษัท" data-en="Company">บริษัท</h5><ul><li><a href="#" onclick="return false" data-th="เกี่ยวกับเรา" data-en="About us">เกี่ยวกับเรา</a></li><li><a href="#contact" data-th="ติดต่อเรา" data-en="Contact">ติดต่อเรา</a></li><li><a href="#" onclick="return false" data-th="ข้อกำหนดการใช้งาน" data-en="Terms of use">ข้อกำหนดการใช้งาน</a></li></ul></div>
+      <div class="col"><h5 data-th="บริษัท" data-en="Company">บริษัท</h5><ul><li><a href="#" onclick="return false" data-th="เกี่ยวกับเรา" data-en="About us">เกี่ยวกับเรา</a></li><li><a href="#contact" data-th="ติดต่อเรา" data-en="Contact">ติดต่อเรา</a></li><li><a href="terms.html" data-th="ข้อกำหนดการใช้งาน" data-en="Terms of use">ข้อกำหนดการใช้งาน</a></li><li><a href="privacy.html" data-th="นโยบายความเป็นส่วนตัว" data-en="Privacy policy">นโยบายความเป็นส่วนตัว</a></li></ul></div>
     </div>
     <div class="tv-copy">© 2569 SafeSummit · <span data-th="ออกแบบเพื่อใช้เป็นต้นแบบนำเสนอแนวคิดแพลตฟอร์ม" data-en="Built as a concept prototype for the platform idea">ออกแบบเพื่อใช้เป็นต้นแบบนำเสนอแนวคิดแพลตฟอร์ม</span></div>
   </div>
@@ -1610,7 +1610,7 @@ setTimeout(()=>{ const s=document.getElementById('searchQ'); if(s) s.value=''; }
   <div class="field"><label data-th="เบอร์โทรศัพท์" data-en="Phone number">เบอร์โทรศัพท์</label><input id="reg-phone" type="tel" placeholder="08x-xxx-xxxx"></div>
   <div class="field"><label data-th="รหัสผ่าน" data-en="Password">รหัสผ่าน</label><input id="reg-password" type="password" placeholder="••••••••"></div>
 
-  <label class="terms"><input id="reg-terms" type="checkbox"> <span data-th="ฉันยอมรับข้อกำหนดการใช้งานและนโยบายความเป็นส่วนตัว" data-en="I accept the terms of use and privacy policy">ฉันยอมรับ<a href="#" onclick="return false" data-th="ข้อกำหนดการใช้งาน" data-en="terms of use">ข้อกำหนดการใช้งาน</a>และนโยบายความเป็นส่วนตัว</span></label>
+  <label class="terms"><input id="reg-terms" type="checkbox"> <span data-th="ฉันยอมรับ<a href='terms.html' target='_blank'>ข้อกำหนดการใช้งาน</a>และ<a href='privacy.html' target='_blank'>นโยบายความเป็นส่วนตัว</a>" data-en="I accept the <a href='terms.html' target='_blank'>terms of use</a> and <a href='privacy.html' target='_blank'>privacy policy</a>">ฉันยอมรับ<a href="terms.html" target="_blank">ข้อกำหนดการใช้งาน</a>และ<a href="privacy.html" target="_blank">นโยบายความเป็นส่วนตัว</a></span></label>
 
   <button class="btn-primary" id="submitBtn" onclick="handleRegister()" data-th="สร้างบัญชี" data-en="Create account">สร้างบัญชี</button>
 
