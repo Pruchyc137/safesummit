@@ -16,6 +16,7 @@ Supabase: `wucrvtgpjqjxxqarzcpv` · Edge Function slug = `super-processor`
 - [x] ตรวจว่ารัน SQL ครบ — ผู้ใช้ยืนยันแล้ว (ดูตารางด้านล่าง)
 - [x] **รัน `phase16-cancellation-refunds.sql`** — ผู้ใช้ยืนยันแล้ว
 - [x] **Redeploy Edge Function `super-processor` อีกรอบ** — ผู้ใช้ยืนยันแล้ว (เพิ่ม action `list_pending_refunds` / `mark_refund_paid`) — ฟีเจอร์ "รอคืนเงินลูกค้า" ใช้งานได้จริงแล้ว
+- [ ] **ระบบแจ้งเตือนอีเมล (ใหม่)** — ดู `supabase/functions/send-notification/README.md` ต้องทำ 3 ขั้นตอน: (1) สมัคร Resend + เอา API key, (2) deploy function `send-notification` + ตั้ง secrets 3 ตัว (`RESEND_API_KEY`, `RESEND_FROM`, `WEBHOOK_SECRET`), (3) ตั้งค่า Database Webhook บนตาราง `bookings` ใน Supabase Dashboard ให้ยิงมาที่ function นี้ — ยังไม่มีอีเมลส่งออกจนกว่าจะทำครบ 3 ขั้นตอน
 
 ## 📦 SQL phases (รันใน Supabase SQL Editor)
 
