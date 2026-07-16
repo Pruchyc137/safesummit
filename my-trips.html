@@ -773,7 +773,9 @@ function renderTimeline(){
    BOOKING CARDS
 ══════════════════════════════════ */
 function renderList(tab){
-  const list=BOOKINGS.filter(tab.match).sort((a,b)=>(b.bookedAt||'').localeCompare(a.bookedAt||''));
+  const list=BOOKINGS.filter(tab.match).sort(tab.key==='upcoming'
+    ? (a,b)=>(a.date||'9999-99-99').localeCompare(b.date||'9999-99-99')
+    : (a,b)=>(b.bookedAt||'').localeCompare(a.bookedAt||''));
   const listEl=document.getElementById('list-'+tab.key);
   const emptyEl=document.getElementById('empty-'+tab.key);
   if(!list.length){ listEl.innerHTML=''; emptyEl.style.display='block'; return; }
