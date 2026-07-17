@@ -41,10 +41,24 @@ where b.trip_id in (
   )
 );
 
--- ══════════ ส่วนที่ 2: ลบจริง (รันเฉพาะถ้า query ข้อ 2 ด้านบนไม่มีแถวออกมาเลย) ══════════
--- ถ้าข้อ 2 มีการจองจริงติดอยู่ อย่าเพิ่งรันส่วนนี้ — กลับมาคุยกับ Claude Code ก่อน
+-- ══════════ ส่วนที่ 2: ลบจริง ══════════
+-- ⚠️ ใช้เมื่อ query ข้อ 2 มีแถว "ตัวเอง test เอง" เท่านั้น (ยืนยันแล้วว่าไม่ใช่ลูกค้าจริง)
+-- ถ้ามีลูกค้าจริงปนอยู่ อย่ารันส่วนนี้ — กลับมาคุยกับ Claude Code ก่อน
+-- หมายเหตุ: bookings.trip_id ไม่มี ON DELETE CASCADE ต้องลบ bookings ก่อน trips
+--           (payment_reviews/refund_reviews มี ON DELETE CASCADE ผูกกับ bookings อยู่แล้ว ลบตามอัตโนมัติ)
 
 /*
+delete from bookings where trip_id in (
+  select id from trips where organizer_id in (
+    select id from organizers where user_id in (
+      '00000001-0000-0000-0000-000000000001','00000001-0000-0000-0000-000000000002',
+      '00000001-0000-0000-0000-000000000003','00000001-0000-0000-0000-000000000004',
+      '00000001-0000-0000-0000-000000000005','00000001-0000-0000-0000-000000000006',
+      '00000001-0000-0000-0000-000000000007'
+    )
+  )
+);
+
 delete from trip_itinerary where trip_id in (
   select id from trips where organizer_id in (
     select id from organizers where user_id in (
