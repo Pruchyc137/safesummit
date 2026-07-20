@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SafeSummit — โปรไฟล์ผู้จัด</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@700;800&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg-light:#FAF6EA; --card-light:#FFFFFF;
+  --accent-trail:#E2672B; --accent-gold:#C9A24B;
+  --text-dark:#2B2118; --text-muted:#6B5D4A; --line-muted:#B59A6E;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Sarabun',sans-serif;background:var(--bg-light);color:var(--text-dark);}
+a{color:inherit;text-decoration:none;}
+.topbar{background:#fff;border-bottom:1px solid rgba(181,154,110,.2);padding:16px 24px;position:sticky;top:0;z-index:10;}
+.back{display:inline-flex;align-items:center;gap:6px;font-size:13.5px;color:var(--text-muted);font-weight:600;}
+.wrap{max-width:900px;margin:0 auto;padding:32px 24px 80px;}
+
+.profile-card{background:var(--card-light);border-radius:18px;box-shadow:0 14px 34px rgba(40,28,18,.1);padding:28px 26px;display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap;}
+.avatar{width:74px;height:74px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Kanit',sans-serif;font-weight:800;font-size:30px;flex-shrink:0;}
+.profile-main{flex:1;min-width:200px;}
+.org-name{font-family:'Kanit',sans-serif;font-weight:800;font-size:24px;}
+.org-meta{color:var(--text-muted);font-size:13.5px;margin-top:4px;}
+.badge-pill{display:inline-flex;align-items:center;gap:5px;background:rgba(201,162,75,.15);color:#8A6D1E;border:1px solid rgba(201,162,75,.4);border-radius:20px;padding:4px 12px;font-family:'Kanit',sans-serif;font-weight:700;font-size:12px;margin-top:10px;}
+.badge-pill.basic{background:rgba(107,93,74,.1);color:var(--text-muted);border-color:rgba(107,93,74,.25);}
+.org-bio{font-size:13.5px;color:var(--text-dark);margin-top:12px;line-height:1.7;max-width:520px;}
+
+.stats-row{display:flex;gap:14px;margin-top:22px;flex-wrap:wrap;}
+.stat-tile{background:var(--card-light);border-radius:14px;box-shadow:0 8px 20px rgba(40,28,18,.08);padding:18px 22px;flex:1;min-width:140px;text-align:center;}
+.stat-val{font-family:'Kanit',sans-serif;font-weight:800;font-size:26px;color:var(--accent-trail);}
+.stat-label{font-size:12.5px;color:var(--text-muted);margin-top:4px;}
+
+.sec-title{font-family:'Kanit',sans-serif;font-weight:700;font-size:18px;margin:32px 0 14px;}
+.trip-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;}
+.tcard{background:var(--card-light);border-radius:14px;box-shadow:0 8px 20px rgba(40,28,18,.08);overflow:hidden;transition:.15s;}
+.tcard:hover{box-shadow:0 14px 30px rgba(40,28,18,.14);transform:translateY(-2px);}
+.tcard-body{padding:14px 16px;}
+.tcard-name{font-family:'Kanit',sans-serif;font-weight:700;font-size:15px;margin-bottom:6px;}
+.tcard-meta{font-size:12.5px;color:var(--text-muted);margin-bottom:8px;}
+.tcard-foot{display:flex;justify-content:space-between;align-items:center;}
+.tcard-price{font-family:'Bai Jamjuree',monospace;font-weight:700;color:var(--accent-trail);}
+.status-pill{font-family:'Kanit',sans-serif;font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:20px;}
+.status-pill.open{background:rgba(62,110,142,.13);color:#3E6E8E;}
+.status-pill.full{background:rgba(201,154,59,.15);color:#C99A3B;}
+.status-pill.ongoing{background:rgba(92,138,90,.15);color:#5C8A5A;}
+.status-pill.completed{background:rgba(107,93,74,.12);color:var(--text-muted);}
+
+.empty{text-align:center;padding:50px 20px;color:var(--text-muted);}
+.loading{text-align:center;padding:60px 20px;color:var(--text-muted);}
+</style>
+</head>
+<body>
+<div class="topbar"><a class="back" href="index.html">← กลับหน้าแรก</a></div>
+<div class="wrap" id="pageBody">
+  <div class="loading" id="loadingState">กำลังโหลดโปรไฟล์...</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/db.js"></script>
+<script>
+function getOrgId(){ return new URLSearchParams(location.search).get('id'); }
+function avatarColor(name){
+  const colors=['#E2672B','#3E6E8E','#5C8A5A','#C99A3B','#7A5C8A'];
+  let h=0; for(const c of (name||'')) h=(h*31+c.charCodeAt(0))&0xffff;
+  return colors[h%colors.length];
+}
+function fmtMoney(n){ return '฿'+(n||0).toLocaleString('th-TH'); }
+function fmtDate(d){ return d?new Date(d+'T00:00:00').toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'2-digit'}):'–'; }
+const STATUS_LABEL={open:'เปิดรับจอง',full:'เต็มแล้ว',ongoing:'กำลังเดินทาง',completed:'จบแล้ว'};
+
+async function init(){
+  const id = getOrgId();
+  const body = document.getElementById('pageBody');
+  if(!id || typeof db === 'undefined'){
+    body.innerHTML = '<div class="empty">ไม่พบโปรไฟล์ผู้จัด</div>';
+    return;
+  }
+
+  const { data: org, error: orgErr } = await db.from('organizers')
+    .select('id,org_name,province,exp_years,bio,badge_tier,status')
+    .eq('id', id).eq('status','approved').maybeSingle();
+
+  if(orgErr || !org){
+    body.innerHTML = '<div class="empty">ไม่พบโปรไฟล์ผู้จัดนี้ หรือยังไม่ผ่านการอนุมัติ</div>';
+    return;
+  }
+
+  const { data: trips } = await db.from('trips')
+    .select('id,name_th,start_date,province,price_per_person,status')
+    .eq('organizer_id', id)
+    .in('status',['open','full','ongoing','completed'])
+    .order('start_date',{ascending:false});
+
+  const allTrips = trips || [];
+  const completedCount = allTrips.filter(t=>t.status==='completed').length;
+  const openCount = allTrips.filter(t=>['open','full'].includes(t.status)).length;
+  const isPro = /pro/i.test(org.badge_tier||'');
+  const badgeLabel = isPro ? 'Verified Pro' : 'Verified Basic';
+
+  body.innerHTML = `
+    <div class="profile-card">
+      <div class="avatar" style="background:${avatarColor(org.org_name)};">${(org.org_name||'?').charAt(0)}</div>
+      <div class="profile-main">
+        <div class="org-name">${org.org_name||'–'}</div>
+        <div class="org-meta">${org.province||'–'}${org.exp_years?' · ประสบการณ์ '+org.exp_years+' ปี':''}</div>
+        <div class="badge-pill${isPro?'':' basic'}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>${badgeLabel}</div>
+        ${org.bio ? `<div class="org-bio">${org.bio}</div>` : ''}
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-tile"><div class="stat-val">${completedCount}</div><div class="stat-label">ทริปที่จัดสำเร็จแล้ว</div></div>
+      <div class="stat-tile"><div class="stat-val">${openCount}</div><div class="stat-label">เปิดรับจองตอนนี้</div></div>
+      <div class="stat-tile"><div class="stat-val">${allTrips.length}</div><div class="stat-label">ทริปทั้งหมดที่เคยจัด</div></div>
+    </div>
+
+    <div class="sec-title">ทริปของผู้จัดนี้</div>
+    <div class="trip-grid" id="tripGrid"></div>
+    ${allTrips.length===0 ? '<div class="empty">ผู้จัดนี้ยังไม่มีทริปที่เปิดให้ดูสาธารณะ</div>' : ''}
+  `;
+
+  const grid = document.getElementById('tripGrid');
+  if(grid){
+    grid.innerHTML = allTrips.map(t => `
+      <a class="tcard" href="trip.html?id=${t.id}">
+        <div class="tcard-body">
+          <div class="tcard-name">${t.name_th||'ทริป'}</div>
+          <div class="tcard-meta">${fmtDate(t.start_date)} · ${t.province||''}</div>
+          <div class="tcard-foot">
+            <span class="tcard-price">${fmtMoney(t.price_per_person)}</span>
+            <span class="status-pill ${t.status}">${STATUS_LABEL[t.status]||t.status}</span>
+          </div>
+        </div>
+      </a>
+    `).join('');
+  }
+}
+init();
+</script>
+</body>
+</html>

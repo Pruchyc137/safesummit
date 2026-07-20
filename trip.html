@@ -467,15 +467,19 @@ function renderIncludes(t){
 function renderGuide(t){
   const initial=(t.org||'?').charAt(0);
   const color=avatarColor(t.org||'');
-  document.getElementById('guideCard').innerHTML=`
-    <div class="guide-card">
+  const guideInner=`
       <div class="guide-avatar" style="background:${color};">${initial}</div>
       <div>
         <div class="guide-name">${t.org}</div>
         <div class="guide-sub">ผู้จัดทริปมืออาชีพ · ${t.prov}</div>
         <div class="guide-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>${t.badge}</div>
-      </div>
-    </div>
+      </div>`;
+  const guideCard = t.orgId
+    ? `<a class="guide-card" href="organizer-profile.html?id=${t.orgId}" style="text-decoration:none;color:inherit;cursor:pointer;">${guideInner}</a>`
+    : `<div class="guide-card">${guideInner}</div>`;
+  document.getElementById('guideCard').innerHTML=`
+    ${guideCard}
+    ${t.orgId?`<a href="organizer-profile.html?id=${t.orgId}" style="font-size:12.5px;color:var(--accent-trail);font-weight:600;display:inline-block;margin-top:6px;">ดูโปรไฟล์ผู้จัด + ทริปทั้งหมด →</a>`:''}
     <p style="font-size:13px;color:var(--text-muted);margin-top:8px;line-height:1.6;">การติดต่อและการดีลทั้งหมดจัดการผ่านแพลตฟอร์ม SafeSummit เพื่อความปลอดภัยของทั้งสองฝ่าย</p>
   `;
 }
@@ -537,6 +541,7 @@ function mapSupabaseTrip(r){
     id:r.id,
     name:r.name_th?{th:r.name_th,en:r.name_en||r.name_th}:(seed.name||{th:'',en:''}),
     org:r.organizers?.org_name||seed.org||'',
+    orgId:r.organizer_id||null,
     region:r.region||seed.region||'',
     prov:r.province||seed.prov||'',
     date:r.start_date||seed.date||'',
@@ -564,7 +569,7 @@ async function init(){
   if(isUUID && typeof db!=='undefined'){
     try{
       const {data,error}=await db.from('trips')
-        .select('id,name_th,name_en,price_per_person,capacity,booked_count,start_date,region,province,status,image_url,itinerary,duration_days,rating_avg,badge_tier, organizers(org_name,badge_tier)')
+        .select('id,name_th,name_en,price_per_person,capacity,booked_count,start_date,region,province,status,image_url,itinerary,duration_days,rating_avg,badge_tier,organizer_id, organizers(org_name,badge_tier)')
         .eq('id',id).single();
       if(!error && data) trip=mapSupabaseTrip(data);
     }catch(e){ console.warn('Supabase fetch failed',e); }
