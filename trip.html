@@ -407,11 +407,19 @@ function renderInfo(t){
 }
 
 // แปลงกำหนดการที่ผู้จัดบันทึก (flat [{day,time,desc}]) → โครงสร้างวัน/ช่วงเวลา
+// day 0 = วันเดินทางไป (1 วันก่อนวันเริ่ม), day 1 = วันเริ่มทริป (t.date), day 2 = t.date+1, ...
+function itinDayTitle(d, startDate){
+  const label = d===0 ? 'วันเดินทางไป' : 'วันที่ '+d;
+  if(!startDate) return label;
+  const dt = new Date(startDate+'T00:00:00');
+  dt.setDate(dt.getDate() + (d-1));
+  return `${label} · ${dt.toLocaleDateString('th-TH',{day:'numeric',month:'long',year:'numeric'})}`;
+}
 function itinFromSaved(t){
   if(!Array.isArray(t.itinerary) || !t.itinerary.length) return null;
   const byDay={};
   t.itinerary.forEach(r=>{ const d=(r.day!=null?r.day:1); (byDay[d]=byDay[d]||[]).push({time:r.time||'',desc:r.desc||''}); });
-  return Object.keys(byDay).map(Number).sort((a,b)=>a-b).map(d=>({ title:(d===0?'วันเดินทางไป':'วันที่ '+d), slots:byDay[d] }));
+  return Object.keys(byDay).map(Number).sort((a,b)=>a-b).map(d=>({ title:itinDayTitle(d,t.date), slots:byDay[d] }));
 }
 function renderItinerary(t){
   const days=itinFromSaved(t) || genItinerary(t);
