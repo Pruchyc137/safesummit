@@ -309,10 +309,11 @@ canvas#qrCanvas{display:block;}
           </div>
           <div class="seat-picked" id="seatPicked">ยังไม่ได้เลือกที่นั่ง</div>
           <div class="info-note" style="margin-top:14px;" id="seatNote"></div>
-          <div class="terms-check">
-            <input type="checkbox" id="termsCheck">
+          <div class="terms-check" id="termsCheckRow">
+            <input type="checkbox" id="termsCheck" onchange="clearStep1Err()">
             <span>ฉันยอมรับ<a href="terms.html" target="_blank"> ข้อกำหนดการจอง </a>และ<a href="refund-policy.html" target="_blank"> นโยบายการคืนเงิน</a> ของ SafeSummit</span>
           </div>
+          <div id="step1Err" style="display:none;color:#C0552F;font-size:13px;font-weight:700;text-align:center;margin-top:10px;"></div>
           <div class="btn-row">
             <button class="btn btn-primary" onclick="goStep2()">
               ถัดไป: ยืนยันรายการ
@@ -651,6 +652,7 @@ function toggleSeat(id){
   }
   seats=selectedSeats.length;
   renderVanTabs(); renderVanMap(); refreshSeatUI();
+  if(selectedSeats.length) clearStep1Err();
 }
 
 function refreshSeatUI(){
@@ -723,19 +725,31 @@ function goStep(n){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
+function clearStep1Err(){
+  const e=document.getElementById('step1Err'); if(e){ e.style.display='none'; e.textContent=''; }
+  const tr=document.getElementById('termsCheckRow'); if(tr) tr.style.outline='';
+  const sp=document.getElementById('seatPicked'); if(sp) sp.style.color='';
+}
+function showStep1Err(msg, highlightEl){
+  const e=document.getElementById('step1Err');
+  if(e){ e.textContent=msg; e.style.display='block'; e.scrollIntoView({behavior:'smooth', block:'center'}); }
+  if(highlightEl) highlightEl.style.outline='2px solid #C0552F';
+  toast(msg);
+}
 function goStep2(){
   if(!trip){ toast('ไม่พบข้อมูลทริป'); return; }
   if(!BOOKING_USER){ toast('กรุณาเข้าสู่ระบบก่อนจอง'); goLoginFromBooking(); return; }
   if(BOOKING_IS_ORG){ toast('บัญชีผู้จัดจองทริปไม่ได้ — เข้าด้วยบัญชีลูกค้าก่อน'); const bb=document.getElementById('orgBlockBanner'); if(bb){ bb.style.display='flex'; bb.scrollIntoView({behavior:'smooth'}); } return; }
+  clearStep1Err();
   const fname=document.getElementById('f-fname').value.trim();
   const lname=document.getElementById('f-lname').value.trim();
   const email=document.getElementById('f-email').value.trim();
   const phone=document.getElementById('f-phone').value.trim();
-  if(!fname||!lname){ toast('กรุณากรอกชื่อและนามสกุล'); return; }
-  if(!email||!email.includes('@')){ toast('กรุณากรอกอีเมลให้ถูกต้อง'); return; }
-  if(!phone||phone.length<9){ toast('กรุณากรอกเบอร์โทรศัพท์ให้ครบ'); return; }
-  if(!selectedSeats.length){ toast('กรุณาเลือกที่นั่งในรถตู้อย่างน้อย 1 ที่'); return; }
-  if(!document.getElementById('termsCheck').checked){ toast('กรุณายอมรับข้อกำหนดก่อน'); return; }
+  if(!fname||!lname){ showStep1Err('กรุณากรอกชื่อและนามสกุล'); return; }
+  if(!email||!email.includes('@')){ showStep1Err('กรุณากรอกอีเมลให้ถูกต้อง'); return; }
+  if(!phone||phone.length<9){ showStep1Err('กรุณากรอกเบอร์โทรศัพท์ให้ครบ'); return; }
+  if(!selectedSeats.length){ const sp=document.getElementById('seatPicked'); if(sp) sp.style.color='#C0552F'; showStep1Err('กรุณาเลือกที่นั่งในรถตู้อย่างน้อย 1 ที่ก่อนไปขั้นตอนถัดไป'); return; }
+  if(!document.getElementById('termsCheck').checked){ showStep1Err('กรุณายอมรับข้อกำหนดการจองและนโยบายการคืนเงินก่อน', document.getElementById('termsCheckRow')); return; }
 
   // fill confirm
   document.getElementById('confirm-info').innerHTML=`
