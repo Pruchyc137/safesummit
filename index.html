@@ -631,9 +631,9 @@ footer .foot-grid li a:hover{opacity:1;color:var(--accent-gold);}
     </div>
 
     <div class="hero-stats">
-      <div class="s"><b>120+</b><span data-th="ผู้จัดที่ผ่านการยืนยัน" data-en="Verified organizers">ผู้จัดที่ผ่านการยืนยัน</span></div>
-      <div class="s"><b>850+</b><span data-th="ทริปจัดสำเร็จ" data-en="Trips completed">ทริปจัดสำเร็จ</span></div>
-      <div class="s"><b>4.8/5</b><span data-th="คะแนนรีวิวเฉลี่ย" data-en="Avg. review score">คะแนนรีวิวเฉลี่ย</span></div>
+      <div class="s"><b id="statOrgs">–</b><span data-th="ผู้จัดที่ผ่านการยืนยัน" data-en="Verified organizers">ผู้จัดที่ผ่านการยืนยัน</span></div>
+      <div class="s"><b id="statTrips">–</b><span data-th="ทริปจัดสำเร็จ" data-en="Trips completed">ทริปจัดสำเร็จ</span></div>
+      <div class="s"><b id="statRating">–</b><span data-th="คะแนนรีวิวเฉลี่ย" data-en="Avg. review score">คะแนนรีวิวเฉลี่ย</span></div>
     </div>
   </div>
 </section>
@@ -962,6 +962,28 @@ function mapSupabaseTrip(r){
     scene: seed.scene || ({north:'peak',northeast:'sunrise',south:'forest',west:'forest',east:'forest',central:'sunrise'}[r.region||'north']||'peak'),
     real: !isSeedFormat,   // ทริปจริงจากผู้จัด (ไม่ใช่ seed) — โชว์เสมอแม้ยังไม่ใส่รูป (มีภาพ scene สำรอง)
   };
+}
+
+// สถิติหน้าแรก — ดึงจากข้อมูลจริงใน Supabase (เดิมเป็นตัวเลข hardcode "120+"/"850+"/"4.8/5")
+async function loadStats(){
+  if(typeof db === 'undefined') return;
+  try{
+    const { count: orgCount } = await db.from('organizers').select('id',{count:'exact',head:true}).eq('status','approved');
+    document.getElementById('statOrgs').textContent = (orgCount||0)+'';
+  }catch(e){ console.warn('loadStats organizers', e); }
+  try{
+    const { count: tripCount } = await db.from('trips').select('id',{count:'exact',head:true}).eq('status','completed');
+    document.getElementById('statTrips').textContent = (tripCount||0)+'';
+  }catch(e){ console.warn('loadStats trips', e); }
+  try{
+    const { data: revs } = await db.from('reviews').select('rating').eq('hidden',false);
+    if(revs && revs.length){
+      const avg = revs.reduce((s,r)=>s+(r.rating||0),0)/revs.length;
+      document.getElementById('statRating').textContent = avg.toFixed(1)+'/5';
+    } else {
+      document.getElementById('statRating').textContent = 'ยังไม่มีรีวิว';
+    }
+  }catch(e){ console.warn('loadStats reviews', e); }
 }
 
 const SEED_VERSION = 'v3';
@@ -1526,7 +1548,7 @@ document.addEventListener('click', e=>{
 });
 
 // ===== INIT =====
-(async function(){ await loadTrips(); updateRegionCounts(); renderTripCards('all','all',''); renderAuthState(); loadReviews(); })();
+(async function(){ await loadTrips(); updateRegionCounts(); renderTripCards('all','all',''); renderAuthState(); loadReviews(); loadStats(); })();
 
 // ===== รีวิวจริงจากลูกค้า (หน้าแรก) =====
 function escHtml(s){ return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
