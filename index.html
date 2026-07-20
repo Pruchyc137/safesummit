@@ -146,6 +146,26 @@ section.block{padding:88px 0;background:var(--bg-light);}
 /* ธีมของ dropdown popup ตอนเปิด select — browser (Chromium) จะใช้สีนี้แทนสีขาว/ฟ้า default */
 .search-mock .field select{accent-color:var(--accent-gold);color-scheme:light;}
 .search-mock .field select option{background-color:#FFFDF7;color:var(--text-dark);font-weight:500;padding:8px 10px;}
+
+/* custom dropdown — แทนที่ popup ของ select ทั้งหมด ควบคุมสี/ไฮไลต์ได้ 100% ไม่พึ่ง browser default */
+.cdrop-trigger{
+  font-family:'Sarabun',sans-serif;font-size:14px;font-weight:600;color:#5C5748;cursor:pointer;
+  display:flex;align-items:center;justify-content:space-between;gap:6px;user-select:none;
+}
+.cdrop-trigger::after{content:'';width:8px;height:8px;border-right:2px solid #8A7F63;border-bottom:2px solid #8A7F63;transform:rotate(45deg) translateY(-2px);flex-shrink:0;transition:transform .15s;}
+.cdrop-trigger.open::after{transform:rotate(-135deg) translateY(1px);}
+.cdrop-list{
+  display:none;position:absolute;top:calc(100% + 10px);left:0;min-width:180px;max-height:280px;overflow-y:auto;
+  background:#FFFDF7;border:1px solid #E6DCC6;border-radius:12px;box-shadow:0 14px 34px rgba(40,28,18,.18);
+  padding:6px;z-index:60;
+}
+.cdrop-list.open{display:block;}
+.cdrop-opt{
+  padding:9px 12px;border-radius:8px;font-family:'Sarabun',sans-serif;font-size:14px;font-weight:500;
+  color:var(--text-dark);cursor:pointer;white-space:nowrap;
+}
+.cdrop-opt:hover{background:rgba(201,162,75,.16);}
+.cdrop-opt.sel{background:var(--accent-gold);color:#2B2118;font-weight:700;}
 .search-mock .go{
   flex:0 0 auto;width:auto;background:#20291C;color:#fff;border-radius:24px;margin-left:12px;
   padding:15px 30px;display:flex;align-items:center;justify-content:center;gap:9px;
@@ -610,25 +630,31 @@ footer .foot-grid li a:hover{opacity:1;color:var(--accent-gold);}
       </div>
       <div class="field">
         <label data-th="ช่วงราคา" data-en="Price range">ช่วงราคา</label>
-        <select id="priceSel">
+        <select id="priceSel" style="display:none;">
           <option value="all" data-th="ทั้งหมด" data-en="All prices">ทั้งหมด</option>
           <option value="lt2000" data-th="ต่ำกว่า ฿2,000" data-en="Under ฿2,000">ต่ำกว่า ฿2,000</option>
           <option value="2000-3000" data-th="฿2,000 - 3,000" data-en="฿2,000 - 3,000">฿2,000 - 3,000</option>
           <option value="3000-5000" data-th="฿3,000 - 5,000" data-en="฿3,000 - 5,000">฿3,000 - 5,000</option>
           <option value="gt5000" data-th="มากกว่า ฿5,000" data-en="Over ฿5,000">มากกว่า ฿5,000</option>
         </select>
+        <div class="cdrop-trigger" id="priceSelTrigger" onclick="toggleCDrop('priceSel')"></div>
+        <div class="cdrop-list" id="priceSelList"></div>
       </div>
       <div class="field">
         <label data-th="รูปแบบทริป" data-en="Trip type">รูปแบบทริป</label>
-        <select id="typeSel">
+        <select id="typeSel" style="display:none;">
           <option value="all" data-th="ทั้งหมด" data-en="All types">ทั้งหมด</option>
           <option value="allinclusive" data-th="ครบวงจร" data-en="All-inclusive">ครบวงจร</option>
           <option value="transfer" data-th="มีรถรับส่ง" data-en="Transfer included">มีรถรับส่ง</option>
           <option value="meetup" data-th="นัดพบจุดนัด" data-en="Meet at trailhead">นัดพบจุดนัด</option>
         </select>
+        <div class="cdrop-trigger" id="typeSelTrigger" onclick="toggleCDrop('typeSel')"></div>
+        <div class="cdrop-list" id="typeSelList"></div>
       </div>
       <div class="field"><label data-th="วันที่" data-en="Date">วันที่</label>
-        <select id="dateSel"></select>
+        <select id="dateSel" style="display:none;"></select>
+        <div class="cdrop-trigger" id="dateSelTrigger" onclick="toggleCDrop('dateSel')"></div>
+        <div class="cdrop-list" id="dateSelList"></div>
       </div>
       <button class="go" onclick="applyTripFilter()" data-th="ค้นหาทริป" data-en="Search trips">ค้นหาทริป</button>
     </div>
@@ -1222,6 +1248,62 @@ function populateDates(){
 }
 populateDates();
 
+// ===== CUSTOM DROPDOWN (แทนที่ popup native ของ select — คุมสีธีมได้เต็มที่) =====
+let _openCDropId = null;
+function renderCDrop(selectId){
+  const sel = document.getElementById(selectId);
+  const trigger = document.getElementById(selectId+'Trigger');
+  const list = document.getElementById(selectId+'List');
+  if(!sel || !trigger || !list) return;
+  list.innerHTML = '';
+  [...sel.options].forEach(o=>{
+    const th = o.getAttribute('data-th') || o.textContent;
+    const en = o.getAttribute('data-en') || o.textContent;
+    const row = document.createElement('div');
+    row.className = 'cdrop-opt' + (o.value===sel.value ? ' sel' : '');
+    row.setAttribute('data-th', th);
+    row.setAttribute('data-en', en);
+    row.textContent = curLang()==='en' ? en : th;
+    row.onclick = (e)=>{
+      e.stopPropagation();
+      sel.value = o.value;
+      sel.dispatchEvent(new Event('change'));
+      renderCDrop(selectId);
+      closeCDrop(selectId);
+    };
+    list.appendChild(row);
+  });
+  const cur = sel.options[sel.selectedIndex];
+  const curTh = cur ? (cur.getAttribute('data-th')||cur.textContent) : '';
+  const curEn = cur ? (cur.getAttribute('data-en')||cur.textContent) : '';
+  trigger.setAttribute('data-th', curTh);
+  trigger.setAttribute('data-en', curEn);
+  trigger.textContent = curLang()==='en' ? curEn : curTh;
+}
+function toggleCDrop(selectId){
+  if(_openCDropId === selectId){ closeCDrop(selectId); return; }
+  if(_openCDropId) closeCDrop(_openCDropId);
+  const list = document.getElementById(selectId+'List');
+  const trigger = document.getElementById(selectId+'Trigger');
+  if(list) list.classList.add('open');
+  if(trigger) trigger.classList.add('open');
+  _openCDropId = selectId;
+}
+function closeCDrop(selectId){
+  const list = document.getElementById(selectId+'List');
+  const trigger = document.getElementById(selectId+'Trigger');
+  if(list) list.classList.remove('open');
+  if(trigger) trigger.classList.remove('open');
+  if(_openCDropId === selectId) _openCDropId = null;
+}
+document.addEventListener('click', (e)=>{
+  if(!_openCDropId) return;
+  const list = document.getElementById(_openCDropId+'List');
+  const trigger = document.getElementById(_openCDropId+'Trigger');
+  if(list && !list.contains(e.target) && trigger && !trigger.contains(e.target)) closeCDrop(_openCDropId);
+});
+['priceSel','typeSel','dateSel'].forEach(renderCDrop);
+
 function applyTripFilter(){
   const price = document.getElementById('priceSel')?.value || 'all';
   const query = document.getElementById('searchQ')?.value || '';
@@ -1241,6 +1323,7 @@ function switchLang(lang, btn){
   if(typeof refreshLanding==='function') refreshLanding();
   if(typeof renderDash==='function' && document.getElementById('dashOverlay') && document.getElementById('dashOverlay').classList.contains('show')) renderDash();
   if(typeof populateDates==='function') populateDates();
+  if(typeof renderCDrop==='function') ['priceSel','typeSel','dateSel'].forEach(renderCDrop);
   if(typeof updateRegionCounts==='function') updateRegionCounts();
   const sq = document.getElementById('searchQ');
   if(sq) sq.placeholder = lang==='en' ? 'Trip name or province…' : 'ชื่อทริป หรือจังหวัด…';
