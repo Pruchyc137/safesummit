@@ -20,6 +20,7 @@ Supabase: `wucrvtgpjqjxxqarzcpv` · Edge Function slug = `super-processor`
 
 ## ⏳ งานค้าง / ต้องทำโดยผู้ใช้ (สำคัญ)
 
+- [ ] **LINE Booking Notification & Approval (ใหม่ — เขียนโค้ดครบ ยังไม่ deploy)** — ทีมรับแจ้งจอง + กดอนุมัติ/ปฏิเสธในแชท LINE · ไฟล์: `phase19-line-approval.sql`, `functions/notify-team/`, `functions/line-webhook/` · **ทำตาม `functions/LINE-APPROVAL-SETUP.md` (7 ขั้นตอน)**: รัน SQL, สร้าง OA ทีม, หา groupId+userId ทีม 5 คน, deploy 2 functions, ตั้ง ENV (TEAM/CUSTOMER LINE tokens+secret), ตั้ง OA webhook + DB webhook · ใช้คอลัมน์ใหม่ `approval_status` (ไม่แตะ status/pay_status เดิม) · **ส่วน "แจ้งลูกค้ากลับ" ต้องมี LINE Login เก็บ `customer_line_uid` ก่อน (phase ถัดไป — ยังไม่ทำ ต้องมี LINE Login channel)**
 - [ ] **รัน `phase18-trip-image-log.sql`** + **redeploy Edge Function `super-processor`** — เพิ่ม audit log การเปลี่ยนรูปทริปโดย Admin (action `trip_image_log` + logging ใน `update_trip`) · การเปลี่ยนรูปทำงานได้อยู่แล้วโดยไม่ต้องรัน (log เป็น best-effort try/catch) แต่จะไม่มี log จนกว่าจะรัน SQL + redeploy
 
 - [x] **Redeploy Edge Function `super-processor`** — ผู้ใช้ยืนยันแล้วว่า deploy โค้ดล่าสุดจาก `supabase/functions/admin-customers/index.ts` เรียบร้อย (`name_en`, `images` ใน `update_trip`; `list_reviews`, `set_review_hidden`, `delete_review`)
