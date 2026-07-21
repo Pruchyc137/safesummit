@@ -143,6 +143,29 @@ section.block{padding:88px 0;background:var(--bg-light);}
   width:100%;padding:0;cursor:pointer;outline:none;
 }
 .search-mock .field::after{content:none;}
+/* ธีมของ dropdown popup ตอนเปิด select — browser (Chromium) จะใช้สีนี้แทนสีขาว/ฟ้า default */
+.search-mock .field select{accent-color:var(--accent-gold);color-scheme:light;}
+.search-mock .field select option{background-color:#FFFDF7;color:var(--text-dark);font-weight:500;padding:8px 10px;}
+
+/* custom dropdown — แทนที่ popup ของ select ทั้งหมด ควบคุมสี/ไฮไลต์ได้ 100% ไม่พึ่ง browser default */
+.cdrop-trigger{
+  font-family:'Sarabun',sans-serif;font-size:14px;font-weight:600;color:#5C5748;cursor:pointer;
+  display:flex;align-items:center;justify-content:space-between;gap:6px;user-select:none;
+}
+.cdrop-trigger::after{content:'';width:8px;height:8px;border-right:2px solid #8A7F63;border-bottom:2px solid #8A7F63;transform:rotate(45deg) translateY(-2px);flex-shrink:0;transition:transform .15s;}
+.cdrop-trigger.open::after{transform:rotate(-135deg) translateY(1px);}
+.cdrop-list{
+  display:none;position:absolute;top:calc(100% + 10px);left:0;min-width:180px;max-height:280px;overflow-y:auto;
+  background:#FFFDF7;border:1px solid #E6DCC6;border-radius:12px;box-shadow:0 14px 34px rgba(40,28,18,.18);
+  padding:6px;z-index:60;
+}
+.cdrop-list.open{display:block;}
+.cdrop-opt{
+  padding:9px 12px;border-radius:8px;font-family:'Sarabun',sans-serif;font-size:14px;font-weight:500;
+  color:var(--text-dark);cursor:pointer;white-space:nowrap;
+}
+.cdrop-opt:hover{background:rgba(201,162,75,.16);}
+.cdrop-opt.sel{background:var(--accent-gold);color:#2B2118;font-weight:700;}
 .search-mock .go{
   flex:0 0 auto;width:auto;background:#20291C;color:#fff;border-radius:24px;margin-left:12px;
   padding:15px 30px;display:flex;align-items:center;justify-content:center;gap:9px;
@@ -607,33 +630,39 @@ footer .foot-grid li a:hover{opacity:1;color:var(--accent-gold);}
       </div>
       <div class="field">
         <label data-th="ช่วงราคา" data-en="Price range">ช่วงราคา</label>
-        <select id="priceSel">
+        <select id="priceSel" style="display:none;">
           <option value="all" data-th="ทั้งหมด" data-en="All prices">ทั้งหมด</option>
           <option value="lt2000" data-th="ต่ำกว่า ฿2,000" data-en="Under ฿2,000">ต่ำกว่า ฿2,000</option>
           <option value="2000-3000" data-th="฿2,000 - 3,000" data-en="฿2,000 - 3,000">฿2,000 - 3,000</option>
           <option value="3000-5000" data-th="฿3,000 - 5,000" data-en="฿3,000 - 5,000">฿3,000 - 5,000</option>
           <option value="gt5000" data-th="มากกว่า ฿5,000" data-en="Over ฿5,000">มากกว่า ฿5,000</option>
         </select>
+        <div class="cdrop-trigger" id="priceSelTrigger" onclick="toggleCDrop('priceSel')"></div>
+        <div class="cdrop-list" id="priceSelList"></div>
       </div>
       <div class="field">
         <label data-th="รูปแบบทริป" data-en="Trip type">รูปแบบทริป</label>
-        <select id="typeSel">
+        <select id="typeSel" style="display:none;">
           <option value="all" data-th="ทั้งหมด" data-en="All types">ทั้งหมด</option>
           <option value="allinclusive" data-th="ครบวงจร" data-en="All-inclusive">ครบวงจร</option>
           <option value="transfer" data-th="มีรถรับส่ง" data-en="Transfer included">มีรถรับส่ง</option>
           <option value="meetup" data-th="นัดพบจุดนัด" data-en="Meet at trailhead">นัดพบจุดนัด</option>
         </select>
+        <div class="cdrop-trigger" id="typeSelTrigger" onclick="toggleCDrop('typeSel')"></div>
+        <div class="cdrop-list" id="typeSelList"></div>
       </div>
       <div class="field"><label data-th="วันที่" data-en="Date">วันที่</label>
-        <select id="dateSel"></select>
+        <select id="dateSel" style="display:none;"></select>
+        <div class="cdrop-trigger" id="dateSelTrigger" onclick="toggleCDrop('dateSel')"></div>
+        <div class="cdrop-list" id="dateSelList"></div>
       </div>
       <button class="go" onclick="applyTripFilter()" data-th="ค้นหาทริป" data-en="Search trips">ค้นหาทริป</button>
     </div>
 
     <div class="hero-stats">
-      <div class="s"><b>120+</b><span data-th="ผู้จัดที่ผ่านการยืนยัน" data-en="Verified organizers">ผู้จัดที่ผ่านการยืนยัน</span></div>
-      <div class="s"><b>850+</b><span data-th="ทริปจัดสำเร็จ" data-en="Trips completed">ทริปจัดสำเร็จ</span></div>
-      <div class="s"><b>4.8/5</b><span data-th="คะแนนรีวิวเฉลี่ย" data-en="Avg. review score">คะแนนรีวิวเฉลี่ย</span></div>
+      <div class="s"><b id="statOrgs">–</b><span data-th="ผู้จัดที่ผ่านการยืนยัน" data-en="Verified organizers">ผู้จัดที่ผ่านการยืนยัน</span></div>
+      <div class="s"><b id="statTrips">–</b><span data-th="ทริปจัดสำเร็จ" data-en="Trips completed">ทริปจัดสำเร็จ</span></div>
+      <div class="s"><b id="statRating">–</b><span data-th="คะแนนรีวิวเฉลี่ย" data-en="Avg. review score">คะแนนรีวิวเฉลี่ย</span></div>
     </div>
   </div>
 </section>
@@ -723,6 +752,39 @@ footer .foot-grid li a:hover{opacity:1;color:var(--accent-gold);}
   </div>
 </section>
 
+<!-- VERIFICATION STEPS -->
+<section class="tv-sec" id="verify-steps">
+  <div class="wrap">
+    <div class="tv-sechead">
+      <div class="eyebrow" data-th="สำหรับผู้จัดทริป" data-en="For Organizers">สำหรับผู้จัดทริป</div>
+      <h2 data-th="ขั้นตอนยืนยันตัวตนผู้จัด" data-en="Organizer verification steps">ขั้นตอนยืนยันตัวตนผู้จัด</h2>
+      <p data-th="ยืนยันครั้งเดียว เปิดขายทริปได้ตลอด" data-en="Verify once, list trips whenever you like">ยืนยันครั้งเดียว เปิดขายทริปได้ตลอด</p>
+    </div>
+    <div class="tv-trust">
+      <div class="tv-tcard">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v2"/></svg></div>
+        <h4 data-th="1. สมัครเป็นผู้จัด" data-en="1. Register as organizer">1. สมัครเป็นผู้จัด</h4>
+        <p data-th="กรอกข้อมูลพื้นฐาน จังหวัด ประสบการณ์ และแนะนำตัวสั้นๆ" data-en="Fill in basic info, province, experience, and a short bio">กรอกข้อมูลพื้นฐาน จังหวัด ประสบการณ์ และแนะนำตัวสั้นๆ</p>
+      </div>
+      <div class="tv-tcard">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+        <h4 data-th="2. แนบใบอนุญาต" data-en="2. Attach your license">2. แนบใบอนุญาต</h4>
+        <p data-th="แนบใบอนุญาตมัคคุเทศก์/นำเที่ยว (PDF/JPG/PNG) เพื่อขอสถานะ Verified" data-en="Upload your tour-guide/license document (PDF/JPG/PNG) to request Verified status">แนบใบอนุญาตมัคคุเทศก์/นำเที่ยว (PDF/JPG/PNG) เพื่อขอสถานะ Verified</p>
+      </div>
+      <div class="tv-tcard">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg></div>
+        <h4 data-th="3. แอดมินตรวจสอบ" data-en="3. Admin reviews">3. แอดมินตรวจสอบ</h4>
+        <p data-th="แอดมินตรวจเอกสารกับฐานข้อมูลกรมการท่องเที่ยว หากข้อมูลไม่ครบจะแจ้งให้แก้ไข/ส่งเพิ่ม" data-en="Admin checks your documents against the Tourism Department database; if anything's missing you'll be asked to resubmit">แอดมินตรวจเอกสารกับฐานข้อมูลกรมการท่องเที่ยว หากข้อมูลไม่ครบจะแจ้งให้แก้ไข/ส่งเพิ่ม</p>
+      </div>
+      <div class="tv-tcard">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 17l-6 3 1-7-5-5h7l3-7 3 7h7l-5 5 1 7z"/></svg></div>
+        <h4 data-th="4. ได้ Badge เริ่มขายทริป" data-en="4. Get your badge, start listing">4. ได้ Badge เริ่มขายทริป</h4>
+        <p data-th="ผ่านแล้วได้ Verified Basic เปิดทริปได้ทันที สร้างผลงาน/รีวิวดีเพื่อขยับเป็น Verified Pro" data-en="Once approved you get Verified Basic and can list trips right away — build a track record to reach Verified Pro">ผ่านแล้วได้ Verified Basic เปิดทริปได้ทันที สร้างผลงาน/รีวิวดีเพื่อขยับเป็น Verified Pro</p>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- TESTIMONIALS -->
 <section class="block">
   <div class="wrap">
@@ -740,6 +802,39 @@ footer .foot-grid li a:hover{opacity:1;color:var(--accent-gold);}
       <div class="testi-card">
         <p class="quote" data-th="&quot;อุ่นใจขึ้นมาก รู้ว่าเงินไม่หายไปไหนจนกว่าทริปจะเสร็จ&quot;" data-en="&quot;Much more reassuring knowing my money is safe until the trip is done.&quot;">"อุ่นใจขึ้นมาก รู้ว่าเงินไม่หายไปไหนจนกว่าทริปจะเสร็จ"</p>
         <div class="who"><div class="avatar">S</div><div><div class="name">Sarah</div><div class="role" data-th="นักท่องเที่ยว, ออสเตรเลีย" data-en="Traveler, Australia">นักท่องเที่ยว, ออสเตรเลีย</div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW TO BOOK -->
+<section class="tv-sec" id="how-to-book">
+  <div class="wrap">
+    <div class="tv-sechead">
+      <div class="eyebrow" data-th="สำหรับนักเดินป่า" data-en="For Hikers">สำหรับนักเดินป่า</div>
+      <h2 data-th="วิธีจองทริป 4 ขั้นตอน" data-en="How to book, in 4 steps">วิธีจองทริป 4 ขั้นตอน</h2>
+      <p data-th="ไม่ต้องทักแชท ไม่ต้องรอตอบ — จองและจ่ายเงินในระบบได้เลย" data-en="No messaging, no waiting for a reply — book and pay directly in the app">ไม่ต้องทักแชท ไม่ต้องรอตอบ — จองและจ่ายเงินในระบบได้เลย</p>
+    </div>
+    <div class="tv-trust">
+      <div class="tv-tcard">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></div>
+        <h4 data-th="1. ค้นหาทริป" data-en="1. Search a trip">1. ค้นหาทริป</h4>
+        <p data-th="เลือกภูมิภาค ช่วงราคา หรือวันที่ที่ต้องการ แล้วดูรายละเอียด/รีวิวก่อนตัดสินใจ" data-en="Filter by region, price, or date, then check details and reviews before deciding">เลือกภูมิภาค ช่วงราคา หรือวันที่ที่ต้องการ แล้วดูรายละเอียด/รีวิวก่อนตัดสินใจ</p>
+      </div>
+      <div class="tv-tcard">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="10" width="16" height="10" rx="1.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></div>
+        <h4 data-th="2. เลือกที่นั่ง + กรอกข้อมูล" data-en="2. Pick a seat + your info">2. เลือกที่นั่ง + กรอกข้อมูล</h4>
+        <p data-th="เลือกที่นั่งในรถตู้จากผังจริง กรอกชื่อ เบอร์โทร อีเมล และยอมรับเงื่อนไข" data-en="Pick your seat from the real van layout, fill in your details, and accept the terms">เลือกที่นั่งในรถตู้จากผังจริง กรอกชื่อ เบอร์โทร อีเมล และยอมรับเงื่อนไข</p>
+      </div>
+      <div class="tv-tcard">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 12a9 9 0 1 0 9-9"/><path d="M3 4v8h8"/></svg></div>
+        <h4 data-th="3. โอนเงิน + แนบสลิป" data-en="3. Transfer & upload slip">3. โอนเงิน + แนบสลิป</h4>
+        <p data-th="โอนเข้า QR พร้อมเพย์ของผู้จัด แล้วอัปโหลดสลิปในระบบเพื่อยืนยัน" data-en="Pay to the organizer's PromptPay QR, then upload the slip in-app to confirm">โอนเข้า QR พร้อมเพย์ของผู้จัด แล้วอัปโหลดสลิปในระบบเพื่อยืนยัน</p>
+      </div>
+      <div class="tv-tcard">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg></div>
+        <h4 data-th="4. รอแอดมินยืนยัน" data-en="4. Wait for confirmation">4. รอแอดมินยืนยัน</h4>
+        <p data-th="แอดมินตรวจสลิปแล้วยืนยันที่นั่ง เช็คสถานะได้ที่หน้า &quot;ทริปของฉัน&quot; ตลอดเวลา" data-en="Admin verifies your slip and confirms your seat — check status anytime under &quot;My Trips&quot;">แอดมินตรวจสลิปแล้วยืนยันที่นั่ง เช็คสถานะได้ที่หน้า "ทริปของฉัน" ตลอดเวลา</p>
       </div>
     </div>
   </div>
@@ -844,8 +939,8 @@ footer .foot-grid li a:hover{opacity:1;color:var(--accent-gold);}
           </a>
         </div>
       </div>
-      <div class="col"><h5 data-th="สำหรับนักเดินป่า" data-en="For Hikers">สำหรับนักเดินป่า</h5><ul><li><a href="#travelers" data-th="ค้นหาทริป" data-en="Search trips">ค้นหาทริป</a></li><li><a href="#how" data-th="วิธีจอง" data-en="How to book">วิธีจอง</a></li><li><a href="refund-policy.html" data-th="นโยบายคืนเงิน" data-en="Refund policy">นโยบายคืนเงิน</a></li></ul></div>
-      <div class="col"><h5 data-th="สำหรับผู้จัด" data-en="For Organizers">สำหรับผู้จัด</h5><ul><li><a href="organizer.html?register=1" data-th="สมัครเป็นผู้จัด" data-en="Become an organizer">สมัครเป็นผู้จัด</a></li><li><a href="#organizers" data-th="ขั้นตอนยืนยันตัวตน" data-en="Verification steps">ขั้นตอนยืนยันตัวตน</a></li></ul></div>
+      <div class="col"><h5 data-th="สำหรับนักเดินป่า" data-en="For Hikers">สำหรับนักเดินป่า</h5><ul><li><a href="#travelers" data-th="ค้นหาทริป" data-en="Search trips">ค้นหาทริป</a></li><li><a href="#how-to-book" data-th="วิธีจอง" data-en="How to book">วิธีจอง</a></li><li><a href="refund-policy.html" data-th="นโยบายคืนเงิน" data-en="Refund policy">นโยบายคืนเงิน</a></li></ul></div>
+      <div class="col"><h5 data-th="สำหรับผู้จัด" data-en="For Organizers">สำหรับผู้จัด</h5><ul><li><a href="organizer.html?register=1" data-th="สมัครเป็นผู้จัด" data-en="Become an organizer">สมัครเป็นผู้จัด</a></li><li><a href="#verify-steps" data-th="ขั้นตอนยืนยันตัวตน" data-en="Verification steps">ขั้นตอนยืนยันตัวตน</a></li></ul></div>
       <div class="col"><h5 data-th="บริษัท" data-en="Company">บริษัท</h5><ul><li><a href="#how" data-th="เกี่ยวกับเรา" data-en="About us">เกี่ยวกับเรา</a></li><li><a href="#contact" data-th="ติดต่อเรา" data-en="Contact">ติดต่อเรา</a></li><li><a href="terms.html" data-th="ข้อกำหนดการใช้งาน" data-en="Terms of use">ข้อกำหนดการใช้งาน</a></li><li><a href="privacy.html" data-th="นโยบายความเป็นส่วนตัว" data-en="Privacy policy">นโยบายความเป็นส่วนตัว</a></li></ul></div>
     </div>
     <div class="tv-copy">© 2569 SafeSummit · <span data-th="ออกแบบเพื่อใช้เป็นต้นแบบนำเสนอแนวคิดแพลตฟอร์ม" data-en="Built as a concept prototype for the platform idea">ออกแบบเพื่อใช้เป็นต้นแบบนำเสนอแนวคิดแพลตฟอร์ม</span></div>
@@ -962,6 +1057,28 @@ function mapSupabaseTrip(r){
     scene: seed.scene || ({north:'peak',northeast:'sunrise',south:'forest',west:'forest',east:'forest',central:'sunrise'}[r.region||'north']||'peak'),
     real: !isSeedFormat,   // ทริปจริงจากผู้จัด (ไม่ใช่ seed) — โชว์เสมอแม้ยังไม่ใส่รูป (มีภาพ scene สำรอง)
   };
+}
+
+// สถิติหน้าแรก — ดึงจากข้อมูลจริงใน Supabase (เดิมเป็นตัวเลข hardcode "120+"/"850+"/"4.8/5")
+async function loadStats(){
+  if(typeof db === 'undefined') return;
+  try{
+    const { count: orgCount } = await db.from('organizers').select('id',{count:'exact',head:true}).eq('status','approved');
+    document.getElementById('statOrgs').textContent = (orgCount||0)+'';
+  }catch(e){ console.warn('loadStats organizers', e); }
+  try{
+    const { count: tripCount } = await db.from('trips').select('id',{count:'exact',head:true}).eq('status','completed');
+    document.getElementById('statTrips').textContent = (tripCount||0)+'';
+  }catch(e){ console.warn('loadStats trips', e); }
+  try{
+    const { data: revs } = await db.from('reviews').select('rating').eq('hidden',false);
+    if(revs && revs.length){
+      const avg = revs.reduce((s,r)=>s+(r.rating||0),0)/revs.length;
+      document.getElementById('statRating').textContent = avg.toFixed(1)+'/5';
+    } else {
+      document.getElementById('statRating').textContent = 'ยังไม่มีรีวิว';
+    }
+  }catch(e){ console.warn('loadStats reviews', e); }
 }
 
 const SEED_VERSION = 'v3';
@@ -1131,6 +1248,62 @@ function populateDates(){
 }
 populateDates();
 
+// ===== CUSTOM DROPDOWN (แทนที่ popup native ของ select — คุมสีธีมได้เต็มที่) =====
+let _openCDropId = null;
+function renderCDrop(selectId){
+  const sel = document.getElementById(selectId);
+  const trigger = document.getElementById(selectId+'Trigger');
+  const list = document.getElementById(selectId+'List');
+  if(!sel || !trigger || !list) return;
+  list.innerHTML = '';
+  [...sel.options].forEach(o=>{
+    const th = o.getAttribute('data-th') || o.textContent;
+    const en = o.getAttribute('data-en') || o.textContent;
+    const row = document.createElement('div');
+    row.className = 'cdrop-opt' + (o.value===sel.value ? ' sel' : '');
+    row.setAttribute('data-th', th);
+    row.setAttribute('data-en', en);
+    row.textContent = curLang()==='en' ? en : th;
+    row.onclick = (e)=>{
+      e.stopPropagation();
+      sel.value = o.value;
+      sel.dispatchEvent(new Event('change'));
+      renderCDrop(selectId);
+      closeCDrop(selectId);
+    };
+    list.appendChild(row);
+  });
+  const cur = sel.options[sel.selectedIndex];
+  const curTh = cur ? (cur.getAttribute('data-th')||cur.textContent) : '';
+  const curEn = cur ? (cur.getAttribute('data-en')||cur.textContent) : '';
+  trigger.setAttribute('data-th', curTh);
+  trigger.setAttribute('data-en', curEn);
+  trigger.textContent = curLang()==='en' ? curEn : curTh;
+}
+function toggleCDrop(selectId){
+  if(_openCDropId === selectId){ closeCDrop(selectId); return; }
+  if(_openCDropId) closeCDrop(_openCDropId);
+  const list = document.getElementById(selectId+'List');
+  const trigger = document.getElementById(selectId+'Trigger');
+  if(list) list.classList.add('open');
+  if(trigger) trigger.classList.add('open');
+  _openCDropId = selectId;
+}
+function closeCDrop(selectId){
+  const list = document.getElementById(selectId+'List');
+  const trigger = document.getElementById(selectId+'Trigger');
+  if(list) list.classList.remove('open');
+  if(trigger) trigger.classList.remove('open');
+  if(_openCDropId === selectId) _openCDropId = null;
+}
+document.addEventListener('click', (e)=>{
+  if(!_openCDropId) return;
+  const list = document.getElementById(_openCDropId+'List');
+  const trigger = document.getElementById(_openCDropId+'Trigger');
+  if(list && !list.contains(e.target) && trigger && !trigger.contains(e.target)) closeCDrop(_openCDropId);
+});
+['priceSel','typeSel','dateSel'].forEach(renderCDrop);
+
 function applyTripFilter(){
   const price = document.getElementById('priceSel')?.value || 'all';
   const query = document.getElementById('searchQ')?.value || '';
@@ -1150,6 +1323,7 @@ function switchLang(lang, btn){
   if(typeof refreshLanding==='function') refreshLanding();
   if(typeof renderDash==='function' && document.getElementById('dashOverlay') && document.getElementById('dashOverlay').classList.contains('show')) renderDash();
   if(typeof populateDates==='function') populateDates();
+  if(typeof renderCDrop==='function') ['priceSel','typeSel','dateSel'].forEach(renderCDrop);
   if(typeof updateRegionCounts==='function') updateRegionCounts();
   const sq = document.getElementById('searchQ');
   if(sq) sq.placeholder = lang==='en' ? 'Trip name or province…' : 'ชื่อทริป หรือจังหวัด…';
@@ -1526,7 +1700,7 @@ document.addEventListener('click', e=>{
 });
 
 // ===== INIT =====
-(async function(){ await loadTrips(); updateRegionCounts(); renderTripCards('all','all',''); renderAuthState(); loadReviews(); })();
+(async function(){ await loadTrips(); updateRegionCounts(); renderTripCards('all','all',''); renderAuthState(); loadReviews(); loadStats(); })();
 
 // ===== รีวิวจริงจากลูกค้า (หน้าแรก) =====
 function escHtml(s){ return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
