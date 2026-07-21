@@ -242,9 +242,33 @@ Deno.serve(async (req) => {
       const patch: Record<string, unknown> = {};
       for (const k of ALLOWED) if (k in src) patch[k] = src[k];
       if (!Object.keys(patch).length) return json({ error: 'no allowed fields' }, 400);
+      // ถ้ามีการเปลี่ยน "รูปทริป" → ดึงค่าเดิมไว้ก่อนเพื่อบันทึก log
+      let oldImg: string | null = null;
+      if ('image_url' in patch) {
+        const { data: prev } = await supabase.from('trips').select('image_url').eq('id', id).maybeSingle();
+        oldImg = (prev?.image_url as string) ?? null;
+      }
       const { error } = await supabase.from('trips').update(patch).eq('id', id);
       if (error) throw error;
+      // บันทึกประวัติเปลี่ยนรูป (เฉพาะเมื่อ url เปลี่ยนจริง) — best-effort ไม่ให้ล้มทั้ง request
+      if ('image_url' in patch && (patch.image_url ?? null) !== oldImg) {
+        try {
+          await supabase.from('trip_image_log').insert({
+            trip_id: id, old_url: oldImg, new_url: (patch.image_url as string) ?? null, source: 'admin',
+          });
+        } catch (_) { /* ตาราง log ยังไม่ถูกสร้าง (ยังไม่รัน phase18) → ข้าม */ }
+      }
       return json({ ok: true, id, patch });
+    }
+
+    // ประวัติการเปลี่ยนรูปของทริปหนึ่ง (ให้ Admin ดูย้อนหลัง)
+    if (action === 'trip_image_log') {
+      if (!id) return json({ error: 'missing id' }, 400);
+      const { data, error } = await supabase.from('trip_image_log')
+        .select('old_url, new_url, source, changed_at').eq('trip_id', id)
+        .order('changed_at', { ascending: false }).limit(20);
+      if (error) throw error;
+      return json({ log: data });
     }
 
     // ===== PHASE 6: กลุ่ม LINE =====

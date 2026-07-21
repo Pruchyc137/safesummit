@@ -20,6 +20,8 @@ Supabase: `wucrvtgpjqjxxqarzcpv` · Edge Function slug = `super-processor`
 
 ## ⏳ งานค้าง / ต้องทำโดยผู้ใช้ (สำคัญ)
 
+- [ ] **รัน `phase18-trip-image-log.sql`** + **redeploy Edge Function `super-processor`** — เพิ่ม audit log การเปลี่ยนรูปทริปโดย Admin (action `trip_image_log` + logging ใน `update_trip`) · การเปลี่ยนรูปทำงานได้อยู่แล้วโดยไม่ต้องรัน (log เป็น best-effort try/catch) แต่จะไม่มี log จนกว่าจะรัน SQL + redeploy
+
 - [x] **Redeploy Edge Function `super-processor`** — ผู้ใช้ยืนยันแล้วว่า deploy โค้ดล่าสุดจาก `supabase/functions/admin-customers/index.ts` เรียบร้อย (`name_en`, `images` ใน `update_trip`; `list_reviews`, `set_review_hidden`, `delete_review`)
 - [x] ตรวจว่ารัน SQL ครบ — ผู้ใช้ยืนยันแล้ว (ดูตารางด้านล่าง)
 - [x] **รัน `phase16-cancellation-refunds.sql`** — ผู้ใช้ยืนยันแล้ว
@@ -79,3 +81,9 @@ Supabase: `wucrvtgpjqjxxqarzcpv` · Edge Function slug = `super-processor`
   3. **เอา email claim ที่เกินจริงออก** — refund-policy/privacy เดิมอ้างว่า "ส่งอีเมลแจ้ง" ทั้งที่ระบบอีเมลยังไม่ deploy → แก้เป็นแจ้งผ่านเบอร์/LINE
   4. **🔴 ปิดช่องโหว่ admin จริง** (`9e9fd62`) — ดูหัวข้อ "วิธีเข้า Admin เปลี่ยนแล้ว" ด้านบน · **สำคัญ: การ rotate `ADMIN_API_KEY` ที่บันทึกไว้ก่อนหน้า (commit 078c5bb) จริงๆ ยังไม่เกิดขึ้น** — PC หลักทดสอบพบว่าคีย์เก่ายังใช้ได้ · เจ้าของโปรเจกต์ตั้งคีย์ใหม่บน Supabase Secrets วันนี้ (16 ก.ค.) แล้วจริง → ยืนยันแล้วว่าคีย์เก่าโดน 401 · **ไม่ต้อง redeploy** (อ่าน secret runtime)
   5. **footer แก้ลิงก์ตาย** (`7967b2d`) — วิธีจอง→#how, ขั้นตอนยืนยันตัวตน→#organizers, เกี่ยวกับเรา→#how, เอา "ค่าคอมมิชชั่น" ออก · ลิงก์ตายเหลือ 0
+- **PC หลัก (QA batch):** — commit `47483b2` + audit log
+  - #1 booking step1 ไม่เตือน → Surface Go แก้ไปแล้ว (`a487b34`) ยืนยัน live ✅
+  - #2 สถิติหน้าแรก 503 (HEAD count) → เปลี่ยนเป็น GET+count · ยืนยัน ผู้จัด 5 ตรง DB (ทริปสำเร็จ 0 = จริง เพราะยังไม่มีทริป completed)
+  - #3 booking.html เปิดด้วย trip id ที่ไม่มี → เดิม render ฟอร์มเปล่า · แก้: ซ่อน stepper+ฟอร์ม แสดงหน้า "ไม่พบทริปนี้" + ปุ่มกลับ · ยืนยัน live ✅
+  - #4 รูปปุ่ม LINE (scdn.line-apps.com) 503 → โหลดมาเก็บเป็น `brand/line-addfriend.png` ชี้ local
+  - 🆕 **Admin เปลี่ยนรูปทริป — มีอยู่แล้วครบ** (อัปโหลด/gallery/preview/ใช้ default ในโมดัลแก้ทริป, Edge Function อนุญาต image_url ทุกทริปผ่าน service_role) · **เพิ่มใหม่: audit log** (`phase18-trip-image-log.sql` + logging ใน `update_trip`) — ⚠️ ต้องรัน SQL + redeploy Edge Function · **ข้อจำกัด: Admin ใช้ key ตัวเดียวร่วมกัน log ระบุตัวบุคคลไม่ได้ บันทึกได้แค่ source='admin'+เวลา+url เก่า→ใหม่**
