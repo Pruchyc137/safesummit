@@ -522,13 +522,36 @@ async function loadTripFromDB(id){
     const tripId = getTripId();
     trip = TRIPS.find(t => t.id === tripId) || null;
   }
+  // ทริปไม่พบ (id ถูกลบ/ผิด) หรือปิดรับจอง → ไม่ต้อง render ฟอร์มจองเลย แสดงหน้า "ไม่พบทริป"
+  if(!trip){
+    showTripNotFound('ไม่พบทริปนี้', 'ทริปที่คุณเปิดอาจถูกลบ ยกเลิก หรือปิดรับจองไปแล้ว');
+    return;
+  }
+  if(!['open'].includes(trip.status)){
+    const label = { full:'เต็มแล้ว', ongoing:'กำลังเดินทาง', completed:'จบทริปแล้ว', cancelled:'ยกเลิกแล้ว', draft:'ยังไม่เปิดรับจอง' }[trip.status] || trip.status;
+    showTripNotFound('ทริปนี้ปิดรับจองแล้ว', 'สถานะปัจจุบัน: ' + label);
+    return;
+  }
   renderSummary();
   initSeatMap();
-  if(!trip){
-    document.getElementById('tripSummaryBody').innerHTML='<p style="color:#C0552F;font-size:14px;padding:8px 0;">ไม่พบทริปที่ระบุ — <a href="index.html" style="color:var(--accent-trail)">กลับหน้าแรก</a></p>';
-  } else if(!['open'].includes(trip.status)){
-    document.getElementById('tripSummaryBody').innerHTML=`<p style="color:#C0552F;font-size:14px;padding:8px 0;">ทริปนี้ไม่สามารถจองได้ (สถานะ: ${trip.status}) — <a href="index.html" style="color:var(--accent-trail)">กลับหน้าแรก</a></p>`;
+}
+
+// ซ่อนฟอร์มจองทั้งหมด แล้วแสดงหน้า "ไม่พบทริป / ปิดรับจอง" + ปุ่มกลับหน้าแรก
+function showTripNotFound(title, msg){
+  const sw=document.querySelector('.stepper-wrap'); if(sw) sw.style.display='none';
+  const pw=document.querySelector('.page-wrap'); if(pw) pw.style.display='none';
+  let nf=document.getElementById('tripNotFound');
+  if(!nf){
+    nf=document.createElement('div');
+    nf.id='tripNotFound';
+    nf.style.cssText='max-width:520px;margin:64px auto;text-align:center;padding:40px 28px;';
+    (pw&&pw.parentNode?pw.parentNode:document.body).appendChild(nf);
   }
+  nf.innerHTML=`<div style="font-size:54px;margin-bottom:10px;">🏔️</div>
+    <h2 style="font-family:'Kanit',sans-serif;font-size:23px;color:#2B2118;margin-bottom:8px;">${title}</h2>
+    <p style="color:#6B5D4A;font-size:14.5px;margin-bottom:24px;">${msg}</p>
+    <a href="index.html" style="display:inline-block;background:var(--accent-trail);color:#fff;font-family:'Kanit',sans-serif;font-weight:700;padding:12px 28px;border-radius:10px;">← กลับหน้าแรก ดูทริปอื่น</a>`;
+  nf.style.display='block';
 }
 
 function getTripId(){

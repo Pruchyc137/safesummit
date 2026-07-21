@@ -909,7 +909,7 @@ footer .foot-grid li a:hover{opacity:1;color:var(--accent-gold);}
           <div class="line-qr"><img src="brand/line-qr.png" alt="LINE QR SafeSummit"></div>
           <div>
             <div style="font-size:13px;color:var(--text-muted);margin-bottom:9px;" data-th="สแกน QR หรือกดปุ่มด้านล่าง" data-en="Scan the QR or tap the button">สแกน QR หรือกดปุ่มด้านล่าง</div>
-            <a href="https://lin.ee/n1cUCPx" target="_blank" rel="noopener"><img src="https://scdn.line-apps.com/n/line_add_friends/btn/th.png" alt="เพิ่มเพื่อน" height="40" style="border:0;"></a>
+            <a href="https://lin.ee/n1cUCPx" target="_blank" rel="noopener"><img src="brand/line-addfriend.png" alt="เพิ่มเพื่อน" height="40" style="border:0;"></a>
           </div>
         </div>
       </div>
@@ -932,7 +932,7 @@ footer .foot-grid li a:hover{opacity:1;color:var(--accent-gold);}
         <p data-th="ตัวกลางจองทริปเดินป่าที่ตรวจสอบผู้จัดจริง ก่อนให้เปิดขายทริป" data-en="A trekking marketplace that verifies every organizer before they can sell trips.">ตัวกลางจองทริปเดินป่าที่ตรวจสอบผู้จัดจริง ก่อนให้เปิดขายทริป</p>
         <div style="margin-top:14px;display:flex;flex-direction:column;gap:8px;">
           <a href="https://lin.ee/n1cUCPx" target="_blank" rel="noopener" style="display:inline-block;width:fit-content;">
-            <img src="https://scdn.line-apps.com/n/line_add_friends/btn/th.png" alt="เพิ่มเพื่อน LINE" height="38" style="border:0;">
+            <img src="brand/line-addfriend.png" alt="เพิ่มเพื่อน LINE" height="38" style="border:0;">
           </a>
           <a href="mailto:safesummit00admin@gmail.com" style="font-size:13px;opacity:.85;display:inline-flex;align-items:center;gap:7px;">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 6L2 7"/></svg>safesummit00admin@gmail.com
@@ -1063,12 +1063,13 @@ function mapSupabaseTrip(r){
 async function loadStats(){
   if(typeof db === 'undefined') return;
   try{
-    const { count: orgCount } = await db.from('organizers').select('id',{count:'exact',head:true}).eq('status','approved');
-    document.getElementById('statOrgs').textContent = (orgCount||0)+'';
+    // ใช้ GET + count (ไม่ใช้ head:true เพราะ HEAD request 503 บน Supabase บางจังหวะ → นับได้ 0)
+    const { data: orgRows, count: orgCount } = await db.from('organizers').select('id',{count:'exact'}).eq('status','approved');
+    document.getElementById('statOrgs').textContent = (orgCount!=null?orgCount:(orgRows||[]).length)+'';
   }catch(e){ console.warn('loadStats organizers', e); }
   try{
-    const { count: tripCount } = await db.from('trips').select('id',{count:'exact',head:true}).eq('status','completed');
-    document.getElementById('statTrips').textContent = (tripCount||0)+'';
+    const { data: tripRows, count: tripCount } = await db.from('trips').select('id',{count:'exact'}).eq('status','completed');
+    document.getElementById('statTrips').textContent = (tripCount!=null?tripCount:(tripRows||[]).length)+'';
   }catch(e){ console.warn('loadStats trips', e); }
   try{
     const { data: revs } = await db.from('reviews').select('rating').eq('hidden',false);
