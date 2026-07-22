@@ -1467,15 +1467,28 @@ async function submitEditTrip(){
     capacity: (parseInt(document.getElementById('et-cap').value)||1)*9,
     trip_type: document.getElementById('et-type').value||'transfer',
     description: document.getElementById('et-desc').value.trim(),
-    status: 'draft',
-    note: '[ขอแก้ไข] '+reason,
   };
-  const { error } = await db.from('trips').update(update).eq('id',_editTripId);
-  if(error){ toast('บันทึกไม่สำเร็จ'); return; }
+  // เขียนตาราง trips ตรงๆ ไม่ได้ (RLS) → ผ่าน RPC ที่ตรวจสิทธิ์เจ้าของทริปให้
+  const { data, error } = await db.rpc('organizer_request_trip_edit', {
+    p_trip_id: _editTripId,
+    p_name: update.name_th,
+    p_start: update.start_date,
+    p_price: update.price_per_person,
+    p_capacity: update.capacity,
+    p_trip_type: update.trip_type,
+    p_description: update.description,
+    p_reason: reason,
+  });
+  if(error){ toast('บันทึกไม่สำเร็จ: '+(error.message||'ลองใหม่')); return; }   // แสดงสาเหตุจริง
+
+  const liveNow = data && data.mode === 'live';
   const t=TRIPS.find(x=>x.id===_editTripId);
-  if(t) Object.assign(t,update);
+  if(t){ Object.assign(t,update); if(!liveNow) t.status='draft'; }
   document.getElementById('modalEditTrip').style.display='none';
-  renderMyTrips(); toast('ส่งคำขอแก้ไขแล้ว รอ Admin อนุมัติ ✓');
+  renderMyTrips();
+  toast(liveNow
+    ? 'ลดราคาแล้ว มีผลทันที ทริปยังเปิดขายอยู่ ✓'
+    : 'ส่งคำขอแก้ไขแล้ว รอ Admin อนุมัติ ✓');
 }
 function openCancelTrip(id){
   const t=TRIPS.find(x=>x.id===id); if(!t) return;
@@ -1875,7 +1888,11 @@ load().then(ok => { if(ok !== false) renderOverview(); });
 <div id="modalEditTrip" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:900;align-items:center;justify-content:center;padding:20px;">
   <div style="background:#fff;border-radius:16px;padding:32px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;">
     <h2 style="margin:0 0 4px;font-size:18px;">ขอแก้ไขทริป</h2>
-    <p style="color:var(--text-muted);font-size:13px;margin:0 0 20px;">การแก้ไขจะส่งให้ Admin อนุมัติก่อนมีผล</p>
+    <p style="color:var(--text-muted);font-size:13px;margin:0 0 14px;">การแก้ไขจะส่งให้ Admin อนุมัติก่อนมีผล</p>
+    <div style="background:#EEFBF1;border:1px solid #B8E6C6;border-radius:10px;padding:11px 13px;font-size:12.5px;color:#1B5E33;margin:0 0 18px;line-height:1.6;">
+      💡 <b>ลดราคา</b> (ทัวร์ไฟไหม้) มีผล<b>ทันที</b> ทริปยังเปิดขายอยู่ ไม่ต้องรออนุมัติ<br>
+      ส่วนการ<b>ขึ้นราคา / เปลี่ยนวันเดินทาง / เปลี่ยนชื่อ / ลดจำนวนที่นั่ง</b> ต้องรอ Admin อนุมัติ เพราะกระทบคนที่จองไปแล้ว
+    </div>
     <div style="display:flex;flex-direction:column;gap:14px;">
       <div><label class="form-label">ชื่อทริป</label><input class="form-input" id="et-name"></div>
       <div><label class="form-label">วันเดินทาง</label><input class="form-input" type="date" id="et-date"></div>
