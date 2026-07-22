@@ -13,6 +13,14 @@
 -- รันใน Supabase Dashboard → SQL Editor → Run  (ครั้งเดียว)
 -- ============================================================
 
+-- 0) คอลัมน์ note ไม่เคยมีในตาราง trips (ตรวจพบจาก error จริง:
+--    'column "note" of relation "trips" does not exist')
+--    ทั้งที่โค้ดหลายที่พึ่งมันอยู่ → ระบบ "ขอแก้ไข/ขอยกเลิกทริป" จึงไม่เคยทำงานเลย
+--    • organizer.html: ขอยกเลิกทริป เขียน note '[ขอยกเลิก] ...'
+--    • admin.html: แท็บ "คำขอแก้ไข/ยกเลิก" ตรวจจาก note ที่ขึ้นต้นด้วย '[ขอ'
+--    • Edge Function update_trip: อนุญาตเขียน note
+alter table public.trips add column if not exists note text;
+
 create or replace function public.organizer_request_trip_edit(
   p_trip_id     uuid,
   p_name        text,
