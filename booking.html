@@ -313,7 +313,7 @@ canvas#qrCanvas{display:block;}
             <input type="checkbox" id="termsCheck" onchange="clearStep1Err()">
             <span>ฉันยอมรับ<a href="terms.html" target="_blank"> ข้อกำหนดการจอง </a>และ<a href="refund-policy.html" target="_blank"> นโยบายการคืนเงิน</a> ของ SafeSummit</span>
           </div>
-          <div id="step1Err" style="display:none;color:#C0552F;font-size:13px;font-weight:700;text-align:center;margin-top:10px;"></div>
+          <div id="step1Err" style="display:none;color:#C0552F;font-size:14px;font-weight:700;text-align:center;margin-top:10px;background:#FDEEEC;border:1.5px solid #E7B4AC;border-radius:10px;padding:12px 14px;"></div>
           <div class="btn-row">
             <button class="btn btn-primary" onclick="goStep2()">
               ถัดไป: ยืนยันรายการ
@@ -753,16 +753,32 @@ function clearStep1Err(){
   const tr=document.getElementById('termsCheckRow'); if(tr) tr.style.outline='';
   const sp=document.getElementById('seatPicked'); if(sp) sp.style.color='';
 }
-function showStep1Err(msg, highlightEl){
+function showStep1Err(msg, highlightEl, actionHtml){
   const e=document.getElementById('step1Err');
-  if(e){ e.textContent=msg; e.style.display='block'; e.scrollIntoView({behavior:'smooth', block:'center'}); }
+  if(e){
+    e.innerHTML = '⚠️ ' + msg + (actionHtml || '');
+    e.style.display='block';
+    e.scrollIntoView({behavior:'smooth', block:'center'});
+  }
   if(highlightEl) highlightEl.style.outline='2px solid #C0552F';
   toast(msg);
 }
 function goStep2(){
-  if(!trip){ toast('ไม่พบข้อมูลทริป'); return; }
-  if(!BOOKING_USER){ toast('กรุณาเข้าสู่ระบบก่อนจอง'); goLoginFromBooking(); return; }
-  if(BOOKING_IS_ORG){ toast('บัญชีผู้จัดจองทริปไม่ได้ — เข้าด้วยบัญชีลูกค้าก่อน'); const bb=document.getElementById('orgBlockBanner'); if(bb){ bb.style.display='flex'; bb.scrollIntoView({behavior:'smooth'}); } return; }
+  if(!trip){ showStep1Err('ไม่พบข้อมูลทริป กรุณากลับไปเลือกทริปใหม่'); return; }
+  // ยังไม่ล็อกอิน — เดิมเด้งไปหน้า login ทันที ทำให้ข้อมูลที่กรอกหายและดูเหมือน "กดแล้วไม่มีอะไรเกิดขึ้น"
+  // ตอนนี้แสดงข้อความให้เห็นชัดพร้อมปุ่มเข้าสู่ระบบ ให้ผู้ใช้เลือกเอง
+  if(!BOOKING_USER){
+    const lb=document.getElementById('loginBanner'); if(lb) lb.style.display='flex';
+    showStep1Err('กรุณาเข้าสู่ระบบก่อนจอง เพื่อบันทึกการจองไว้ใน "ทริปของฉัน"', null,
+      ' <button onclick="goLoginFromBooking()" style="margin-left:8px;background:var(--accent-trail);color:#fff;border:none;border-radius:8px;padding:7px 16px;font-family:inherit;font-weight:700;font-size:13px;cursor:pointer;">เข้าสู่ระบบ</button>');
+    return;
+  }
+  if(BOOKING_IS_ORG){
+    const bb=document.getElementById('orgBlockBanner'); if(bb) bb.style.display='flex';
+    showStep1Err('บัญชีผู้จัดจองทริปไม่ได้ — กรุณาออกจากระบบแล้วเข้าด้วยบัญชีลูกค้า', null,
+      ' <button onclick="logoutToCustomer()" style="margin-left:8px;background:#C0392B;color:#fff;border:none;border-radius:8px;padding:7px 16px;font-family:inherit;font-weight:700;font-size:13px;cursor:pointer;">สลับเป็นลูกค้า</button>');
+    return;
+  }
   clearStep1Err();
   const fname=document.getElementById('f-fname').value.trim();
   const lname=document.getElementById('f-lname').value.trim();
