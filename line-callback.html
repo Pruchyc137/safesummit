@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SafeSummit — เชื่อมบัญชี LINE</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Kanit:wght@700;800&family=Sarabun:wght@400;600;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Sarabun',sans-serif;background:#FAF6EA;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;color:#2B2118;}
+.card{background:#fff;border-radius:18px;box-shadow:0 12px 40px rgba(40,28,18,.14);padding:38px 32px;width:100%;max-width:400px;text-align:center;}
+h1{font-family:'Kanit',sans-serif;font-size:20px;margin-bottom:8px;}
+p{font-size:14px;color:#6B5D4A;line-height:1.6;}
+.ico{font-size:48px;margin-bottom:10px;}
+.btn{display:inline-block;margin-top:20px;background:#E2672B;color:#fff;font-family:'Kanit',sans-serif;font-weight:700;padding:12px 26px;border-radius:10px;text-decoration:none;border:none;cursor:pointer;font-size:15px;}
+.spin{width:34px;height:34px;border:3px solid #EEE3CD;border-top-color:#E2672B;border-radius:50%;margin:0 auto 14px;animation:s .8s linear infinite;}
+@keyframes s{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="card" id="card">
+  <div class="spin"></div>
+  <h1>กำลังเชื่อมบัญชี LINE...</h1>
+  <p>กรุณารอสักครู่</p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/db.js"></script>
+<script>
+function show(ico, title, msg, backTo){
+  document.getElementById('card').innerHTML =
+    `<div class="ico">${ico}</div><h1>${title}</h1><p>${msg}</p>
+     <a class="btn" href="${backTo || 'index.html'}">กลับไปหน้าเดิม</a>`;
+}
+
+(async function(){
+  const q = new URLSearchParams(location.search);
+  const code  = q.get('code');
+  const state = q.get('state');
+  const err   = q.get('error');
+  const back  = sessionStorage.getItem('ss_line_next') || 'index.html';
+  const saved = sessionStorage.getItem('ss_line_state');
+  sessionStorage.removeItem('ss_line_state');
+  sessionStorage.removeItem('ss_line_next');
+
+  if(err){ show('❌','เชื่อม LINE ไม่สำเร็จ','คุณยกเลิกการเชื่อมบัญชี หรือ LINE ปฏิเสธคำขอ', back); return; }
+  if(!code){ show('❌','ลิงก์ไม่ถูกต้อง','ไม่พบรหัสยืนยันจาก LINE', back); return; }
+  // กัน CSRF — state ต้องตรงกับที่สร้างตอนเริ่ม
+  if(!state || !saved || state !== saved){
+    show('⚠️','ยืนยันคำขอไม่ผ่าน','เพื่อความปลอดภัย กรุณาลองเชื่อมบัญชี LINE ใหม่อีกครั้ง', back); return;
+  }
+
+  try{
+    const out = await LineLogin.exchange(code);
+    show('✅','เชื่อมบัญชี LINE สำเร็จ',
+      (out.display_name ? `สวัสดีคุณ <b>${out.display_name}</b><br>` : '') +
+      'เราจะแจ้งผลการจองให้คุณทางแชท LINE', back);
+  }catch(e){
+    show('❌','เชื่อม LINE ไม่สำเร็จ', (e.message || 'เกิดข้อผิดพลาด กรุณาลองใหม่'), back);
+  }
+})();
+</script>
+</body>
+</html>

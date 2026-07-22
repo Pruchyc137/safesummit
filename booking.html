@@ -271,6 +271,11 @@ canvas#qrCanvas{display:block;}
         <div style="flex:1;font-size:13.5px;color:#7A5E1A;">เข้าสู่ระบบก่อนจอง เพื่อบันทึกการจองไว้ใน "ทริปของฉัน"</div>
         <button onclick="goLoginFromBooking()" style="background:var(--accent-trail);color:#fff;border:none;border-radius:8px;padding:9px 16px;font-family:'Sarabun',sans-serif;font-weight:700;font-size:13.5px;cursor:pointer;white-space:nowrap;">เข้าสู่ระบบ</button>
       </div>
+      <div id="lineLinkBox" style="display:none;align-items:center;gap:12px;background:#EEFBF1;border:1px solid #B8E6C6;border-radius:12px;padding:14px 16px;margin-bottom:16px;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="#06C755" style="flex-shrink:0;"><path d="M12 2C6.48 2 2 5.64 2 10.12c0 4.01 3.55 7.37 8.35 8 .32.07.77.21.88.49.1.25.07.63.03.88l-.14.85c-.04.25-.2.98.86.53s5.7-3.36 7.78-5.75C21.3 13.9 22 12.13 22 10.12 22 5.64 17.52 2 12 2z"/></svg>
+        <div style="flex:1;font-size:13.5px;color:#1B5E33;" id="lineLinkText">เชื่อมบัญชี LINE เพื่อรับแจ้งผลการจองทางแชท</div>
+        <button id="lineLinkBtn" onclick="LineLogin.start()" style="background:#06C755;color:#fff;border:none;border-radius:8px;padding:9px 16px;font-family:'Sarabun',sans-serif;font-weight:700;font-size:13.5px;cursor:pointer;white-space:nowrap;">เชื่อม LINE</button>
+      </div>
       <div id="orgBlockBanner" style="display:none;align-items:center;gap:12px;background:#FDEEEC;border:1px solid #E7B4AC;border-radius:12px;padding:14px 16px;margin-bottom:16px;">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C0392B" stroke-width="1.8" style="flex-shrink:0;"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
         <div style="flex:1;font-size:13.5px;color:#8A2A20;">คุณกำลังเข้าสู่ระบบด้วย<b>บัญชีผู้จัดทริป</b> — บัญชีผู้จัดจองทริปไม่ได้ กรุณาออกจากระบบแล้วเข้าด้วย<b>บัญชีลูกค้า</b>เพื่อจอง</div>
@@ -534,6 +539,19 @@ async function loadTripFromDB(id){
   }
   renderSummary();
   initSeatMap();
+}
+
+// แถบเชื่อมบัญชี LINE — โชว์เฉพาะเมื่อตั้งค่า LINE Login แล้วและผู้ใช้ล็อกอินอยู่
+async function renderLineLinkBox(){
+  const box=document.getElementById('lineLinkBox'); if(!box) return;
+  if(typeof LineLogin==='undefined' || !LineLogin.configured()){ box.style.display='none'; return; }
+  const st=await LineLogin.status();
+  if(!st.loggedIn){ box.style.display='none'; return; }
+  box.style.display='flex';
+  if(st.linked){
+    document.getElementById('lineLinkText').innerHTML='✓ เชื่อมบัญชี LINE แล้ว — เราจะแจ้งผลการจองให้ทางแชท';
+    const b=document.getElementById('lineLinkBtn'); if(b) b.style.display='none';
+  }
 }
 
 // ซ่อนฟอร์มจองทั้งหมด แล้วแสดงหน้า "ไม่พบทริป / ปิดรับจอง" + ปุ่มกลับหน้าแรก
@@ -1081,6 +1099,7 @@ async function initBookingAuth(){
     document.getElementById('f-email').value = prof.email || BOOKING_USER.email || '';
     if(prof.phone) document.getElementById('f-phone').value = prof.phone;
     window._existingLineId = prof.line_id || null;   // มี LINE ID แล้วไม่ต้องกรอกซ้ำ
+    renderLineLinkBox();                              // แสดงสถานะเชื่อม LINE
   } else {
     const b = document.getElementById('loginBanner');
     if(b) b.style.display = 'flex';

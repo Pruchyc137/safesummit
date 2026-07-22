@@ -404,3 +404,57 @@ function matchLocationImg(t){
   }
   return null;
 }
+
+// ─── LINE LOGIN (เก็บ line_uid ไว้แจ้งลูกค้าผ่าน OA) ──────────
+// Channel ID เป็นค่าสาธารณะ ใส่ในหน้าเว็บได้ (ส่วน Channel secret อยู่ใน Edge Function เท่านั้น)
+// ⚠️ ต้องสร้าง "LINE Login channel" ใน provider เดียวกับ OA ลูกค้า แล้วเอา Channel ID มาใส่ตรงนี้
+const LINE_LOGIN_CHANNEL_ID = '';   // <— ใส่ Channel ID ที่นี่ (เช่น '2001234567')
+
+const LineLogin = {
+  configured(){ return !!LINE_LOGIN_CHANNEL_ID; },
+  redirectUri(){ return location.origin + location.pathname.replace(/[^/]*$/, 'line-callback.html'); },
+
+  // เริ่ม OAuth — เก็บ state กัน CSRF + จำหน้าที่จะกลับไป
+  start(nextPath){
+    if(!this.configured()){ alert('ยังไม่ได้ตั้งค่า LINE Login (LINE_LOGIN_CHANNEL_ID ใน js/db.js)'); return; }
+    const state = Math.random().toString(36).slice(2) + Date.now().toString(36);
+    sessionStorage.setItem('ss_line_state', state);
+    sessionStorage.setItem('ss_line_next', nextPath || (location.pathname.split('/').pop() + location.search));
+    const p = new URLSearchParams({
+      response_type: 'code',
+      client_id: LINE_LOGIN_CHANNEL_ID,
+      redirect_uri: this.redirectUri(),
+      state,
+      scope: 'profile openid',
+    });
+    location.href = 'https://access.line.me/oauth2/v2.1/authorize?' + p.toString();
+  },
+
+  // ผูกบัญชี LINE แล้วหรือยัง
+  async status(){
+    try{
+      const { data:{ user } } = await db.auth.getUser();
+      if(!user) return { loggedIn:false, linked:false };
+      const { data } = await db.from('users').select('line_uid').eq('id', user.id).maybeSingle();
+      return { loggedIn:true, linked: !!(data && data.line_uid) };
+    }catch(e){ return { loggedIn:false, linked:false }; }
+  },
+
+  // ส่ง code ให้ Edge Function แลกเป็น userId (server-side) แล้วบันทึกให้
+  async exchange(code){
+    const { data:{ session } } = await db.auth.getSession();
+    if(!session) throw new Error('ยังไม่ได้เข้าสู่ระบบ');
+    const res = await fetch(SUPABASE_URL + '/functions/v1/line-login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_KEY,
+        'Authorization': 'Bearer ' + session.access_token,
+      },
+      body: JSON.stringify({ code, redirect_uri: this.redirectUri() }),
+    });
+    const out = await res.json().catch(()=>({}));
+    if(!res.ok) throw new Error(out.error || 'เชื่อม LINE ไม่สำเร็จ');
+    return out;
+  },
+};
