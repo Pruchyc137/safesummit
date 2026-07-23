@@ -28,17 +28,34 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
   if (req.method !== 'POST') return json({ error: 'method not allowed' }, 405);
 
-  // ── ตรวจรหัสลับของ admin ──
-  const adminKey = req.headers.get('x-admin-key');
-  if (!adminKey || adminKey !== Deno.env.get('ADMIN_API_KEY')) {
-    return json({ error: 'unauthorized' }, 401);
-  }
-
   // ── client ฝั่ง server ใช้ service_role (ข้าม RLS ได้) ──
   const supabase = createClient(
     Deno.env.get('SUPABASE_URL')!,
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
   );
+
+  // ── ตรวจสิทธิ์ admin แบบ dual-mode ──
+  //   (ก) ADMIN_API_KEY เดิม (x-admin-key) — ยังใช้ได้ ระบุตัวบุคคลไม่ได้
+  //   (ข) admin JWT — ผู้ใช้ Supabase Auth ที่อยู่ในตาราง admins → ระบุตัวบุคคลได้
+  let adminActor = 'admin';          // ชื่อผู้ทำ (ใช้ใน log)
+  let adminAuthed = false;
+  const adminKey = req.headers.get('x-admin-key');
+  if (adminKey && adminKey === Deno.env.get('ADMIN_API_KEY')) {
+    adminAuthed = true;              // โหมด key (นิรนาม)
+  } else {
+    const authz = req.headers.get('x-admin-jwt') || '';   // ส่ง JWT ผู้ใช้มาที่ header นี้
+    if (authz) {
+      try {
+        const { data } = await supabase.auth.getUser(authz);
+        const uid = data?.user?.id;
+        if (uid) {
+          const { data: a } = await supabase.from('admins').select('name').eq('user_id', uid).maybeSingle();
+          if (a) { adminAuthed = true; adminActor = (a.name || data.user?.email || 'admin'); }
+        }
+      } catch (_) { /* invalid jwt */ }
+    }
+  }
+  if (!adminAuthed) return json({ error: 'unauthorized' }, 401);
 
   let payload: { action?: string; id?: string; paid_amount?: number; note?: string; trip_id?: string; trip?: Record<string, unknown>; org?: Record<string, unknown> };
   try { payload = await req.json(); } catch { return json({ error: 'bad json' }, 400); }
@@ -254,7 +271,7 @@ Deno.serve(async (req) => {
       if ('image_url' in patch && (patch.image_url ?? null) !== oldImg) {
         try {
           await supabase.from('trip_image_log').insert({
-            trip_id: id, old_url: oldImg, new_url: (patch.image_url as string) ?? null, source: 'admin',
+            trip_id: id, old_url: oldImg, new_url: (patch.image_url as string) ?? null, source: adminActor,
           });
         } catch (_) { /* ตาราง log ยังไม่ถูกสร้าง (ยังไม่รัน phase18) → ข้าม */ }
       }

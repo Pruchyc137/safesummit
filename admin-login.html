@@ -38,16 +38,34 @@ body{font-family:'Sarabun',sans-serif;background:#FAF6EA;min-height:100vh;displa
 
   <div class="err" id="errMsg"></div>
 
+  <!-- โหมดใหม่: อีเมล + รหัสผ่าน (Supabase Auth) — ระบุตัวบุคคลได้ -->
   <div class="field">
-    <label>Admin Key <span style="color:#C0552F">*</span></label>
-    <input id="adminKey" type="password" placeholder="กรอก Admin Key" autocomplete="off"
-      onkeydown="if(event.key==='Enter')doLogin()">
-    <div style="font-size:11.5px;color:#8B7E6B;margin-top:6px;line-height:1.5;">
-      คีย์นี้ตรวจสอบที่เซิร์ฟเวอร์ (Supabase Edge Function) ไม่ได้เก็บไว้ในหน้าเว็บ
-    </div>
+    <label>อีเมล</label>
+    <input id="adminEmail" type="email" placeholder="admin@safesummit.com" autocomplete="username"
+      onkeydown="if(event.key==='Enter')document.getElementById('adminPw').focus()">
   </div>
+  <div class="field">
+    <label>รหัสผ่าน</label>
+    <input id="adminPw" type="password" placeholder="รหัสผ่าน" autocomplete="current-password"
+      onkeydown="if(event.key==='Enter')doAuthLogin()">
+  </div>
+  <button class="btn" id="authBtn" onclick="doAuthLogin()">เข้าสู่ระบบ Admin</button>
 
-  <button class="btn" id="loginBtn" onclick="doLogin()">เข้าสู่ระบบ Admin</button>
+  <!-- โหมดเดิม: Admin Key (fallback) -->
+  <div style="text-align:center;margin:16px 0 4px;">
+    <a href="#" onclick="toggleKey(event)" style="font-size:12.5px;color:#8B7E6B;">หรือใช้ Admin Key</a>
+  </div>
+  <div id="keyBox" style="display:none;">
+    <div class="field">
+      <label>Admin Key</label>
+      <input id="adminKey" type="password" placeholder="กรอก Admin Key" autocomplete="off"
+        onkeydown="if(event.key==='Enter')doLogin()">
+      <div style="font-size:11.5px;color:#8B7E6B;margin-top:6px;line-height:1.5;">
+        คีย์ร่วม (นิรนาม) — ตรวจที่เซิร์ฟเวอร์ · แนะนำให้ใช้อีเมลรายคนแทนเพื่อระบุตัวได้
+      </div>
+    </div>
+    <button class="btn" id="loginBtn" onclick="doLogin()" style="background:#8B7E6B;">เข้าด้วย Admin Key</button>
+  </div>
 
   <a href="index.html" class="back">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
@@ -55,12 +73,44 @@ body{font-family:'Sarabun',sans-serif;background:#FAF6EA;min-height:100vh;displa
   </a>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 // ประตูจริงคือ ADMIN_API_KEY ที่ตรวจฝั่งเซิร์ฟเวอร์ (Edge Function ใช้ service_role)
 // เดิมเช็ครหัสจากไฟล์ admin-accounts.js ที่ถูก publish สาธารณะ → ใครก็อ่านรหัสได้ จึงเลิกใช้
 const SUPABASE_URL = 'https://wucrvtgpjqjxxqarzcpv.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_ZSUjn3Y0_8FnVI2RlI08FA_-DY4NsVe';
 const ADMIN_FN_URL = SUPABASE_URL + '/functions/v1/super-processor';
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+function toggleKey(e){ if(e) e.preventDefault(); const b=document.getElementById('keyBox'); b.style.display = b.style.display==='none' ? 'block' : 'none'; }
+
+// โหมดใหม่: อีเมล+รหัสผ่าน (Supabase Auth) → ตรวจว่าอยู่ในตาราง admins → เข้า admin.html
+async function doAuthLogin(){
+  const email = document.getElementById('adminEmail').value.trim();
+  const pw    = document.getElementById('adminPw').value;
+  const err   = document.getElementById('errMsg');
+  const btn   = document.getElementById('authBtn');
+  err.style.display='none';
+  if(!email || !pw){ err.textContent='กรุณากรอกอีเมลและรหัสผ่าน'; err.style.display='block'; return; }
+  btn.disabled=true; btn.textContent='กำลังตรวจสอบ...';
+  try {
+    const { error } = await db.auth.signInWithPassword({ email, password: pw });
+    if(error){ err.textContent='อีเมลหรือรหัสผ่านไม่ถูกต้อง'; err.style.display='block'; return; }
+    const { data: isAdmin } = await db.rpc('am_i_admin');
+    if(isAdmin !== true){
+      await db.auth.signOut();
+      err.textContent='บัญชีนี้ไม่มีสิทธิ์ผู้ดูแลระบบ';
+      err.style.display='block';
+      return;
+    }
+    // ล็อกอินเป็น admin สำเร็จ — admin.html ใช้ session นี้ (ส่ง JWT ไปตรวจที่เซิร์ฟเวอร์)
+    sessionStorage.removeItem('ss_admin_key');   // ไม่ปนกับโหมด key
+    location.href = 'admin.html';
+  } catch(e){
+    err.textContent='เชื่อมต่อไม่สำเร็จ: '+(e.message||e); err.style.display='block';
+  } finally { btn.disabled=false; btn.textContent='เข้าสู่ระบบ Admin'; }
+}
 
 async function doLogin(){
   const key = document.getElementById('adminKey').value.trim();

@@ -58,7 +58,10 @@ Deno.serve(async (req) => {
   const custToken = Deno.env.get('CUSTOMER_LINE_CHANNEL_TOKEN')!;
 
   for (const ev of body.events || []) {
-    if (ev.type !== 'postback') continue;                    // สนใจเฉพาะปุ่มกด
+    // ── ช่วยตอนติดตั้ง: log groupId/userId ทุก event (ดูใน Function Logs เพื่อกรอก TEAM_LINE_GROUP_ID + whitelist)
+    console.log('[line-webhook] event', ev.type, 'groupId=', ev.source?.groupId, 'userId=', ev.source?.userId,
+      ev.type === 'message' ? ('text=' + (ev.message?.text || '')) : '');
+    if (ev.type !== 'postback') continue;                    // สนใจเฉพาะปุ่มกด (event อื่น log ไว้ช่วย setup)
     const params = new URLSearchParams(ev.postback?.data || '');
     const action = params.get('action');                     // approve | reject
     const bookingId = params.get('bookingId');
